@@ -20,6 +20,7 @@ defmodule Otera do
     * `:autoescape` - escapes the HTML characters in the output of each `{{ ... }}`, except an `Otera.Markup`. A boolean, or a function that gets the name of the template and gives a boolean, like `select_autoescape` of Jinja2. A template from a string has the name `nil`. The default is `false`.
     * `:loader` - the templates that `{% extends %}`, `{% include %}`, `{% import %}` and `load/2` can load by name. See `Otera.Loader`.
     * `:name` - the name of the template for `parse/2`, which errors and autoescape use. `load/2` gives each template its name.
+    * `:cache` - the name of an `Otera.Cache`, which keeps the templates of the loader for the next renders.
 
   A plain Elixir function gets the positional arguments of the call. For keyword arguments and defaults, give an `Otera.Function`, which has a Python signature. Values that a function returns become template values, like variables.
 

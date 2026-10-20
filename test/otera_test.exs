@@ -116,8 +116,10 @@ defmodule OteraTest do
     root = Path.expand("fixtures/templates", __DIR__)
     loader = Otera.Loader.file_system([Path.join(root, "partials"), root])
 
-    assert loader.("item.html") == {:ok, "item {{ name }}\n"}
-    assert loader.("layout.html") == File.read(Path.join(root, "layout.html"))
+    assert {:ok, "item {{ name }}\n", uptodate} = loader.("item.html")
+    assert uptodate.()
+    assert {:ok, source, _uptodate} = loader.("layout.html")
+    assert {:ok, source} == File.read(Path.join(root, "layout.html"))
     assert loader.("../templates/layout.html") == :error
     assert loader.("/etc/passwd") == :error
   end
@@ -131,5 +133,47 @@ defmodule OteraTest do
 
     assert {:error, %Otera.Error{kind: :recursion_error, line: 2, name: "ext.txt"}} =
              Otera.render("{% extends 'ext.txt' %}", %{}, loader: loader)
+  end
+
+  test "a cache keeps the templates of a loader across renders until they change" do
+    start_supervised!({Otera.Cache, name: OteraTest.Cache})
+    parent = self()
+
+    counting = fn name ->
+      send(parent, {:loaded, name})
+      {:ok, "[{{ x }}]"}
+    end
+
+    opts = [loader: counting, cache: OteraTest.Cache]
+    template = "{% include 'p' %}"
+    assert Otera.render(template, %{x: 1}, opts) == {:ok, "[1]"}
+    assert Otera.render(template, %{x: 2}, opts) == {:ok, "[2]"}
+    assert_received {:loaded, "p"}
+    refute_received {:loaded, "p"}
+
+    # The parse options are part of the key, and clear/1 empties the cache.
+    assert Otera.render(template, %{x: 3}, [trim_blocks: true] ++ opts) == {:ok, "[3]"}
+    assert_received {:loaded, "p"}
+    Otera.Cache.clear(OteraTest.Cache)
+    assert {:ok, %Otera.Template{name: "p"}} = Otera.load("p", opts)
+    assert_received {:loaded, "p"}
+
+    # A map loader reloads a name when the map has another source for it.
+    assert Otera.render(template, %{}, loader: %{"p" => "a"}, cache: OteraTest.Cache) ==
+             {:ok, "a"}
+
+    assert Otera.render(template, %{}, loader: %{"p" => "b"}, cache: OteraTest.Cache) ==
+             {:ok, "b"}
+  end
+
+  @tag :tmp_dir
+  test "a cache loads a file again when its modification time or size changes", %{tmp_dir: dir} do
+    start_supervised!({Otera.Cache, name: OteraTest.FileCache})
+    File.write!(Path.join(dir, "p.txt"), "one")
+    opts = [loader: Otera.Loader.file_system(dir), cache: OteraTest.FileCache]
+    assert Otera.render("{% include 'p.txt' %}", %{}, opts) == {:ok, "one"}
+
+    File.write!(Path.join(dir, "p.txt"), "three")
+    assert Otera.render("{% include 'p.txt' %}", %{}, opts) == {:ok, "three"}
   end
 end

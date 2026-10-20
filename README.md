@@ -82,7 +82,19 @@ Otera.render(page, %{}, loader: loader)
 Otera.render(template, %{user: user})
 ```
 
-Blocks support `super()`, `self.name()`, `scoped` and `required`. An include can take a list of names, `ignore missing`, and `with context` or `without context`. An import is without context by default, like in Jinja2. During a render, Otera loads and parses each template once. To parse the templates once for many renders, give the loader templates that `Otera.parse/2` made.
+Blocks support `super()`, `self.name()`, `scoped` and `required`. An include can take a list of names, `ignore missing`, and `with context` or `without context`. An import is without context by default, like in Jinja2.
+
+During a render, Otera loads and parses each template once. To keep the parsed templates for many renders, like the cache of a Jinja2 `Environment`, start an `Otera.Cache` in your supervision tree and give its name with the `:cache` option:
+
+```elixir
+children = [{Otera.Cache, name: MyApp.Templates}]
+
+opts = [loader: Otera.Loader.file_system("priv/templates"), cache: MyApp.Templates]
+{:ok, template} = Otera.load("page.html", opts)
+Otera.render(template, %{title: "Home"}, opts)
+```
+
+Like the auto reload of Jinja2, the cache loads a file again when its modification time or size changes, and a template of a map again when the map has another source for its name. A template of a function stays until `Otera.Cache.clear/1`, unless the function gives an `uptodate` function with the source. For a page with an extends tag and two includes, the cache makes a render about five times faster.
 
 ## Chat templates
 
