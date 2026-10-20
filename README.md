@@ -94,7 +94,13 @@ opts = [loader: Otera.Loader.file_system("priv/templates"), cache: MyApp.Templat
 Otera.render(template, %{title: "Home"}, opts)
 ```
 
-Like the auto reload of Jinja2, the cache loads a file again when its modification time or size changes, and a template of a map again when the map has another source for its name. A template of a function stays until `Otera.Cache.clear/1`, unless the function gives an `uptodate` function with the source. For a page with an extends tag and two includes, the cache makes a render about five times faster.
+Like the auto reload of Jinja2, the cache loads a file again when its modification time or size changes, and a template of a map again when the map has another source for its name. A template of a function stays until `Otera.Cache.clear/1`, unless the function gives an `uptodate` function with the source. These checks read the status of each file at each render. Like `auto_reload=False` in Jinja2, start the cache with `auto_reload: false` to use each template without a check until `Otera.Cache.clear/1`:
+
+```elixir
+children = [{Otera.Cache, name: MyApp.Templates, auto_reload: false}]
+```
+
+For a page with an extends tag and two includes from the file system, a render takes about 650 µs without the cache, 160 µs with it, and 67 µs with `auto_reload: false`.
 
 ## Chat templates
 

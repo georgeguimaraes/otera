@@ -19,22 +19,35 @@ defmodule Otera.Cache do
     * A template of `Otera.Loader.file_system/1` loads again when the modification time or the size of its file changes. The time has a resolution of one second.
     * A template of a map loads again when the map has another source for its name, like the `DictLoader` of Jinja2.
     * A template of a function loads again when the function gave an `uptodate` function with the source and that function returns false, like the `FunctionLoader` of Jinja2. Without it, the template stays until `clear/1`.
+
+  These checks have a cost: a file system loader reads the status of each file at each render. Like `auto_reload=False` in Jinja2, start the cache with `auto_reload: false` to use each template without a check until `clear/1`:
+
+      {Otera.Cache, name: MyApp.Templates, auto_reload: false}
   """
 
   use GenServer
 
+  # The table keeps the auto_reload option under this key, which clear/1 keeps.
+  @config :"$otera_auto_reload"
+
   @doc """
-  Starts the process that owns the cache. The option `:name` is the name of the cache, which the `:cache` option takes.
+  Starts the process that owns the cache.
+
+  Options:
+
+    * `:name` - the name of the cache, which the `:cache` option takes. Required.
+    * `:auto_reload` - checks if a template changed before each use. The default is `true`.
   """
   @spec start_link(keyword) :: GenServer.on_start()
   def start_link(opts) do
     name = Keyword.fetch!(opts, :name)
-    GenServer.start_link(__MODULE__, name, name: name)
+    GenServer.start_link(__MODULE__, {name, Keyword.get(opts, :auto_reload, true)}, name: name)
   end
 
   @impl true
-  def init(name) do
+  def init({name, auto_reload}) do
     :ets.new(name, [:named_table, :public, :set, read_concurrency: true])
+    :ets.insert(name, {@config, auto_reload})
     {:ok, name}
   end
 
@@ -43,24 +56,28 @@ defmodule Otera.Cache do
   """
   @spec clear(atom) :: :ok
   def clear(cache) do
-    :ets.delete_all_objects(cache)
+    :ets.match_delete(cache, {:_, :_, :_})
     :ok
   end
 
   @doc """
-  Returns the template under `key` when `fresh?` returns true for its freshness check, or else runs `load`, which returns a template and its freshness check, and keeps them.
+  Returns the template under `key` when `fresh?` returns true for its freshness check, or when the cache has `auto_reload: false`. Else runs `load`, which returns a template and its freshness check, and keeps them.
   """
   @spec fetch(atom, term, (term -> boolean), (-> {Otera.Template.t(), term})) ::
           Otera.Template.t()
   def fetch(cache, key, fresh?, load) do
     case :ets.lookup(cache, key) do
       [{^key, template, check}] ->
-        if fresh?.(check), do: template, else: store(cache, key, load.())
+        if not auto_reload?(cache) or fresh?.(check),
+          do: template,
+          else: store(cache, key, load.())
 
       [] ->
         store(cache, key, load.())
     end
   end
+
+  defp auto_reload?(cache), do: :ets.lookup_element(cache, @config, 2)
 
   defp store(cache, key, {template, check}) do
     :ets.insert(cache, {key, template, check})

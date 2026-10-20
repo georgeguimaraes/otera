@@ -176,4 +176,17 @@ defmodule OteraTest do
     File.write!(Path.join(dir, "p.txt"), "three")
     assert Otera.render("{% include 'p.txt' %}", %{}, opts) == {:ok, "three"}
   end
+
+  @tag :tmp_dir
+  test "a cache without auto reload keeps a changed file until clear", %{tmp_dir: dir} do
+    start_supervised!({Otera.Cache, name: OteraTest.StaticCache, auto_reload: false})
+    File.write!(Path.join(dir, "p.txt"), "one")
+    opts = [loader: Otera.Loader.file_system(dir), cache: OteraTest.StaticCache]
+    assert Otera.render("{% include 'p.txt' %}", %{}, opts) == {:ok, "one"}
+
+    File.write!(Path.join(dir, "p.txt"), "three")
+    assert Otera.render("{% include 'p.txt' %}", %{}, opts) == {:ok, "one"}
+    Otera.Cache.clear(OteraTest.StaticCache)
+    assert Otera.render("{% include 'p.txt' %}", %{}, opts) == {:ok, "three"}
+  end
 end
