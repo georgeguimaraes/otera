@@ -1,4 +1,4 @@
-# Otera
+# Otera お寺
 
 Otera (お寺, "temple") renders [Jinja](https://jinja.palletsprojects.com) templates in pure Elixir. It has no native code and no dependencies.
 
