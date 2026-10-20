@@ -68,13 +68,18 @@ To get the same prompt as transformers for messages and tool definitions that co
 
 Otera follows Python Jinja2 3.1: the lexer and its whitespace control, the operators and their precedence, scoping, macros and call blocks, loops with `loop` and `break` and `continue`, namespaces, the builtin filters and tests, and the Python methods of strings, lists and dicts. Values print like Python values, for example `True`, `None` and `['a', 1.5]`. Like transformers, Otera renders in the immutable sandbox of Jinja2, so `list.append` and `dict.update` raise a security error.
 
-These features are not in Otera yet: `extends`, `block`, `include`, `import` and `autoescape`. Without autoescape, `safe` gives a plain string.
+These features are not in Otera yet:
+
+* The tags `extends`, `block`, `include`, `import` and `autoescape`. Without autoescape, `safe` gives a plain string.
+* The filters `filesizeformat`, `groupby`, `pprint`, `random`, `striptags`, `urlencode`, `wordwrap` and `xmlattr`, and the functions `lipsum`, `cycler` and `joiner`.
 
 Known differences from Python:
 
+* Elixir floats have no inf, nan or complex values. Where Python gives one of them, Otera raises an `Otera.Error`.
 * `range()` gives a list, so it prints as a list.
 * Otera does not model the single pass of a Python generator, such as the result of `map` or `select`.
 * A macro that a template defines inside a loop reads the variables of the loop as they were when the template defined it.
+* Some rare parts of Python strings are missing: bytes and `str.encode`, `\N{...}` escapes, and the Unicode digits that are not decimal digits in `isdigit` and `isnumeric`.
 
 ## Tests
 
