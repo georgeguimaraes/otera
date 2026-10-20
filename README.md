@@ -124,6 +124,8 @@ Known differences from Python:
 * Otera values have no identity, so `x is sameas y` compares two equal lists or dicts as the same object.
 * `break` outside a loop raises an `Otera.SyntaxError` instead of a Python `SyntaxError`.
 * Python prints functions, generators and some other objects with their memory address, and Otera prints them without one.
+* A filter block whose filter gives a value that is not a string, such as `{% filter length %}`, prints the value. Python raises a `TypeError` when it joins the output of the template, without a template line.
+* The `urlize` filter is not in Otera yet.
 * A template that recurses without end raises an `Otera.Error` with the kind `:recursion_error` and the message `maximum recursion depth exceeded`. Python adds words to the message that depend on the frame where it stops. Otera counts a macro call as five Python frames and a template as one, so it stops at about the same depth as Python, which allows about 200 nested macro calls.
 * The character properties come from the pinned Python, but upper and lower case mappings come from Elixir and Erlang/OTP, whose Unicode version can be newer.
 
