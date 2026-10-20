@@ -302,7 +302,7 @@ defmodule Otera.Methods do
         {:clinic, ["width", {"fillchar", " "}]}
 
       name
-      when name in ~w(join zfill partition rpartition removeprefix removesuffix format_map) ->
+      when name in ~w(join zfill partition rpartition removeprefix removesuffix format_map translate) ->
         {:one, ["arg"]}
 
       "splitlines" ->
@@ -570,6 +570,19 @@ defmodule Otera.Methods do
   defp str_method(string, "isascii", []), do: string =~ ~r/\A[\x00-\x7F]*\z/
   defp str_method(string, "format_map", [mapping]), do: Format.format(string, [], mapping)
 
+  # str.translate looks up each code point in the table: a string, a code point or None.
+  defp str_method(string, "translate", [table]) do
+    for <<char::utf8 <- string>>, into: "" do
+      case translate_lookup(table, char) do
+        :error -> <<char::utf8>>
+        {:ok, nil} -> ""
+        {:ok, text} when is_binary(text) -> text
+        {:ok, code} when is_integer(code) -> <<code::utf8>>
+        {:ok, _other} -> type_error("character mapping must return integer, None or str")
+      end
+    end
+  end
+
   defp str_method(string, "encode", [encoding, _errors]),
     do: Otera.Bytes.encode(string, string_arg(encoding, "encode"))
 
@@ -601,6 +614,18 @@ defmodule Otera.Methods do
   defp str_method(string, "isupper", []), do: cases(string) == [:upper]
 
   defp str_method(string, name, args), do: not_supported(string, name, args)
+
+  defp translate_lookup(%Dict{} = table, char), do: Dict.fetch(table, char)
+
+  defp translate_lookup(table, char) when is_list(table) or is_tuple(table) or is_binary(table) do
+    case Value.getitem(table, char) do
+      %Otera.Undefined{} -> :error
+      value -> {:ok, value}
+    end
+  end
+
+  defp translate_lookup(table, _char),
+    do: type_error("'#{Value.type_name(table)}' object is not subscriptable")
 
   ## Other types
 

@@ -31,13 +31,14 @@ defmodule Otera.Evaluator do
   }
 
   # `escape` is the autoescape of the code that runs, which escapes its outputs and joins, like the
-  # compile-time autoescape of Jinja2. `autoescape` is the autoescape of the eval context at runtime,
-  # which decides if macros, set blocks and some filters give Markup. They differ only in a macro
-  # that a template calls where the autoescape differs from where it defined the macro.
+  # compile-time autoescape of Jinja2. The autoescape of the eval context at runtime, which decides
+  # if macros, set blocks and some filters give Markup, belongs to the context of the code, in
+  # Otera.State, because a macro runs with the context of the template that defines it.
   #
   # `output_check` is true in the root of a template with an extends tag, whose output stops when
-  # `parent` holds the template that it extends and the line of the extends tag. `depth` counts the nested renders and calls, like
-  # the Python stack. `options` are the options of the render, for the templates that it loads.
+  # `parent` holds the template that it extends and the line of the extends tag. `depth` counts the
+  # nested renders and calls, like the Python stack. `options` are the options of the render, for
+  # the templates that it loads.
   defstruct frames: [],
             root: nil,
             filters: %{},
@@ -45,7 +46,6 @@ defmodule Otera.Evaluator do
             globals: %{},
             name: nil,
             escape: false,
-            autoescape: false,
             output_check: false,
             parent: nil,
             depth: 0,
@@ -102,7 +102,8 @@ defmodule Otera.Evaluator do
       Map.new(template.blocks, fn {name, block} -> {name, [{template, block}]} end)
     )
 
-    render_root(template, %{ctx | frames: [context], autoescape: escape?(ctx, template)})
+    State.put({:autoescape, context}, escape?(ctx, template))
+    render_root(template, %{ctx | frames: [context]})
   end
 
   defp render_root(template, ctx) do
@@ -262,6 +263,7 @@ defmodule Otera.Evaluator do
     context = included_context(ctx)
     State.put({:blocks, context}, State.get({:blocks, context(ctx)}))
     State.put({:name, context}, template_name(context(ctx)))
+    State.put({:autoescape, context}, autoescape?(ctx))
     context
   end
 
@@ -294,6 +296,12 @@ defmodule Otera.Evaluator do
   end
 
   defp names(map), do: Map.new(map, fn {name, value} -> {to_string(name), value} end)
+
+  @doc """
+  Returns the autoescape of the eval context of the code that runs, which the filters `join`, `replace` and `xmlattr` follow.
+  """
+  @spec autoescape?(%__MODULE__{}) :: boolean
+  def autoescape?(ctx), do: State.get({:autoescape, context(ctx)})
 
   defp escape?(ctx, template),
     do: autoescape?(Keyword.get(ctx.options, :autoescape, false), template.name)
@@ -440,7 +448,7 @@ defmodule Otera.Evaluator do
 
     at(line, ctx, fn ->
       value = if filter, do: eval(fill_hole(filter, safe(value, ctx.escape)), ctx), else: value
-      value = if ctx.autoescape, do: Markup.new(Value.to_str(value)), else: value
+      value = if autoescape?(ctx), do: Markup.new(Value.to_str(value)), else: value
       {[], assign(target, value, ctx), :ok}
     end)
   end
@@ -497,10 +505,11 @@ defmodule Otera.Evaluator do
   defp exec({:autoescape, expr, body, line, scope}, ctx) do
     inner = open(ctx, scope, %{})
     autoescape = at(line, ctx, fn -> Value.truthy?(eval(expr, inner)) end)
-
-    {output, _inner, signal} =
-      exec_body(body, %{inner | escape: autoescape, autoescape: autoescape})
-
+    key = {:autoescape, context(ctx)}
+    saved = State.get(key)
+    State.put(key, autoescape)
+    {output, _inner, signal} = exec_body(body, %{inner | escape: autoescape})
+    State.put(key, saved)
     close(inner, scope)
     {output, ctx, signal}
   end
@@ -842,12 +851,14 @@ defmodule Otera.Evaluator do
   defp eval({:filter, name, expr, args, kwargs, _line}, ctx) do
     value = eval(expr, ctx)
     {args, kwargs} = eval_args(args, kwargs, ctx)
+    known!(:filter, name, is_map_key(ctx.filters, name) or Filters.builtin?(name))
     call_filter(ctx, name, value, args, kwargs)
   end
 
   defp eval({:test, name, expr, args, kwargs, _line}, ctx) do
     value = eval(expr, ctx)
     {args, kwargs} = eval_args(args, kwargs, ctx)
+    known!(:test, name, is_map_key(ctx.tests, name) or Tests.builtin?(name))
     call_test(ctx, name, value, args, kwargs)
   end
 
@@ -860,6 +871,17 @@ defmodule Otera.Evaluator do
   end
 
   defp concat(values, false), do: Enum.map_join(values, &Value.to_str/1)
+
+  # In an if block, Jinja2 compiles an unknown filter or test into a function that raises when the
+  # template calls it. `map` and `select` raise their own message for an unknown name.
+  defp known!(_type, _name, true), do: :ok
+
+  defp known!(type, name, false),
+    do:
+      raise(Otera.Error,
+        kind: :template_runtime_error,
+        message: "No #{type} named #{Value.repr(name)} found."
+      )
 
   defp eval_optional(nil, _ctx), do: nil
   defp eval_optional(expr, ctx), do: eval(expr, ctx)
@@ -956,7 +978,7 @@ defmodule Otera.Evaluator do
 
   defp call_value(%BlockReference{} = block, args, kwargs, ctx) do
     Methods.bind(args, kwargs, [], "BlockReference.__call__")
-    safe(render_block(block.context, block.name, block.depth, ctx), ctx.autoescape)
+    safe(render_block(block.context, block.name, block.depth, ctx), autoescape?(ctx))
   end
 
   defp call_value(%Loop{}, _args, _kwargs, _ctx),
@@ -1036,7 +1058,7 @@ defmodule Otera.Evaluator do
     {macro_ctx, kwargs} = bind_caller(macro_ctx, macro, kwargs)
     macro_ctx = macro_ctx |> bind_kwargs(macro, kwargs) |> bind_varargs(macro, extra)
     {output, _ctx, _signal} = exec_body(macro.body, macro_ctx)
-    safe(IO.iodata_to_binary(output), ctx.autoescape)
+    safe(IO.iodata_to_binary(output), autoescape?(ctx))
   end
 
   # Positional arguments come first, then keyword arguments, then defaults, which can read the
@@ -1112,6 +1134,20 @@ defmodule Otera.Evaluator do
   defp macro_error(macro, message),
     do:
       raise(Otera.Error, kind: :type_error, message: "macro #{Value.repr(macro.name)} #{message}")
+
+  defp builtin("range", _args, %Dict{pairs: [{name, _} | _]}),
+    do:
+      raise(Otera.Error,
+        kind: :type_error,
+        message: "safe_range() got an unexpected keyword argument #{Value.repr(name)}"
+      )
+
+  defp builtin("range", [], _kwargs),
+    do:
+      raise(Otera.Error,
+        kind: :type_error,
+        message: "range expected at least 1 argument, got 0"
+      )
 
   defp builtin("range", args, %Dict{pairs: []}) do
     {start, stop, step} =

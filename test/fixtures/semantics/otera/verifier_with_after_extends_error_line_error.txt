@@ -1,0 +1,5 @@
+{"x": "<a&b>", "y": 3, "items": [1, 2, 3], "names": ["a", "<b>"], "d": {"k": "<v>", "n": 2}, "none_var": null, "e": "", "incname": "inc.html", "flag": true, "parent": "base.html", "$settings": {"name": "main.html", "templates": {"base.html": "B{% block a %}A{% endblock %}"}}}
+---
+{% extends 'base.html' %}
+{% block a %}x{% endblock %}
+{% with q = undefined_thing.b %}{% endwith %}

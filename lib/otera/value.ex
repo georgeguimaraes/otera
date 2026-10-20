@@ -114,7 +114,9 @@ defmodule Otera.Value do
   def type_name(%Namespace{}), do: "Namespace"
   def type_name(%Macro{}), do: "Macro"
   def type_name(%Loop{}), do: "LoopContext"
-  def type_name(%Method{receiver: :builtins, name: "range"}), do: "function"
+
+  def type_name(%Method{receiver: :builtins, name: name}) when name in ["range", "lipsum"],
+    do: "function"
 
   def type_name(%Method{receiver: :builtins}), do: "type"
   def type_name(%Method{}), do: "builtin_function_or_method"
@@ -208,6 +210,9 @@ defmodule Otera.Value do
       "range" -> "<function safe_range>"
       "dict" -> "<class 'dict'>"
       "namespace" -> "<class 'jinja2.utils.Namespace'>"
+      "cycler" -> "<class 'jinja2.utils.Cycler'>"
+      "joiner" -> "<class 'jinja2.utils.Joiner'>"
+      "lipsum" -> "<function generate_lorem_ipsum>"
     end
   end
 
@@ -737,51 +742,64 @@ defmodule Otera.Value do
   Looks up `x.name`, like the immutable sandbox of Jinja2: a Python attribute first, then an item.
   """
   @spec getattr(term, String.t()) :: term
-  def getattr(%Undefined{} = undefined, _name), do: Undefined.fail(undefined)
-  def getattr(%Namespace{} = namespace, name), do: Namespace.get(namespace, name)
-  def getattr(%Loop{} = loop, name), do: Loop.get(loop, name)
-  def getattr(%Macro{} = macro, name), do: Macro.get(macro, name)
-  def getattr(%Otera.TemplateModule{} = module, name), do: Otera.TemplateModule.get(module, name)
-
-  def getattr(%Otera.TemplateReference{context: context} = reference, name) do
-    blocks = Otera.State.get({:blocks, context})
-
-    if is_map_key(blocks, name),
-      do: %Otera.BlockReference{context: context, name: name, depth: 0},
-      else: %Undefined{obj: reference, name: name}
-  end
-
-  def getattr(%Otera.BlockReference{} = block, "name"), do: block.name
-
-  def getattr(%Otera.BlockReference{context: context, name: name, depth: depth} = block, "super") do
-    if depth + 1 < Kernel.length(Otera.State.get({:blocks, context})[name]),
-      do: %{block | depth: depth + 1},
-      else: %Undefined{hint: "there is no parent block called #{repr(name)}.", name: "super"}
-  end
-
-  def getattr(%Otera.BlockReference{} = block, name), do: %Undefined{obj: block, name: name}
-  def getattr(%Otera.Cycler{} = cycler, name), do: Otera.Cycler.get(cycler, name)
-  def getattr(%Otera.Joiner{} = joiner, name), do: Otera.Joiner.get(joiner, name)
-  def getattr(%Otera.GroupTuple{grouper: grouper}, "grouper"), do: grouper
-  def getattr(%Otera.GroupTuple{list: list}, "list"), do: list
-
-  def getattr(%Otera.GroupTuple{} = group, name),
-    do: getattr(Otera.GroupTuple.to_tuple(group), name)
-
-  def getattr(number, name)
-      when (is_integer(number) or is_boolean(number)) and name in ["real", "numerator"],
-      do: number(number)
-
-  def getattr(number, "imag") when is_integer(number) or is_boolean(number), do: 0
-  def getattr(number, "denominator") when is_integer(number) or is_boolean(number), do: 1
-  def getattr(number, "real") when is_float(number), do: number
-  def getattr(number, "imag") when is_float(number), do: 0.0
-
-  def getattr(%Otera.Range{} = range, name) when name in ["start", "stop", "step"],
-    do: Map.fetch!(range, String.to_existing_atom(name))
-
   def getattr(object, name) do
-    if Methods.has?(object, name), do: method(object, name), else: item_or_undefined(object, name)
+    case attribute(object, name) do
+      {:ok, value} -> value
+      :error -> item_or_undefined(object, name)
+    end
+  end
+
+  @doc """
+  Returns `{:ok, value}` for the Python attribute `name` of `object`, or `:error`, like `getattr` in Python. The `attr` filter uses it, and does not look up items.
+  """
+  @spec attribute(term, String.t()) :: {:ok, term} | :error
+  def attribute(%Undefined{} = undefined, _name), do: Undefined.fail(undefined)
+  def attribute(%Namespace{} = namespace, name), do: {:ok, Namespace.get(namespace, name)}
+  def attribute(%Loop{} = loop, name), do: {:ok, Loop.get(loop, name)}
+  def attribute(%Macro{} = macro, name), do: {:ok, Macro.get(macro, name)}
+
+  def attribute(%Otera.TemplateModule{} = module, name),
+    do: {:ok, Otera.TemplateModule.get(module, name)}
+
+  # A TemplateReference has its blocks as items, not as attributes.
+  def attribute(%Otera.TemplateReference{}, _name), do: :error
+  def attribute(%Otera.BlockReference{} = block, "name"), do: {:ok, block.name}
+
+  def attribute(
+        %Otera.BlockReference{context: context, name: name, depth: depth} = block,
+        "super"
+      ) do
+    if depth + 1 < Kernel.length(Otera.State.get({:blocks, context})[name]),
+      do: {:ok, %{block | depth: depth + 1}},
+      else:
+        {:ok, %Undefined{hint: "there is no parent block called #{repr(name)}.", name: "super"}}
+  end
+
+  def attribute(%Otera.BlockReference{} = block, name),
+    do: {:ok, %Undefined{obj: block, name: name}}
+
+  def attribute(%Otera.Cycler{} = cycler, name), do: {:ok, Otera.Cycler.get(cycler, name)}
+  def attribute(%Otera.Joiner{} = joiner, name), do: {:ok, Otera.Joiner.get(joiner, name)}
+  def attribute(%Otera.GroupTuple{grouper: grouper}, "grouper"), do: {:ok, grouper}
+  def attribute(%Otera.GroupTuple{list: list}, "list"), do: {:ok, list}
+
+  def attribute(%Otera.GroupTuple{} = group, name),
+    do: attribute(Otera.GroupTuple.to_tuple(group), name)
+
+  def attribute(number, name)
+      when (is_integer(number) or is_boolean(number)) and name in ["real", "numerator"],
+      do: {:ok, number(number)}
+
+  def attribute(number, "imag") when is_integer(number) or is_boolean(number), do: {:ok, 0}
+  def attribute(number, "denominator") when is_integer(number) or is_boolean(number), do: {:ok, 1}
+  def attribute(number, "real") when is_float(number), do: {:ok, number}
+  def attribute(number, "imag") when is_float(number), do: {:ok, 0.0}
+
+  def attribute(%Otera.Range{} = range, name) when name in ["start", "stop", "step"],
+    do: {:ok, Map.fetch!(range, String.to_existing_atom(name))}
+
+  def attribute(object, name) do
+    if Methods.has?(object, name), do: {:ok, method(object, name)}, else: :error
   end
 
   @doc """
@@ -859,6 +877,12 @@ defmodule Otera.Value do
 
   defp fetch_item(%Otera.Range{} = range, index) when is_integer(index) or is_boolean(index),
     do: Otera.Range.fetch(range, number(index))
+
+  defp fetch_item(%Otera.TemplateReference{context: context}, name) when is_binary(name) do
+    if is_map_key(Otera.State.get({:blocks, context}), name),
+      do: {:ok, %Otera.BlockReference{context: context, name: name, depth: 0}},
+      else: :error
+  end
 
   defp fetch_item(%Namespace{} = namespace, name) when is_binary(name),
     do: Namespace.fetch(namespace, name)

@@ -13,11 +13,8 @@ defmodule Otera.Filters do
     HTML,
     Iterable,
     JSON,
-    Loop,
-    Macro,
     Markup,
     Methods,
-    Namespace,
     Undefined,
     Value
   }
@@ -134,11 +131,11 @@ defmodule Otera.Filters do
             message: "Invalid character in attribute name: #{Value.repr(key)}"
         end
 
-        "#{HTML.escape(key)}=\"#{HTML.escape(Value.to_str(item))}\""
+        "#{Markup.escape(key).text}=\"#{Markup.escape(item).text}\""
       end)
 
     text = if Value.truthy?(autospace) and text != "", do: " " <> text, else: text
-    if env.autoescape, do: Markup.new(text), else: text
+    if Evaluator.autoescape?(env), do: Markup.new(text), else: text
   end
 
   defp filter("filesizeformat", value, args, kwargs, _env) do
@@ -206,7 +203,7 @@ defmodule Otera.Filters do
     # Like do_replace: with autoescape, a Markup argument escapes a plain string value.
     value =
       cond do
-        not env.autoescape ->
+        not Evaluator.autoescape?(env) ->
           Value.to_str(value)
 
         is_struct(old, Markup) or (is_struct(new, Markup) and not is_struct(value, Markup)) ->
@@ -216,7 +213,7 @@ defmodule Otera.Filters do
           Markup.soft_str(value)
       end
 
-    plain = &if(env.autoescape, do: Markup.soft_str(&1), else: Value.to_str(&1))
+    plain = &if(Evaluator.autoescape?(env), do: Markup.soft_str(&1), else: Value.to_str(&1))
     Methods.call(value, "replace", [plain.(old), plain.(new), count || -1], %Dict{})
   end
 
@@ -229,7 +226,11 @@ defmodule Otera.Filters do
     [width, first, blank] =
       bind("do_indent", args, kwargs, [{"width", 4}, {"first", false}, {"blank", false}])
 
-    indention = if is_binary(width), do: width, else: String.duplicate(" ", width)
+    indention =
+      if is_binary(width) or is_struct(width, Markup),
+        do: Value.to_str(width),
+        else: Value.to_str(Value.binary_op(:mul, " ", width))
+
     # A Markup value makes the indention a Markup too, so nothing is escaped.
     Markup.map(indent_value(value), &indent(&1, indention, first, blank))
   end
@@ -368,6 +369,7 @@ defmodule Otera.Filters do
       value ->
         case Value.to_list(value) do
           [] -> %Undefined{hint: "No last item, sequence was empty."}
+          items when is_struct(value, Markup) -> Markup.new(List.last(items))
           items -> List.last(items)
         end
     end
@@ -395,7 +397,7 @@ defmodule Otera.Filters do
     items = value |> Value.to_list() |> Enum.map(getter)
 
     # Like do_join: with autoescape, a Markup item or separator escapes the plain strings.
-    if env.autoescape and
+    if Evaluator.autoescape?(env) and
          (is_struct(separator, Markup) or Enum.any?(items, &is_struct(&1, Markup))),
        do: Methods.call(Markup.escape(separator), "join", [items], %Dict{}),
        else: Enum.map_join(items, Value.to_str(separator), &Value.to_str/1)
@@ -516,30 +518,22 @@ defmodule Otera.Filters do
   defp filter("attr", value, args, kwargs, _env) do
     [name] = bind("do_attr", args, kwargs, ["name"])
 
-    if Methods.has?(value, name) or is_struct(value, Namespace) or is_struct(value, Loop) or
-         is_struct(value, Macro),
-       do: Value.getattr(value, name),
-       else: %Undefined{obj: value, name: name}
+    case Value.attribute(value, Value.to_str(name)) do
+      {:ok, attribute} -> attribute
+      :error -> %Undefined{obj: value, name: name}
+    end
   end
 
   defp filter("batch", value, args, kwargs, _env) do
     [count, fill_with] = bind("do_batch", args, kwargs, ["linecount", {"fill_with", nil}])
-
-    value
-    |> Value.to_list()
-    |> Enum.chunk_every(count)
-    |> Enum.map(fn chunk ->
-      if fill_with != nil and length(chunk) < count,
-        do: chunk ++ List.duplicate(fill_with, count - length(chunk)),
-        else: chunk
-    end)
+    batch(Value.to_list(value), count, fill_with, [], [])
   end
 
   defp filter("slice", value, args, kwargs, _env) do
     [slices, fill_with] = bind("do_slice", args, kwargs, ["slices", {"fill_with", nil}])
     items = Value.to_list(value)
-    per_slice = div(length(items), slices)
-    with_extra = rem(length(items), slices)
+    per_slice = Value.binary_op(:floordiv, length(items), slices)
+    with_extra = Value.binary_op(:mod, length(items), slices)
 
     Enum.map(0..(slices - 1)//1, fn number ->
       start = number * per_slice + min(number, with_extra)
@@ -567,7 +561,7 @@ defmodule Otera.Filters do
     do:
       raise(Otera.Error,
         kind: :template_runtime_error,
-        message: "No filter named #{Value.repr(name)} found."
+        message: "No filter named #{Value.repr(name)}."
       )
 
   @doc """
@@ -632,7 +626,7 @@ defmodule Otera.Filters do
   # Python float(value), with its errors.
   defp python_float(value) do
     case to_float(value) do
-      nil when is_binary(value) ->
+      nil when is_binary(value) or is_struct(value, Markup) ->
         raise Otera.Error,
           kind: :value_error,
           message: "could not convert string to float: #{Value.repr(value)}"
@@ -668,6 +662,26 @@ defmodule Otera.Filters do
     do: &Evaluator.call_test(env, test, &1, rest, kwargs)
 
   defp select_test([], _kwargs, _env), do: &Value.truthy?/1
+
+  # do_batch of Jinja2: a batch goes out when the next item comes, so a count of 0 gives an empty batch.
+  defp batch([], _count, _fill_with, [], batches), do: Enum.reverse(batches)
+
+  defp batch([], count, fill_with, tmp, batches) do
+    tmp = Enum.reverse(tmp)
+
+    tmp =
+      if fill_with != nil and length(tmp) < count,
+        do: tmp ++ List.duplicate(fill_with, count - length(tmp)),
+        else: tmp
+
+    Enum.reverse([tmp | batches])
+  end
+
+  defp batch([item | rest], count, fill_with, tmp, batches) do
+    if length(tmp) == count,
+      do: batch(rest, count, fill_with, [item], [Enum.reverse(tmp) | batches]),
+      else: batch(rest, count, fill_with, [item | tmp], batches)
+  end
 
   defp filter_argument_error(message),
     do: raise(Otera.Error, kind: :filter_argument_error, message: message)

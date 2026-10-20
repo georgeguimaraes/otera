@@ -1,0 +1,6 @@
+{"items": [1, 2, 3]}
+---
+{{ "abc".translate({97: "x", 98: none, 99: 65}) }} {{ "abc".translate({"a": 1}) }} {{ "ab".translate("XYZ" * 40) }} {{ ("<a>"|safe).translate({97: "&"}) }}
+batch: {{ items|batch(-1)|list }} {{ items|batch(2, "x")|list }} {{ items|batch(1)|list }} {{ []|batch(2)|list }}
+slice: {{ items|slice(-2)|list }} {{ items|slice(2)|list }} {{ items|slice(5, "f")|list }}
+reprs: {{ joiner }} {{ namespace }} {{ dict }} {{ cycler|string }}

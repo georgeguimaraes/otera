@@ -61,7 +61,7 @@ defmodule Otera.Parser do
     for {:block, _, _, _, block_body, _, _} <- blocks(body),
         do: check_names(block_body, known, @inner)
 
-    {body, _last} = fill_lines(body, 1)
+    {body, _last} = fill_lines(body, 1, %{known: false, top: true, root: true})
     body
   end
 
@@ -101,83 +101,104 @@ defmodule Otera.Parser do
   # it compiled before that code. Most statements and outputs set the line, but the namespace check
   # of a set and the assignments of a with block have no line of their own, so their errors give
   # the line of the code before them. `last` is that line, in the order of the compiled code.
-  defp fill_lines(nodes, last), do: Enum.map_reduce(nodes, last, &fill_line/2)
+  #
+  # After an extends tag at the root of a template, Jinja2 compiles no outputs in the code of the
+  # root, and no blocks at the top level, so they set no line. `frame` tells if the code is after
+  # such an extends tag (`known`), at the top level (`top`) and at the root (`root`).
+  @free %{known: false, top: false, root: false}
 
-  defp fill_line({:output, _expr, line} = node, _last), do: {node, line}
+  defp fill_lines(nodes, last, frame) do
+    {nodes, {last, _frame}} =
+      Enum.map_reduce(nodes, {last, frame}, fn node, {last, frame} ->
+        {node, last} = fill_line(node, last, frame)
+        known? = frame.known or (frame.root and match?({:extends, _, _, _}, node))
+        {node, {last, %{frame | known: known?}}}
+      end)
 
-  defp fill_line({control, line} = node, _last) when control in [:break, :continue],
+    {nodes, last}
+  end
+
+  defp fill_line({:output, _expr, line} = node, last, frame),
+    do: {node, if(frame.known, do: last, else: line)}
+
+  defp fill_line({control, line} = node, _last, _frame) when control in [:break, :continue],
     do: {node, line}
 
-  defp fill_line({:set, target, expr, line, nil}, last),
+  defp fill_line({:set, target, expr, line, nil}, last, _frame),
     do: {{:set, target, expr, line, last}, line}
 
-  defp fill_line({:if, branches, else_body}, last) do
+  defp fill_line({:if, branches, else_body}, last, frame) do
+    frame = %{frame | root: false}
+
     {branches, last} =
       Enum.map_reduce(branches, last, fn {test, body, line}, _last ->
-        {body, last} = fill_lines(body, line)
+        {body, last} = fill_lines(body, line, frame)
         {{test, body, line}, last}
       end)
 
-    {else_body, last} = fill_lines(else_body, last)
+    {else_body, last} = fill_lines(else_body, last, frame)
     {{:if, branches, else_body}, last}
   end
 
-  defp fill_line({:for, target, iter, test, body, else_body, recursive?, line, nil}, _last) do
-    {body, last} = fill_lines(body, line)
-    {else_body, last} = fill_lines(else_body, last)
+  defp fill_line({:for, target, iter, test, body, else_body, recursive?, line, nil}, _last, frame) do
+    frame = %{frame | top: false, root: false}
+    {body, last} = fill_lines(body, line, frame)
+    {else_body, last} = fill_lines(else_body, last, frame)
     # A recursive loop is a function, and the code that calls it comes after it.
     last = if recursive?, do: line, else: last
     {{:for, target, iter, test, body, else_body, recursive?, line, nil}, last}
   end
 
-  defp fill_line({:set_block, target, filter, body, line, nil}, last) do
-    {body, _last} = fill_lines(body, last)
+  defp fill_line({:set_block, target, filter, body, line, nil}, last, _frame) do
+    {body, _last} = fill_lines(body, last, @free)
     {{:set_block, target, filter, body, line, nil}, line}
   end
 
-  defp fill_line({:macro, name, params, body, special_names, line, nil}, _last) do
-    {body, last} = fill_lines(body, line)
+  defp fill_line({:macro, name, params, body, special_names, line, nil}, _last, _frame) do
+    {body, last} = fill_lines(body, line, @free)
     {{:macro, name, params, body, special_names, line, nil}, last}
   end
 
-  defp fill_line({:call_block, call, params, body, special_names, line, nil}, _last) do
-    {body, _last} = fill_lines(body, line)
+  defp fill_line({:call_block, call, params, body, special_names, line, nil}, _last, _frame) do
+    {body, _last} = fill_lines(body, line, @free)
     {{:call_block, call, params, body, special_names, line, nil}, line}
   end
 
-  defp fill_line({:filter_block, filter, body, line, nil}, last) do
-    {body, _last} = fill_lines(body, last)
+  defp fill_line({:filter_block, filter, body, line, nil}, last, frame) do
+    {body, _last} = fill_lines(body, last, %{frame | top: false, root: false})
     {{:filter_block, filter, body, line, nil}, line}
   end
 
-  defp fill_line({:with, assignments, body, nil, nil}, last) do
-    {body, body_last} = fill_lines(body, last)
+  defp fill_line({:with, assignments, body, nil, nil}, last, frame) do
+    {body, body_last} = fill_lines(body, last, %{frame | top: false, root: false})
     {{:with, assignments, body, last, nil}, body_last}
   end
 
-  defp fill_line({:autoescape, expr, body, nil, nil}, last) do
-    {body, body_last} = fill_lines(body, last)
+  defp fill_line({:autoescape, expr, body, nil, nil}, last, frame) do
+    {body, body_last} = fill_lines(body, last, %{frame | top: false, root: false})
     {{:autoescape, expr, body, last, nil}, body_last}
   end
 
-  defp fill_line({:generation, body, nil}, last) do
-    {body, last} = fill_lines(body, last)
+  defp fill_line({:generation, body, nil}, last, _frame) do
+    {body, last} = fill_lines(body, last, @free)
     {{:generation, body, nil}, last}
   end
 
-  defp fill_line({:extends, expr, line, nil}, last), do: {{:extends, expr, line, last}, line}
+  defp fill_line({:extends, expr, line, nil}, last, _frame),
+    do: {{:extends, expr, line, last}, line}
 
   # A block is a function of its own, and the code that renders it has the line of the block.
-  defp fill_line({:block, name, scoped?, required?, body, line, nil}, _last) do
-    {body, _last} = fill_lines(body, line)
-    {{:block, name, scoped?, required?, body, line, nil}, line}
+  defp fill_line({:block, name, scoped?, required?, body, line, nil}, last, frame) do
+    {body, _last} = fill_lines(body, line, @free)
+    last = if frame.top and frame.known, do: last, else: line
+    {{:block, name, scoped?, required?, body, line, nil}, last}
   end
 
-  defp fill_line({tag, _expr, _a, _b, line} = node, _last)
+  defp fill_line({tag, _expr, _a, _b, line} = node, _last, _frame)
        when tag in [:include, :import, :from_import],
        do: {node, line}
 
-  defp fill_line(node, last), do: {node, last}
+  defp fill_line(node, last, _frame), do: {node, last}
 
   # Jinja2 resolves filters and tests at compile time, but not in the soft frames of if blocks and
   # inline ifs. `frame` also tells if the code is at the top level, where an extends tag can be: the

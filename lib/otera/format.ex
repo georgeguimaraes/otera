@@ -115,14 +115,25 @@ defmodule Otera.Format do
     end
   end
 
+  # The `%` of a Markup escapes each argument, but a Markup argument stays as it is.
+  defp printf_convert(value, "s", %{escape: true} = spec),
+    do: pad(truncate(Otera.Markup.escape(value).text, spec.precision), spec)
+
   defp printf_convert(value, "s", spec),
-    do: pad(truncate(escape(Value.to_str(value), spec), spec.precision), spec)
+    do: pad(truncate(Value.to_str(value), spec.precision), spec)
 
   defp printf_convert(value, "r", spec),
     do: pad(truncate(escape(Value.repr(value), spec), spec.precision), spec)
 
   defp printf_convert(value, "a", spec),
     do: pad(truncate(escape(ascii(value), spec), spec.precision), spec)
+
+  # markupsafe wraps each argument of the `%` of a Markup in a helper that is no integer.
+  defp printf_convert(_value, "c", %{escape: true}),
+    do: fail(:type_error, "%c requires int or char")
+
+  defp printf_convert(_value, type, %{escape: true}) when type in ["x", "X", "o"],
+    do: fail(:type_error, "%#{type} format: an integer is required, not _MarkupEscapeHelper")
 
   defp printf_convert(value, "c", spec) when is_integer(value), do: pad(<<value::utf8>>, spec)
   defp printf_convert(<<_::utf8>> = value, "c", spec), do: pad(value, spec)

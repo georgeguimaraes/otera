@@ -33,13 +33,15 @@ defmodule Otera.Tests do
   @spec call(String.t(), term, list, Dict.t(), map) :: boolean
   def call(name, value, args, kwargs, env)
 
-  def call(name, value, args, kwargs, _env) when is_map_key(@comparisons, name) do
-    [other] = Methods.bind(args, kwargs, ["b"], name)
+  # Jinja2 uses the functions of the Python operator module for these tests.
+  def call(name, value, args, %Dict{pairs: kwargs}, _env) when is_map_key(@comparisons, name) do
+    op = @comparisons[name]
+    function = %{eq: "eq", ne: "ne", lt: "lt", lteq: "le", gt: "gt", gteq: "ge"}[op]
 
-    case @comparisons[name] do
-      :eq -> Value.equal?(value, other)
-      :ne -> not Value.equal?(value, other)
-      op -> Value.compare(op, value, other)
+    cond do
+      kwargs != [] -> type_error("_operator.#{function}() takes no keyword arguments")
+      length(args) != 1 -> type_error("#{function} expected 2 arguments, got #{length(args) + 1}")
+      true -> compare(op, value, hd(args))
     end
   end
 
@@ -55,8 +57,14 @@ defmodule Otera.Tests do
     do:
       raise(Otera.Error,
         kind: :template_runtime_error,
-        message: "No test named #{Value.repr(name)} found."
+        message: "No test named #{Value.repr(name)}."
       )
+
+  defp compare(:eq, value, other), do: Value.equal?(value, other)
+  defp compare(:ne, value, other), do: not Value.equal?(value, other)
+  defp compare(op, value, other), do: Value.compare(op, value, other)
+
+  defp type_error(message), do: raise(Otera.Error, kind: :type_error, message: message)
 
   @doc """
   Returns true if `name` is a builtin test.

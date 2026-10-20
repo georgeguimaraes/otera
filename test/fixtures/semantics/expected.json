@@ -516,6 +516,20 @@
  "otera/code_points.txt": {
   "output": "00a\r\nb|a\r…|4|\r\nb|b\n\ra|**a\r\nb*\ne|e|e|3|e|['e', '́', 'x']\n2 3 a       b|a   bc  d|x\n  y\nHello O'neil X-Ray"
  },
+ "otera/comparison_test_arity_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "lt expected 2 arguments, got 3",
+   "line": 1
+  }
+ },
+ "otera/comparison_test_keyword_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "_operator.ne() takes no keyword arguments",
+   "line": 1
+  }
+ },
  "otera/comparisons.txt": {
   "output": "chain: True False True True False True False\norder: True True True True True\nin: True True True False True False True\ndict-eq: True True\nlogic: fallback  b None True True False\ntruthy: FFFFFFTTTT"
  },
@@ -1263,6 +1277,16 @@
    "line": 1
   }
  },
+ "otera/str_translate.txt": {
+  "output": "xA abc YZ <&>\nbatch: [[1, 2, 3]] [[1, 2], [3, 'x']] [[1], [2], [3]] []\nslice: [] [[1, 2], [3]] [[1], [2], [3], ['f'], ['f']]\nreprs: <class 'jinja2.utils.Joiner'> <class 'jinja2.utils.Namespace'> <class 'dict'> <class 'jinja2.utils.Cycler'>"
+ },
+ "otera/str_translate_mapping_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "character mapping must return integer, None or str",
+   "line": 1
+  }
+ },
  "otera/string_literals.txt": {
   "output": "tab\there|single 'quoted'|double \"quoted\"|back\\slash\nunicode é 😀 A|octal A|unknown \\d escape\nadjacent strings concatenate\nmulti\nline\nits\n日本語 ✓"
  },
@@ -1371,6 +1395,112 @@
    "message": "unhashable type: 'list'",
    "line": 1
   }
+ },
+ "otera/verifier_attr_on_undefined_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "No first item, sequence was empty.",
+   "line": 1
+  }
+ },
+ "otera/verifier_batch_zero_crash.txt": {
+  "output": "[[], [1, 2, 3]]"
+ },
+ "otera/verifier_caller_from_non_autoescaped_template.txt": {
+  "output": "<<<a&b>>>"
+ },
+ "otera/verifier_cycler_repr_crash.txt": {
+  "output": "<class 'jinja2.utils.Cycler'>"
+ },
+ "otera/verifier_equalto_arity_message_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "eq expected 2 arguments, got 1",
+   "line": 1
+  }
+ },
+ "otera/verifier_import_body_attr_on_undefined_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "No first item, sequence was empty.",
+   "line": 3,
+   "name": "err.html"
+  }
+ },
+ "otera/verifier_indent_markup_width_crash.txt": {
+  "output": "a\n<>b"
+ },
+ "otera/verifier_markup_filesizeformat_message_error.txt": {
+  "error": {
+   "type": "ValueError",
+   "message": "could not convert string to float: Markup('<a&b>')",
+   "line": 1
+  }
+ },
+ "otera/verifier_markup_last_item.txt": {
+  "output": ">"
+ },
+ "otera/verifier_markup_mod_int_format_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "%x format: an integer is required, not _MarkupEscapeHelper",
+   "line": 1
+  }
+ },
+ "otera/verifier_markup_mod_markup_arg_reescaped.txt": {
+  "output": "<a&b>|<a&b>|<a&b>"
+ },
+ "otera/verifier_range_attr_filter.txt": {
+  "output": "02"
+ },
+ "otera/verifier_range_keyword_crash_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "safe_range() got an unexpected keyword argument 'y'",
+   "line": 1
+  }
+ },
+ "otera/verifier_range_no_args_message_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "range expected at least 1 argument, got 0",
+   "line": 1
+  }
+ },
+ "otera/verifier_slice_zero_crash_error.txt": {
+  "error": {
+   "type": "ZeroDivisionError",
+   "message": "integer division or modulo by zero",
+   "line": 1
+  }
+ },
+ "otera/verifier_str_translate_missing.txt": {
+  "output": "[a&b>"
+ },
+ "otera/verifier_unknown_filter_message_error.txt": {
+  "error": {
+   "type": "TemplateRuntimeError",
+   "message": "No filter named 'nofilter'.",
+   "line": 1
+  }
+ },
+ "otera/verifier_unknown_test_message_error.txt": {
+  "error": {
+   "type": "TemplateRuntimeError",
+   "message": "No test named 'nope'.",
+   "line": 1
+  }
+ },
+ "otera/verifier_with_after_extends_error_line_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'undefined_thing' is undefined",
+   "line": 1,
+   "name": "main.html"
+  }
+ },
+ "otera/verifier_xmlattr_escapes_markup.txt": {
+  "output": " d=\"<a&b>\""
  },
  "otera/whitespace_chat_settings.txt": {
   "output": "<start>\n    a\n    b\n    stripped left\ntab before tag  plus keeps indent\nplus keeps newline\n  text  after\n  variable tags are not stripped  {{ raw }}  xyz\n<end>"
