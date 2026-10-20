@@ -9,6 +9,7 @@ on:
     paths:
       - "scripts/**"
       - "test/fixtures/**"
+      - "priv/**"
       - ".github/workflows/reference.yml"
   schedule:
     - cron: "0 6 * * 1"
@@ -48,17 +49,18 @@ jobs:
         run: |
           uv run --locked --project scripts python -I scripts/generate_chat_expected.py
           uv run --locked --project scripts python -I scripts/generate_semantics_expected.py
+          uv run --locked --project scripts python -I scripts/generate_html_entities.py
       - name: Show the fixture changes
         run: |
-          git add --intent-to-add test/fixtures
-          git diff --stat -- test/fixtures
+          git add --intent-to-add test/fixtures priv
+          git diff --stat -- test/fixtures priv
       - name: Run tests
         run: mix test
       - name: Fail when the fixtures changed
         if: ${{ !cancelled() }}
         run: |
-          if [ -n "$(git status --porcelain -- test/fixtures)" ]; then
-            echo "::error::The Python reference gives other fixtures than the fixtures in this PR. Python changed its behavior or the fixtures are stale. Run 'uv run --project scripts python -I scripts/generate_chat_expected.py' and 'uv run --project scripts python -I scripts/generate_semantics_expected.py', then commit the changes in test/fixtures."
+          if [ -n "$(git status --porcelain -- test/fixtures priv)" ]; then
+            echo "::error::The Python reference gives other fixtures than the fixtures in this PR. Python changed its behavior or the fixtures are stale. Run 'uv run --project scripts python -I scripts/generate_chat_expected.py', 'uv run --project scripts python -I scripts/generate_semantics_expected.py' and 'uv run --project scripts python -I scripts/generate_html_entities.py', then commit the changes in test/fixtures and priv."
             exit 1
           fi
 

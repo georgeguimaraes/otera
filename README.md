@@ -94,7 +94,8 @@ The tests compare Otera with Python Jinja2. The scripts in `scripts/` make the e
 
 * `fetch_chat_templates.py` fetches the chat templates of the most downloaded text-generation models of the Hugging Face Hub into `test/fixtures/chat_templates`.
 * `generate_chat_expected.py` renders each template with each conversation of `test/fixtures/conversations.json` with transformers, and writes `test/fixtures/chat_expected`.
-* `generate_semantics_expected.py` renders the cases of `test/fixtures/semantics` with Python Jinja2. Some cases come from the tests of [minijinja](https://github.com/mitsuhiko/minijinja).
+* `generate_semantics_expected.py` renders the cases of `test/fixtures/semantics` with Python Jinja2. Some cases come from the tests of [minijinja](https://github.com/mitsuhiko/minijinja). It also renders the 2990 random templates of `test/fixtures/differential`, which `import_differential_cases.py` took from a differential check of Otera against Jinja2.
+* `generate_html_entities.py` writes the HTML5 character references of Python to `priv/html_entities.json`, for the `striptags` filter.
 
 `scripts/pyproject.toml` and `scripts/uv.lock` pin the versions of Python, Jinja2 and transformers. To make the fixtures again, run these commands from the root of the repository:
 
@@ -102,6 +103,7 @@ The tests compare Otera with Python Jinja2. The scripts in `scripts/` make the e
 uv run --project scripts python -I scripts/fetch_chat_templates.py
 uv run --project scripts python -I scripts/generate_chat_expected.py
 uv run --project scripts python -I scripts/generate_semantics_expected.py
+uv run --project scripts python -I scripts/generate_html_entities.py
 ```
 
 The first command changes the corpus. Run it only when you want the new templates of the Hub. Set `HF_TOKEN` to fetch the gated repositories instead of their public mirrors.
@@ -109,7 +111,7 @@ The first command changes the corpus. Run it only when you want the new template
 CI tracks the Python reference:
 
 * Dependabot opens a PR when Jinja2 or transformers has a new version.
-* The workflow `reference.yml` runs on each PR that changes `scripts/` or `test/fixtures/`. It makes the fixtures again with the locked versions and runs the tests. It fails when the fixtures change. Then run the last two commands and commit the changes in `test/fixtures`.
+* The workflow `reference.yml` runs on each PR that changes `scripts/`, `test/fixtures/` or `priv/`. It makes the fixtures again with the locked versions and runs the tests. It fails when the fixtures change. Then run the last three commands and commit the changes in `test/fixtures` and `priv`.
 * Each Monday, `reference.yml` fetches the chat templates of the Hub again. When the corpus changes, it opens or updates the PR "test: Refresh the chat template corpus".
 
 A red PR shows that Python changed its behavior, or that Otera does not render a new template like Python.

@@ -2,7 +2,7 @@
 
 Usage (from the repository root):
 
-    uv run --no-project python -I scripts/import_differential_cases.py VERIFIER_DIR
+    uv run --project scripts python -I scripts/import_differential_cases.py VERIFIER_DIR
 
 VERIFIER_DIR has the files cases1.json to cases9.json, which hold about 3000 random templates. Each case
 has an "id", a template "t", the variables "v" as JSON text, and the settings "s": "chat" for the

@@ -2,7 +2,7 @@
 
 Usage (from the repository root):
 
-    uv run --no-project python -I scripts/generate_html_entities.py
+    uv run --project scripts python -I scripts/generate_html_entities.py
 
 Otera.HTML reads this file at compile time to unescape HTML like Python, for the striptags filter.
 """
