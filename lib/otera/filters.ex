@@ -4,7 +4,7 @@ defmodule Otera.Filters do
 
   The filters are `abs`, `attr`, `batch`, `capitalize`, `center`, `count`, `default` (`d`), `dictsort`, `escape` (`e`), `filesizeformat`, `first`, `float`, `forceescape`, `format`, `groupby`, `indent`, `int`, `items`, `join`, `last`, `length`, `list`, `lower`, `map`, `max`, `min`, `pprint`, `random`, `reject`, `rejectattr`, `replace`, `reverse`, `round`, `safe`, `select`, `selectattr`, `slice`, `sort`, `string`, `striptags`, `sum`, `title`, `tojson`, `trim`, `truncate`, `unique`, `upper`, `urlencode`, `wordcount`, `wordwrap` and `xmlattr`.
 
-  `safe`, `escape`, `forceescape` and `tojson` give an `Otera.Markup`. As in Jinja2, the string filters keep a `Markup`, and `join`, `replace` and `xmlattr` follow the autoescape of the render. The filters that give a generator in Jinja2, such as `map` and `select`, give a list.
+  `safe`, `escape`, `forceescape` and `tojson` give an `Otera.Markup`. As in Jinja2, the string filters keep a `Markup`, and `join`, `replace` and `xmlattr` follow the autoescape of the render. The filters that give a generator in Jinja2, such as `map` and `select`, give an `Otera.Iterable`, which makes a single pass like a Python generator.
   """
 
   alias Otera.{
@@ -30,7 +30,7 @@ defmodule Otera.Filters do
   @spec call(String.t(), term, list, Dict.t(), map) :: term
   def call(name, value, args, kwargs, env) do
     result = filter(name, value, args, kwargs, env)
-    if name in @generators, do: %Iterable{type: "generator", items: result}, else: result
+    if name in @generators, do: Iterable.new("generator", result), else: result
   end
 
   defp filter(name, value, args, kwargs, _env) when name in ["length", "count"] do
@@ -339,9 +339,22 @@ defmodule Otera.Filters do
   defp filter("first", value, args, kwargs, _env) do
     bind("do_first", args, kwargs, [])
 
-    case Value.to_list(value) do
-      [first | _] -> first
-      [] -> %Undefined{hint: "No first item, sequence was empty."}
+    # Like next(iter(value)), which takes one item of an iterator.
+    first =
+      case value do
+        %Iterable{} ->
+          Iterable.next(value)
+
+        value ->
+          value
+          |> Value.to_list()
+          |> Enum.take(1)
+          |> then(&if(&1 == [], do: :error, else: {:ok, hd(&1)}))
+      end
+
+    case first do
+      {:ok, first} -> first
+      :error -> %Undefined{hint: "No first item, sequence was empty."}
     end
   end
 
@@ -372,7 +385,7 @@ defmodule Otera.Filters do
 
       value ->
         unless Value.iterable?(value), do: filter_argument_error("argument must be iterable")
-        %Iterable{type: reverse_type(value), items: value |> Value.to_list() |> Enum.reverse()}
+        Iterable.new(reverse_type(value), value |> Value.to_list() |> Enum.reverse())
     end
   end
 
@@ -692,6 +705,7 @@ defmodule Otera.Filters do
   defp reverse_type(%Iterable{type: "dict_keys"}), do: "dict_reversekeyiterator"
   defp reverse_type(%Iterable{type: "dict_values"}), do: "dict_reversevalueiterator"
   defp reverse_type(%Iterable{type: "dict_items"}), do: "dict_reverseitemiterator"
+  defp reverse_type(%Otera.Range{}), do: "range_iterator"
   defp reverse_type(_value), do: "reversed"
 
   # The Python filters take the value as their first argument.

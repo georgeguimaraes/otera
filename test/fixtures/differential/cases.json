@@ -13720,6 +13720,14 @@
   }
  },
  {
+  "name": "b3_0239",
+  "template": "{{ range(3)|tojson }}",
+  "variables": "{}",
+  "settings": {
+   "transformers": true
+  }
+ },
+ {
   "name": "b3_0240",
   "template": "{{ undefined_var|tojson }}",
   "variables": "{}",

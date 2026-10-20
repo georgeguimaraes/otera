@@ -79,7 +79,8 @@ defmodule Otera.Tests do
   defp test("sequence", value, [], _env),
     do:
       is_binary(value) or is_list(value) or is_tuple(value) or is_struct(value, Dict) or
-        is_struct(value, Undefined) or is_struct(value, Otera.Markup)
+        is_struct(value, Undefined) or is_struct(value, Otera.Markup) or
+        is_struct(value, Otera.Range)
 
   defp test("iterable", value, [], _env), do: Value.iterable?(value) or is_struct(value, Loop)
 

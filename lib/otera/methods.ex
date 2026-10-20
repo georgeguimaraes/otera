@@ -40,6 +40,7 @@ defmodule Otera.Methods do
   defp methods(value) when is_integer(value) or is_boolean(value), do: @int
   defp methods(value) when is_float(value), do: @float
   defp methods(%Otera.Bytes{}), do: ["decode"]
+  defp methods(%Otera.Range{}), do: ["count", "index"]
   defp methods(_value), do: []
 
   @doc """
@@ -325,6 +326,8 @@ defmodule Otera.Methods do
 
   defp signature(sequence, "index") when is_list(sequence) or is_tuple(sequence),
     do: {:clinic, ["value", {"start", 0}, {"stop", nil}]}
+
+  defp signature(%Otera.Range{}, name) when name in ["count", "index"], do: {:one, ["value"]}
 
   defp signature(%Otera.Bytes{}, "decode"),
     do: {:keywords, [{"encoding", "utf-8"}, {"errors", "strict"}]}
@@ -638,18 +641,31 @@ defmodule Otera.Methods do
 
   defp method(number, "is_integer", []) when is_float(number), do: number == Float.floor(number)
 
+  defp method(%Otera.Range{} = range, "count", [value]),
+    do: if(Otera.Range.member?(range, value), do: 1, else: 0)
+
+  defp method(%Otera.Range{} = range, "index", [value]) do
+    case Enum.find_index(Otera.Range.to_list(range), &Value.equal?(&1, value)) do
+      nil ->
+        raise Otera.Error, kind: :value_error, message: "#{Value.repr(value)} is not in range"
+
+      index ->
+        index
+    end
+  end
+
   defp method(list, "copy", []) when is_list(list), do: list
   defp method(%Dict{} = dict, "copy", []), do: dict
 
   defp method(%Dict{} = dict, "get", [key, default]), do: dict_get(dict, key, default)
 
-  defp method(%Dict{pairs: pairs}, "items", []), do: %Iterable{type: "dict_items", items: pairs}
+  defp method(%Dict{pairs: pairs}, "items", []), do: Iterable.new("dict_items", pairs)
 
   defp method(%Dict{} = dict, "keys", []),
-    do: %Iterable{type: "dict_keys", items: Dict.keys(dict)}
+    do: Iterable.new("dict_keys", Dict.keys(dict))
 
   defp method(%Dict{} = dict, "values", []),
-    do: %Iterable{type: "dict_values", items: Dict.values(dict)}
+    do: Iterable.new("dict_values", Dict.values(dict))
 
   defp method(receiver, name, args), do: not_supported(receiver, name, args)
 

@@ -92,8 +92,6 @@ Known differences from Python:
 * Elixir floats have no inf, nan or complex values. Where Python gives one of them, Otera raises an `Otera.Error` with the kind `:not_implemented_error`. Where Python raises an `OverflowError`, Otera raises one too.
 * An Elixir string cannot hold a lone surrogate such as `\ud800`, and Otera has no table of Unicode character names for `\N{...}` escapes.
 * Otera values have no identity, so `x is sameas y` compares two equal lists or dicts as the same object.
-* `range()` gives a list, so it prints as a list.
-* Otera does not model the single pass of a Python generator, such as the result of `map` or `select`.
 * `break` outside a loop raises an `Otera.SyntaxError` instead of a Python `SyntaxError`.
 * Python prints functions and generators with their memory address, and Otera prints them without one.
 * The character properties come from the pinned Python, but upper and lower case mappings come from Elixir and Erlang/OTP, whose Unicode version can be newer.

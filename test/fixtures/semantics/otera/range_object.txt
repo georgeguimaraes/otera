@@ -1,0 +1,14 @@
+{"items": [1, 2, 3]}
+---
+repr: {{ range(3) }} {{ range(1, 10, 2) }} {{ range(5, 0, -1) }} {{ range(0) }} {{ range(3)|string }} {{ [range(2)] }}
+length: {{ range(10)|length }} {{ range(1, 10, 3)|count }} {{ range(10, 0)|length }} {{ range(5, 0, -2)|length }}
+index: {{ range(10)[3] }} {{ range(10)[-1] }} {{ range(1, 10, 2)[2] }} [{{ range(3)[5] }}]
+slice: {{ range(10)[2:5] }} {{ range(10)[::2] }} {{ range(10)[::-1] }} {{ range(1, 10, 2)[1:] }} {{ range(10)[100:] }} {{ range(10)[-3:] }}
+in: {{ 3 in range(5) }} {{ 5 in range(5) }} {{ 4 in range(0, 10, 2) }} {{ 3 in range(0, 10, 2) }} {{ 3.0 in range(5) }} {{ "a" in range(5) }} {{ true in range(2) }} {{ -1 in range(0, -5, -1) }}
+iterate: {% for i in range(3) %}{{ i }}{{ loop.length }}{% endfor %} {{ range(4)|list }} {{ range(4)|join(",") }} {{ range(4)|sum }} {{ range(4)|reverse|list }} {{ range(4)|first }} {{ range(4)|last }}
+equal: {{ range(0) == range(2, 2) }} {{ range(3) == range(0, 3, 1) }} {{ range(3) == [0, 1, 2] }} {{ range(1, 2) == range(1, 5, 3) }} {{ range(3) != range(4) }}
+attributes: {{ range(1, 10, 2).start }} {{ range(1, 10, 2).stop }} {{ range(1, 10, 2).step }} {{ range(5).count(3) }} {{ range(5).index(3) }}
+tests: {{ range(3) is sequence }} {{ range(3) is iterable }} {{ range(0) is defined }} {{ "yes" if range(0) else "no" }} {{ "yes" if range(1) else "no" }}
+unpack: {% set a, b = range(2) %}{{ a }}{{ b }}
+filters: {{ range(5)|select("odd")|list }} {{ range(3)|map("string")|join }} {{ range(6)|batch(4)|list }} {{ range(3)|reverse|list }}
+dict key: {{ {range(2): 1}[range(2)] }}

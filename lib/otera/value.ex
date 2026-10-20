@@ -11,6 +11,7 @@ defmodule Otera.Value do
   | binary                            | `str`                 |
   | `Otera.Markup`                    | `Markup`, a `str`     |
   | list, tuple                       | `list`, `tuple`       |
+  | `Otera.Range`                     | `range`               |
   | map, `Otera.Dict`                 | `dict`                |
   | other atom                        | `str`                 |
   | function                          | a callable            |
@@ -37,7 +38,8 @@ defmodule Otera.Value do
     Otera.Cycler,
     Otera.Joiner,
     Otera.GroupTuple,
-    Markup
+    Markup,
+    Otera.Range
   ]
 
   @doc """
@@ -76,6 +78,7 @@ defmodule Otera.Value do
   def truthy?(%Undefined{}), do: false
   def truthy?(%Otera.Bytes{data: data}), do: data != ""
   def truthy?(%Markup{text: text}), do: text != ""
+  def truthy?(%Otera.Range{} = range), do: Otera.Range.size(range) > 0
   def truthy?(%Iterable{items: items} = iterable), do: not Iterable.view?(iterable) or items != []
   def truthy?(_value), do: true
 
@@ -97,6 +100,7 @@ defmodule Otera.Value do
   def type_name(%Otera.GroupTuple{}), do: "_GroupTuple"
   def type_name(%Otera.Bytes{}), do: "bytes"
   def type_name(%Markup{}), do: "Markup"
+  def type_name(%Otera.Range{}), do: "range"
   def type_name(%Iterable{type: type}), do: type
   def type_name(%Undefined{}), do: "Undefined"
   def type_name(%Namespace{}), do: "Namespace"
@@ -153,6 +157,7 @@ defmodule Otera.Value do
   def repr(value) when is_float(value), do: format_float(value)
   def repr(value) when is_binary(value), do: repr_string(value)
   def repr(%Markup{text: text}), do: "Markup(" <> repr_string(text) <> ")"
+  def repr(%Otera.Range{} = range), do: Otera.Range.repr(range)
   def repr(value) when is_list(value), do: "[" <> Enum.map_join(value, ", ", &repr/1) <> "]"
   def repr({item}), do: "(" <> repr(item) <> ",)"
 
@@ -314,6 +319,15 @@ defmodule Otera.Value do
   @spec equal?(term, term) :: boolean
   def equal?(%Markup{text: left}, right), do: equal?(left, right)
   def equal?(left, %Markup{text: right}), do: equal?(left, right)
+
+  # Two ranges are equal when they give the same items.
+  def equal?(%Otera.Range{} = left, %Otera.Range{} = right) do
+    size = Otera.Range.size(left)
+
+    size == Otera.Range.size(right) and
+      (size == 0 or
+         (left.start == right.start and (size == 1 or left.step == right.step)))
+  end
 
   def equal?(%Otera.GroupTuple{} = left, right),
     do: equal?(Otera.GroupTuple.to_tuple(left), right)
@@ -596,10 +610,11 @@ defmodule Otera.Value do
   def to_list(value) when is_tuple(value), do: Tuple.to_list(value)
   def to_list(value) when is_binary(value), do: String.codepoints(value)
   def to_list(%Markup{text: text}), do: String.codepoints(text)
+  def to_list(%Otera.Range{} = range), do: Otera.Range.to_list(range)
   def to_list(%Dict{} = dict), do: Dict.keys(dict)
   def to_list(%Undefined{}), do: []
   def to_list(%Otera.Bytes{data: data}), do: :binary.bin_to_list(data)
-  def to_list(%Iterable{items: items}), do: items
+  def to_list(%Iterable{} = iterable), do: Iterable.take_all(iterable)
   def to_list(%Loop{} = loop), do: Loop.remaining(loop)
 
   def to_list(value),
@@ -618,7 +633,7 @@ defmodule Otera.Value do
       is_list(value) or is_tuple(value) or is_binary(value) or is_struct(value, Dict) or
         is_struct(value, Undefined) or is_struct(value, Iterable) or is_struct(value, Loop) or
         is_struct(value, Otera.Bytes) or is_struct(value, Otera.GroupTuple) or
-        is_struct(value, Markup)
+        is_struct(value, Markup) or is_struct(value, Otera.Range)
 
   @doc """
   Returns the length of `value`, like Python `len()`.
@@ -627,6 +642,7 @@ defmodule Otera.Value do
   def length(%Otera.GroupTuple{}), do: 2
   def length(value) when is_binary(value), do: str_length(value)
   def length(%Markup{text: text}), do: str_length(text)
+  def length(%Otera.Range{} = range), do: Otera.Range.size(range)
   def length(value) when is_list(value), do: Kernel.length(value)
   def length(value) when is_tuple(value), do: tuple_size(value)
   def length(%Dict{pairs: pairs}), do: Kernel.length(pairs)
@@ -658,6 +674,7 @@ defmodule Otera.Value do
     do: contains?(Otera.GroupTuple.to_tuple(group), item)
 
   def contains?(%Markup{text: text}, item), do: contains?(text, item)
+  def contains?(%Otera.Range{} = range, item), do: Otera.Range.member?(range, item)
 
   def contains?(container, %Markup{text: text}) when is_binary(container),
     do: contains?(container, text)
@@ -677,9 +694,11 @@ defmodule Otera.Value do
     Enum.any?(Dict.keys(dict), &equal?(&1, item))
   end
 
+  def contains?(%Iterable{} = iterable, item),
+    do: Iterable.take_until(iterable, &equal?(&1, item))
+
   def contains?(container, item)
-      when is_list(container) or is_tuple(container) or is_struct(container, Undefined) or
-             is_struct(container, Iterable),
+      when is_list(container) or is_tuple(container) or is_struct(container, Undefined),
       do: Enum.any?(to_list(container), &equal?(&1, item))
 
   def contains?(container, _item),
@@ -715,6 +734,9 @@ defmodule Otera.Value do
   def getattr(number, "denominator") when is_integer(number) or is_boolean(number), do: 1
   def getattr(number, "real") when is_float(number), do: number
   def getattr(number, "imag") when is_float(number), do: 0.0
+
+  def getattr(%Otera.Range{} = range, name) when name in ["start", "stop", "step"],
+    do: Map.fetch!(range, String.to_existing_atom(name))
 
   def getattr(object, name) do
     if Methods.has?(object, name), do: method(object, name), else: item_or_undefined(object, name)
@@ -793,6 +815,9 @@ defmodule Otera.Value do
     if index >= 0 and index < Kernel.length(items), do: {:ok, Enum.at(items, index)}, else: :error
   end
 
+  defp fetch_item(%Otera.Range{} = range, index) when is_integer(index) or is_boolean(index),
+    do: Otera.Range.fetch(range, number(index))
+
   defp fetch_item(%Namespace{} = namespace, name) when is_binary(name),
     do: Namespace.fetch(namespace, name)
 
@@ -810,6 +835,15 @@ defmodule Otera.Value do
 
   def slice(%Markup{} = markup, start, stop, step),
     do: Markup.map(markup, &slice(&1, start, stop, step))
+
+  def slice(%Otera.Range{} = range, start, stop, step) do
+    step = slice_bound(step) || 1
+
+    {start, stop} =
+      slice_bounds(Otera.Range.size(range), slice_bound(start), slice_bound(stop), step)
+
+    Otera.Range.slice(range, start, stop, step)
+  end
 
   def slice(sequence, start, stop, step)
       when is_list(sequence) or is_tuple(sequence) or is_binary(sequence) do
@@ -848,19 +882,25 @@ defmodule Otera.Value do
         message: "slice indices must be integers or None or have an __index__ method"
       )
 
-  defp slice_indices(_length, _start, _stop, 0),
-    do: raise(Otera.Error, kind: :value_error, message: "slice step cannot be zero")
-
   defp slice_indices(length, start, stop, step) do
-    {lower, upper} = if step > 0, do: {0, length}, else: {-1, length - 1}
-    start = adjust_bound(start, length, lower, upper, if(step > 0, do: lower, else: upper))
-    stop = adjust_bound(stop, length, lower, upper, if(step > 0, do: upper, else: lower))
+    {start, stop} = slice_bounds(length, start, stop, step)
 
     cond do
       step > 0 and start < stop -> Enum.to_list(start..(stop - 1)//step)
       step < 0 and start > stop -> Enum.to_list(start..(stop + 1)//step)
       true -> []
     end
+  end
+
+  # The start and stop of `slice.indices(length)` in Python.
+  defp slice_bounds(_length, _start, _stop, 0),
+    do: raise(Otera.Error, kind: :value_error, message: "slice step cannot be zero")
+
+  defp slice_bounds(length, start, stop, step) do
+    {lower, upper} = if step > 0, do: {0, length}, else: {-1, length - 1}
+    start = adjust_bound(start, length, lower, upper, if(step > 0, do: lower, else: upper))
+    stop = adjust_bound(stop, length, lower, upper, if(step > 0, do: upper, else: lower))
+    {start, stop}
   end
 
   defp adjust_bound(nil, _length, _lower, _upper, default), do: default

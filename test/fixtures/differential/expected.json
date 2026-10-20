@@ -5405,6 +5405,13 @@
    "line": 1
   }
  },
+ "b3_0239": {
+  "error": {
+   "type": "TypeError",
+   "message": "Object of type range is not JSON serializable",
+   "line": 1
+  }
+ },
  "b3_0240": {
   "error": {
    "type": "TypeError",

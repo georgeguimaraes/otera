@@ -238,28 +238,32 @@ defmodule Otera.Evaluator do
          depth0
        ) do
     {body_scope, else_scope} = scopes
-    items = at(line, ctx, fn -> Value.to_list(iterable) end)
+    all = at(line, ctx, fn -> Value.to_list(iterable) end)
+    indexed = Enum.with_index(all)
 
-    items =
+    indexed =
       case test do
         {test, test_line} ->
           at(test_line, ctx, fn ->
-            Enum.filter(items, &Value.truthy?(eval(test, push(ctx, bind(target, &1)))))
+            Enum.filter(indexed, fn {item, _} ->
+              Value.truthy?(eval(test, push(ctx, bind(target, item))))
+            end)
           end)
 
         nil ->
-          items
+          indexed
       end
 
-    items = List.to_tuple(items)
+    items = indexed |> Enum.map(&elem(&1, 0)) |> List.to_tuple()
     recurse = if recursive?, do: {node, ctx}
     ref = make_ref()
 
     # One scope for all iterations, which each iteration starts again, like the body of a Python loop.
     inner = open(ctx, body_scope, %{})
 
-    {output, completed?} =
-      Enum.reduce_while(0..(tuple_size(items) - 1)//1, {[], false}, fn index, {acc, completed?} ->
+    {output, completed?, rest} =
+      Enum.reduce_while(0..(tuple_size(items) - 1)//1, {[], false, []}, fn index,
+                                                                           {acc, completed?, _} ->
         loop = %Loop{ref: ref, items: items, index0: index, depth0: depth0, recurse: recurse}
 
         frame =
@@ -269,11 +273,19 @@ defmodule Otera.Evaluator do
         {output, _inner, signal} = exec_body(body, inner)
 
         case signal do
-          :ok -> {:cont, {[acc | output], true}}
-          :continue -> {:cont, {[acc | output], completed?}}
-          :break -> {:halt, {[acc | output], completed?}}
+          :ok ->
+            {:cont, {[acc | output], true, []}}
+
+          :continue ->
+            {:cont, {[acc | output], completed?, []}}
+
+          :break ->
+            rest = unreached(all, indexed, index, Loop.peeked(ref, index))
+            {:halt, {[acc | output], completed?, rest}}
         end
       end)
+
+    if is_struct(iterable, Otera.Iterable), do: Otera.Iterable.give_back(iterable, rest)
 
     # A recursive loop without else is a Python function, which keeps its scope.
     unless recursive? and else_body == [], do: close(inner, body_scope)
@@ -285,6 +297,17 @@ defmodule Otera.Evaluator do
       {else_output, _inner, signal} = exec_body(else_body, inner)
       close(inner, else_scope)
       {[output | else_output], ctx, signal}
+    end
+  end
+
+  # The items of an iterator that a loop did not take when it broke at `index`: the items after
+  # that item, or after the next item when the loop looked ahead.
+  defp unreached(_all, _indexed, _index, :all), do: []
+
+  defp unreached(all, indexed, index, peeked) do
+    case Enum.at(indexed, index + peeked) do
+      {_item, position} -> Enum.drop(all, position + 1)
+      nil -> []
     end
   end
 
@@ -737,9 +760,9 @@ defmodule Otera.Evaluator do
     if step == 0,
       do: raise(Otera.Error, kind: :value_error, message: "range() arg 3 must not be zero")
 
-    count = max(0, div(stop - start + step - if(step > 0, do: 1, else: -1), step))
+    range = %Otera.Range{start: start, stop: stop, step: step}
 
-    if count > @max_range,
+    if Otera.Range.size(range) > @max_range,
       do:
         raise(Otera.Error,
           kind: :overflow_error,
@@ -747,7 +770,7 @@ defmodule Otera.Evaluator do
             "Range too big. The sandbox blocks ranges larger than MAX_RANGE (#{@max_range})."
         )
 
-    Enum.map(0..(count - 1)//1, &(start + &1 * step))
+    range
   end
 
   defp builtin("dict", args, %Dict{pairs: pairs}) do

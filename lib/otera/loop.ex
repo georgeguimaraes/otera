@@ -4,7 +4,7 @@ defmodule Otera.Loop do
 
   It has `index`, `index0`, `revindex`, `revindex0`, `first`, `last`, `length`, `depth`, `depth0`, `previtem` and `nextitem`, the methods `cycle` and `changed`, and for a recursive loop it can be called with the items of the next level.
 
-  Each iteration gets a new `Loop` with the same `ref`. `changed` keeps its last value for the `ref` in `Otera.State`.
+  Each iteration gets a new `Loop` with the same `ref`. `changed` keeps its last value for the `ref` in `Otera.State`, and so does the look ahead of `last`, `nextitem` and `length`, which takes items from an iterator.
   """
 
   alias Otera.{Method, State, Undefined, Value}
@@ -17,11 +17,24 @@ defmodule Otera.Loop do
   @spec get(%__MODULE__{}, String.t()) :: term
   def get(loop, "index0"), do: loop.index0
   def get(loop, "index"), do: loop.index0 + 1
-  def get(loop, "length"), do: tuple_size(loop.items)
-  def get(loop, "revindex"), do: tuple_size(loop.items) - loop.index0
-  def get(loop, "revindex0"), do: tuple_size(loop.items) - loop.index0 - 1
   def get(loop, "first"), do: loop.index0 == 0
-  def get(loop, "last"), do: loop.index0 == tuple_size(loop.items) - 1
+
+  def get(loop, name) when name in ["length", "revindex", "revindex0"] do
+    peek(loop, :all)
+    length = tuple_size(loop.items)
+
+    case name do
+      "length" -> length
+      "revindex" -> length - loop.index0
+      "revindex0" -> length - loop.index0 - 1
+    end
+  end
+
+  def get(loop, "last") do
+    peek(loop, loop.index0)
+    loop.index0 == tuple_size(loop.items) - 1
+  end
+
   def get(loop, "depth0"), do: loop.depth0
   def get(loop, "depth"), do: loop.depth0 + 1
 
@@ -29,6 +42,8 @@ defmodule Otera.Loop do
   def get(loop, "previtem"), do: elem(loop.items, loop.index0 - 1)
 
   def get(loop, "nextitem") do
+    peek(loop, loop.index0)
+
     if loop.index0 + 1 < tuple_size(loop.items),
       do: elem(loop.items, loop.index0 + 1),
       else: %Undefined{hint: "there is no next item"}
@@ -50,6 +65,25 @@ defmodule Otera.Loop do
     else
       State.put(key, values)
       true
+    end
+  end
+
+  # The LoopContext of Jinja2 takes the next item of the iterator to answer `last` and `nextitem`,
+  # and all the items for `length`. A loop that breaks gives the other items back to an iterator.
+  defp peek(loop, peek) do
+    key = {__MODULE__, :peek, loop.ref}
+    if State.get(key) != :all, do: State.put(key, peek)
+  end
+
+  @doc """
+  Returns how many items after `index0` the loop took from its iterator to look ahead: `:all`, 1 or 0.
+  """
+  @spec peeked(reference, non_neg_integer) :: :all | 0 | 1
+  def peeked(loop_ref, index0) do
+    case State.get({__MODULE__, :peek, loop_ref}) do
+      :all -> :all
+      ^index0 -> 1
+      _ -> 0
     end
   end
 

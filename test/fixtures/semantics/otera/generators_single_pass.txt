@@ -1,0 +1,36 @@
+{"items": [1, 2, 3, 4, 5]}
+---
+{%- set g = items|select("odd") -%}
+twice: {{ g|list }} {{ g|list }}
+{%- set g = items|map("string") %}
+loops: {% for x in g %}{{ x }}{% endfor %}|{% for x in g %}{{ x }}{% else %}empty{% endfor %}
+{%- set g = items|reject("odd") %}
+first: {{ g|first }} {{ g|list }}
+{%- set g = items|select %}
+in: {{ 3 in g }} {{ g|list }} {{ 9 in g }}
+{%- set g = items|select %}
+break: {% for x in g %}{{ x }}{% if x == 2 %}{% break %}{% endif %}{% endfor %} {{ g|list }}
+{%- set g = items|select %}
+break last: {% for x in g %}{{ x }}{% if loop.last %}{% endif %}{% if x == 2 %}{% break %}{% endif %}{% endfor %} {{ g|list }}
+{%- set g = items|select %}
+break nextitem early: {% for x in g %}{% if loop.first %}{{ loop.nextitem }}{% endif %}{% if x == 3 %}{% break %}{% endif %}{% endfor %} {{ g|list }}
+{%- set g = items|select %}
+break length: {% for x in g %}{{ loop.length }}{% break %}{% endfor %} {{ g|list }}
+{%- set g = items|select %}
+break test: {% for x in g if x > 2 %}{{ x }}{% break %}{% endfor %} {{ g|list }}
+{%- set g = items|select %}
+break test last: {% for x in g if x is odd %}{{ x }}{{ loop.last }}{% break %}{% endfor %} {{ g|list }}
+{%- set r = items|reverse %}
+reverse: {{ r|list }} {{ r|list }}
+{%- set u = items|unique %}
+unique: {{ u|join }} {{ u|join }}
+{%- set v = {"a": 1}.items() %}
+view: {{ v|list }} {{ v|list }}
+{%- set g = items|batch(2) %}
+batch: {{ g|first }} {{ g|list }}
+{%- set g = items|select %}
+truthy: {{ "yes" if g else "no" }} {{ g is iterable }} {{ g|join }} {{ "yes" if g else "no" }}
+{%- set g = items|select %}
+sum: {{ g|sum }} {{ g|sum }}
+{%- set g = items|select %}
+unpack: {% set a, b, c, d, e = g %}{{ a }}{{ e }} {{ g|list }}
