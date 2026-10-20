@@ -673,6 +673,57 @@
  "otera/generation_like_call.txt": {
   "output": "hi|hello|"
  },
+ "otera/generator_batch_of_generator_drains_source.txt": {
+  "output": "[1][3]"
+ },
+ "otera/generator_chained_generator_drains_source.txt": {
+  "output": "1[2, 3]"
+ },
+ "otera/generator_items_lazy.txt": {
+  "output": "ok"
+ },
+ "otera/generator_laziness.txt": {
+  "output": "unused: ok\npartial: 1 [2, 3, 4]\nselectattr: ['a']\nloop filter: 2 [3, 4]\nloop filter last: 1False [4]\nlength: 4[]4[]4[]4[]\nrevindex: 43322110\nprevitem: -213243-\niterate loop: 1[234]\nin loop: 1True4False\nunpack: 14 []"
+ },
+ "otera/generator_lazy_error_line_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "do_upper() takes 1 positional argument but 2 were given",
+   "line": 3
+  }
+ },
+ "otera/generator_lazy_test.txt": {
+  "output": "x\nok"
+ },
+ "otera/generator_lazy_unknown_test.txt": {
+  "output": "True"
+ },
+ "otera/generator_loop_drains_source.txt": {
+  "output": "[1:2][3:]"
+ },
+ "otera/generator_loop_error_line.txt": {
+  "error": {
+   "type": "ZeroDivisionError",
+   "message": "integer modulo by zero",
+   "line": 2
+  }
+ },
+ "otera/generator_loop_last_lookahead.txt": {
+  "output": "False[3]True[]"
+ },
+ "otera/generator_nested_loop_same_generator.txt": {
+  "output": "1213"
+ },
+ "otera/generator_reverse_iterator_nested_loop.txt": {
+  "output": "3231"
+ },
+ "otera/generator_unpack_error.txt": {
+  "error": {
+   "type": "ValueError",
+   "message": "too many values to unpack (expected 2)",
+   "line": 1
+  }
+ },
  "otera/generators_single_pass.txt": {
   "output": "twice: [1, 3, 5] []\nloops: 12345|empty\nfirst: 2 [4]\nin: True [4, 5] False\nbreak: 12 [3, 4, 5]\nbreak last: 12 [4, 5]\nbreak nextitem early: 2 [4, 5]\nbreak length: 5 []\nbreak test: 3 [4, 5]\nbreak test last: 1False [4, 5]\nreverse: [5, 4, 3, 2, 1] []\nunique: 12345 \nview: [('a', 1)] [('a', 1)]\nbatch: [1, 2] [[3, 4], [5]]\ntruthy: yes True 12345 yes\nsum: 15 0\nunpack: 15 []"
  },

@@ -574,63 +574,33 @@ defmodule Otera.Evaluator do
   defp fill_hole({:filter, name, inner, args, kwargs, line}, value),
     do: {:filter, name, fill_hole(inner, value), args, kwargs, line}
 
+  # A loop takes its items one at a time, like a Python loop, so a generator does its work when
+  # the loop reaches each item. A loop test filters the items as the loop takes them.
   defp loop(
-         {:for, target, _iter, test, body, else_body, recursive?, line, scopes} = node,
+         {:for, target, _iter, test, _body, else_body, recursive?, _line, scopes} = node,
          iterable,
          ctx,
          depth0
        ) do
     {body_scope, else_scope} = scopes
-    all = at(line, ctx, fn -> Value.to_list(iterable) end)
-    indexed = Enum.with_index(all)
+    source = Otera.Iterable.iter(iterable)
 
-    indexed =
+    source =
       case test do
-        {test, test_line} ->
-          at(test_line, ctx, fn ->
-            Enum.filter(indexed, fn {item, _} ->
-              Value.truthy?(eval(test, push(ctx, bind(target, item))))
-            end)
-          end)
-
-        nil ->
-          indexed
+        {test, test_line} -> loop_filter(source, target, test, test_line, ctx)
+        nil -> source
       end
 
-    items = indexed |> Enum.map(&elem(&1, 0)) |> List.to_tuple()
-    recurse = if recursive?, do: {node, ctx}
-    ref = make_ref()
+    loop = %Loop{
+      ref: Loop.start(source),
+      depth0: depth0,
+      recurse: if(recursive?, do: {node, ctx})
+    }
 
     # One scope for all iterations, which each iteration starts again, like the body of a Python loop.
     inner = open(ctx, body_scope, %{})
-
-    {output, completed?, rest} =
-      Enum.reduce_while(0..(tuple_size(items) - 1)//1, {[], false, []}, fn index,
-                                                                           {acc, completed?, _} ->
-        loop = %Loop{ref: ref, items: items, index0: index, depth0: depth0, recurse: recurse}
-
-        frame = at(line, ctx, fn -> bind(target, elem(items, index)) end)
-        # Like Jinja2, the scope has the loop variable only when the body reads it.
-        frame =
-          if body_scope.exit["loop"] == :missing, do: Map.put(frame, "loop", loop), else: frame
-
-        restart(inner, body_scope, frame)
-        {output, _inner, signal} = exec_body(body, inner)
-
-        case signal do
-          :ok ->
-            {:cont, {[acc | output], true, []}}
-
-          :continue ->
-            {:cont, {[acc | output], completed?, []}}
-
-          :break ->
-            rest = unreached(all, indexed, index, Loop.peeked(ref, index))
-            {:halt, {[acc | output], completed?, rest}}
-        end
-      end)
-
-    if is_struct(iterable, Otera.Iterable), do: Otera.Iterable.give_back(iterable, rest)
+    iteration = %{node: node, ctx: ctx, inner: inner, loop: loop}
+    {output, completed?} = iterate(iteration, 0, :none, [], false)
 
     # A recursive loop without else is a Python function, which keeps its scope.
     unless recursive? and else_body == [], do: close(inner, body_scope)
@@ -645,14 +615,53 @@ defmodule Otera.Evaluator do
     end
   end
 
-  # The items of an iterator that a loop did not take when it broke at `index`: the items after
-  # that item, or after the next item when the loop looked ahead.
-  defp unreached(_all, _indexed, _index, :all), do: []
+  defp iterate(
+         %{node: node, ctx: ctx, inner: inner, loop: loop} = iteration,
+         index,
+         previous,
+         acc,
+         completed?
+       ) do
+    {:for, target, _iter, _test, body, _else_body, _recursive?, line, {body_scope, _}} = node
 
-  defp unreached(all, indexed, index, peeked) do
-    case Enum.at(indexed, index + peeked) do
-      {_item, position} -> Enum.drop(all, position + 1)
-      nil -> []
+    case at(line, ctx, fn -> Loop.next(loop.ref) end) do
+      :error ->
+        {acc, completed?}
+
+      {:ok, item} ->
+        frame = at(line, ctx, fn -> bind(target, item) end)
+        loop = %{loop | index0: index, previous: previous}
+        # Like Jinja2, the scope has the loop variable only when the body reads it.
+        frame =
+          if body_scope.exit["loop"] == :missing, do: Map.put(frame, "loop", loop), else: frame
+
+        restart(inner, body_scope, frame)
+        {output, _inner, signal} = exec_body(body, inner)
+
+        case signal do
+          :ok -> iterate(iteration, index + 1, {:ok, item}, [acc | output], true)
+          :continue -> iterate(iteration, index + 1, {:ok, item}, [acc | output], completed?)
+          :break -> {[acc | output], completed?}
+        end
+    end
+  end
+
+  defp loop_filter(source, target, test, test_line, ctx) do
+    Otera.Iterable.lazy("generator", source, fn source ->
+      filter_step(source, target, test, test_line, ctx)
+    end)
+  end
+
+  defp filter_step(source, target, test, test_line, ctx) do
+    case Otera.Iterable.next(source) do
+      {:ok, item} ->
+        keep? =
+          at(test_line, ctx, fn -> Value.truthy?(eval(test, push(ctx, bind(target, item)))) end)
+
+        if keep?, do: {:ok, item, source}, else: filter_step(source, target, test, test_line, ctx)
+
+      :error ->
+        :done
     end
   end
 

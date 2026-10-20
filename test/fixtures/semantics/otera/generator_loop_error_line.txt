@@ -1,0 +1,6 @@
+{"items": [1, 0, 2]}
+---
+{% set g = items|map("string")|map("int")|select("divisibleby", 0) %}
+{% for x in g %}
+{{ x }}
+{% endfor %}

@@ -1,0 +1,13 @@
+{"items": [1, 2, 3, 4], "people": [{"name": "a", "age": 3}, {"name": "b"}]}
+---
+unused: {% set g = items|map("nope") %}{% set h = items|select("nope") %}{% set u = 5|unique %}{% set b = 5|batch(2) %}{% set s = 5|slice(2) %}ok
+partial: {% set g = items|map("int") %}{{ g|first }} {{ g|list }}
+selectattr: {% set g = people|selectattr("age") %}{{ g|map(attribute="name")|list }}
+loop filter: {% set g = items|select %}{% for x in g if x is even %}{{ x }}{% break %}{% endfor %} {{ g|list }}
+loop filter last: {% set g = items|select %}{% for x in g if x is odd %}{{ x }}{{ loop.last }}{% break %}{% endfor %} {{ g|list }}
+length: {% set g = items|select %}{% for x in g %}{{ loop.length }}{{ g|list }}{% endfor %}
+revindex: {% for x in items|select %}{{ loop.revindex }}{{ loop.revindex0 }}{% endfor %}
+previtem: {% for x in items|select %}{{ loop.previtem|default("-") }}{{ loop.nextitem|default("-") }}{% endfor %}
+iterate loop: {% for x in items %}{{ x }}[{% for y, l in loop %}{{ y }}{% endfor %}]{% endfor %}
+in loop: {% set g = items|select %}{% for x in g %}{{ x }}{{ 3 in g }}{% endfor %}
+unpack: {% set g = items|select %}{% set a, b, c, d = g %}{{ a }}{{ d }} {{ g|list }}

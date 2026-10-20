@@ -1,0 +1,5 @@
+{"x": "<a&b>", "y": 3, "items": [1, 2, 3], "names": ["a", "<b>"], "d": {"k": "<v>", "n": 2}, "none_var": null, "e": "", "incname": "inc.html", "flag": true, "parent": "base.html"}
+---
+x
+{% set g = items|map('upper', 5) %}
+{{ g|first }}

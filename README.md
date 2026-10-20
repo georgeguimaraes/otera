@@ -115,7 +115,7 @@ To get the same prompt as transformers for messages and tool definitions that co
 
 Otera follows Python Jinja2 3.1: the lexer and its whitespace control, the operators and their precedence, scoping, macros and call blocks, loops with `loop` and `break` and `continue`, namespaces, template inheritance, includes and imports, autoescape and the `Markup` of markupsafe, the builtin filters and tests, and the Python methods of strings, lists and dicts. Values print like Python values, for example `True`, `None`, `['a', 1.5]` and `range(0, 3)`. Like transformers, Otera renders in the immutable sandbox of Jinja2, so `list.append` and `dict.update` raise a security error.
 
-Scoping follows the compiler of Jinja2. A macro reads the variables around its definition as they are when it runs, like a Python closure. A generator, such as the result of `map` or `select`, makes a single pass. A loop that reads a variable before a later top-level `{% set %}` of that variable sees it as undefined, like in Jinja2.
+Scoping follows the compiler of Jinja2. A macro reads the variables around its definition as they are when it runs, like a Python closure. A generator, such as the result of `map` or `select`, is lazy and makes a single pass, like in Python: it does its work when the template takes its items. A loop that reads a variable before a later top-level `{% set %}` of that variable sees it as undefined, like in Jinja2.
 
 Known differences from Python:
 

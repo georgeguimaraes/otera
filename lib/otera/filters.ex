@@ -19,16 +19,11 @@ defmodule Otera.Filters do
     Value
   }
 
-  @generators ~w(map select reject selectattr rejectattr unique items batch slice)
-
   @doc """
   Applies the builtin filter `name` to `value`. `env` gives the filters and tests that `map` and `select` call.
   """
   @spec call(String.t(), term, list, Dict.t(), map) :: term
-  def call(name, value, args, kwargs, env) do
-    result = filter(name, value, args, kwargs, env)
-    if name in @generators, do: Iterable.new("generator", result), else: result
-  end
+  def call(name, value, args, kwargs, env), do: filter(name, value, args, kwargs, env)
 
   defp filter(name, value, args, kwargs, _env) when name in ["length", "count"] do
     bind(name, args, kwargs, [])
@@ -322,19 +317,28 @@ defmodule Otera.Filters do
     Value.to_list(value)
   end
 
+  # The generators of Jinja2 bind their arguments when the template calls them, and do their work
+  # when the template takes their items.
   defp filter("items", value, args, kwargs, _env) do
     bind("do_items", args, kwargs, [])
 
-    case value do
-      %Undefined{} ->
-        []
+    generator(
+      fn ->
+        case value do
+          %Undefined{} ->
+            nil
 
-      %Dict{pairs: pairs} ->
-        pairs
+          %Dict{pairs: pairs} ->
+            Iterable.iter(pairs)
 
-      _ ->
-        raise Otera.Error, kind: :type_error, message: "Can only get item pairs from a mapping."
-    end
+          _ ->
+            raise Otera.Error,
+              kind: :type_error,
+              message: "Can only get item pairs from a mapping."
+        end
+      end,
+      &pass_step/1
+    )
   end
 
   defp filter("first", value, args, kwargs, _env) do
@@ -462,20 +466,7 @@ defmodule Otera.Filters do
       bind("do_unique", args, kwargs, [{"case_sensitive", false}, {"attribute", nil}])
 
     getter = attrgetter(attribute)
-
-    {items, _seen} =
-      value
-      |> Value.to_list()
-      |> Enum.reduce({[], []}, fn item, {items, seen} ->
-        key = postprocess(getter.(item), case_sensitive)
-        Value.hashable!(key)
-
-        if Enum.any?(seen, &Value.equal?(&1, key)),
-          do: {items, seen},
-          else: {[item | items], [key | seen]}
-      end)
-
-    Enum.reverse(items)
+    generator(fn -> {Iterable.iter(value), []} end, &unique_step(&1, getter, case_sensitive))
   end
 
   defp filter(name, value, args, kwargs, _env) when name in ["min", "max"] do
@@ -496,23 +487,36 @@ defmodule Otera.Filters do
   end
 
   defp filter("map", value, args, kwargs, env) do
-    if Value.truthy?(value),
-      do: value |> Value.to_list() |> Enum.map(map_function(args, kwargs, env)),
-      else: []
+    generator(
+      fn ->
+        if Value.truthy?(value), do: {map_function(args, kwargs, env), Iterable.iter(value)}
+      end,
+      fn {fun, source} ->
+        case Iterable.next(source) do
+          {:ok, item} -> {:ok, fun.(item), {fun, source}}
+          :error -> :done
+        end
+      end
+    )
   end
 
   defp filter(name, value, args, kwargs, env)
        when name in ["select", "reject", "selectattr", "rejectattr"] do
-    if Value.truthy?(value) do
-      {getter, args} =
-        if name in ["selectattr", "rejectattr"], do: select_attribute(args), else: {& &1, args}
+    generator(
+      fn ->
+        if Value.truthy?(value) do
+          {getter, args} =
+            if name in ["selectattr", "rejectattr"],
+              do: select_attribute(args),
+              else: {& &1, args}
 
-      test = select_test(args, kwargs, env)
-      keep = name in ["select", "selectattr"]
-      value |> Value.to_list() |> Enum.filter(&(test.(getter.(&1)) == keep))
-    else
-      []
-    end
+          test = select_test(args, kwargs, env)
+          keep = name in ["select", "selectattr"]
+          {&(test.(getter.(&1)) == keep), Iterable.iter(value)}
+        end
+      end,
+      &select_step/1
+    )
   end
 
   defp filter("attr", value, args, kwargs, _env) do
@@ -526,21 +530,16 @@ defmodule Otera.Filters do
 
   defp filter("batch", value, args, kwargs, _env) do
     [count, fill_with] = bind("do_batch", args, kwargs, ["linecount", {"fill_with", nil}])
-    batch(Value.to_list(value), count, fill_with, [], [])
+    generator(fn -> {Iterable.iter(value), []} end, &batch_step(&1, count, fill_with))
   end
 
   defp filter("slice", value, args, kwargs, _env) do
     [slices, fill_with] = bind("do_slice", args, kwargs, ["slices", {"fill_with", nil}])
-    items = Value.to_list(value)
-    per_slice = Value.binary_op(:floordiv, length(items), slices)
-    with_extra = Value.binary_op(:mod, length(items), slices)
 
-    Enum.map(0..(slices - 1)//1, fn number ->
-      start = number * per_slice + min(number, with_extra)
-      size = per_slice + if(number < with_extra, do: 1, else: 0)
-      chunk = Enum.slice(items, start, size)
-      if fill_with != nil and number >= with_extra, do: chunk ++ [fill_with], else: chunk
-    end)
+    generator(
+      fn -> Iterable.iter(slices(Value.to_list(value), slices, fill_with)) end,
+      &pass_step/1
+    )
   end
 
   defp filter("tojson", value, args, kwargs, _env) do
@@ -663,24 +662,85 @@ defmodule Otera.Filters do
 
   defp select_test([], _kwargs, _env), do: &Value.truthy?/1
 
-  # do_batch of Jinja2: a batch goes out when the next item comes, so a count of 0 gives an empty batch.
-  defp batch([], _count, _fill_with, [], batches), do: Enum.reverse(batches)
+  # A generator runs `start` at its first step, which gives the state of `step`, or nil for no items.
+  defp generator(start, step) do
+    Iterable.lazy("generator", :start, fn
+      :start ->
+        case start.() do
+          nil -> :done
+          state -> step.(state)
+        end
 
-  defp batch([], count, fill_with, tmp, batches) do
-    tmp = Enum.reverse(tmp)
-
-    tmp =
-      if fill_with != nil and length(tmp) < count,
-        do: tmp ++ List.duplicate(fill_with, count - length(tmp)),
-        else: tmp
-
-    Enum.reverse([tmp | batches])
+      state ->
+        step.(state)
+    end)
   end
 
-  defp batch([item | rest], count, fill_with, tmp, batches) do
-    if length(tmp) == count,
-      do: batch(rest, count, fill_with, [item], [Enum.reverse(tmp) | batches]),
-      else: batch(rest, count, fill_with, [item | tmp], batches)
+  defp pass_step(source) do
+    case Iterable.next(source) do
+      {:ok, item} -> {:ok, item, source}
+      :error -> :done
+    end
+  end
+
+  defp select_step({keep?, source} = state) do
+    case Iterable.next(source) do
+      {:ok, item} -> if keep?.(item), do: {:ok, item, state}, else: select_step(state)
+      :error -> :done
+    end
+  end
+
+  defp unique_step({source, seen}, getter, case_sensitive) do
+    case Iterable.next(source) do
+      {:ok, item} ->
+        key = postprocess(getter.(item), case_sensitive)
+        Value.hashable!(key)
+
+        if Enum.any?(seen, &Value.equal?(&1, key)),
+          do: unique_step({source, seen}, getter, case_sensitive),
+          else: {:ok, item, {source, [key | seen]}}
+
+      :error ->
+        :done
+    end
+  end
+
+  # do_batch of Jinja2: a batch goes out when the next item comes, so a count of 0 gives an empty batch.
+  defp batch_step(:finished, _count, _fill_with), do: :done
+
+  defp batch_step({source, tmp}, count, fill_with) do
+    case Iterable.next(source) do
+      {:ok, item} when length(tmp) == count ->
+        {:ok, Enum.reverse(tmp), {source, [item]}}
+
+      {:ok, item} ->
+        batch_step({source, [item | tmp]}, count, fill_with)
+
+      :error when tmp == [] ->
+        :done
+
+      :error ->
+        tmp = Enum.reverse(tmp)
+
+        tmp =
+          if fill_with != nil and length(tmp) < count,
+            do: tmp ++ List.duplicate(fill_with, count - length(tmp)),
+            else: tmp
+
+        {:ok, tmp, :finished}
+    end
+  end
+
+  defp slices(items, slices, fill_with) do
+    per_slice = Value.binary_op(:floordiv, length(items), slices)
+    with_extra = Value.binary_op(:mod, length(items), slices)
+
+    Enum.map(0..(slices - 1)//1, fn number ->
+      start = number * per_slice + min(number, with_extra)
+      size = per_slice + if(number < with_extra, do: 1, else: 0)
+      chunk = Enum.slice(items, start, size)
+      if fill_with != nil and number >= with_extra, do: chunk ++ [fill_with], else: chunk
+    end)
   end
 
   defp filter_argument_error(message),
