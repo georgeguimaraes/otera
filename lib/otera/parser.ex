@@ -1,0 +1,889 @@
+defmodule Otera.Parser do
+  @moduledoc """
+  Parses the tokens of `Otera.Lexer` into an abstract syntax tree, with the grammar of the Python Jinja2 parser.
+
+  The tree is a list of nodes. Nodes are tuples, so that the evaluator can pattern match on them.
+
+  Statements:
+
+    * `{:text, string}` and `{:output, expr}`
+    * `{:if, [{test, body}], else_body}`
+    * `{:for, target, iter, filter_or_nil, body, else_body, recursive?}`
+    * `{:set, target, expr}` and `{:set_block, target, filter_or_nil, body}`
+    * `{:macro, name, params, body, special_names}` and `{:call_block, call, params, body, special_names}`
+    * `{:filter_block, filter, body}`, `{:with, [{target, expr}], body}` and `{:generation, body}`
+    * `:break` and `:continue`
+
+  Expressions:
+
+    * `{:const, value}`, `{:name, name}`, `{:list, items}`, `{:tuple, items}` and `{:dict, [{key, value}]}`
+    * `{:getattr, expr, name}`, `{:getitem, expr, key}` and `{:slice, start, stop, step}` as a key
+    * `{:call, callee, args, kwargs}`, `{:filter, name, expr, args, kwargs, line}` and `{:test, name, expr, args, kwargs, line}`, where `args` has expressions and `{:unpack, expr}` for `*expr`, and `kwargs` has `{name, expr}` and `{:unpack, expr}` for `**expr`
+    * `{:not, expr}`, `{:neg, expr}`, `{:pos, expr}`, `{:and, left, right}` and `{:or, left, right}`
+    * `{:binop, op, left, right}` with op `:add`, `:sub`, `:mul`, `:div`, `:floordiv`, `:mod` or `:pow`
+    * `{:concat, exprs}`, `{:compare, expr, [{op, expr}]}` and `{:cond, test, then, else}`
+    * `{:ns_ref, name, attr}` as an assignment target
+
+  A filter of a filter block or a set block has `nil` as its innermost expression. An inline `if` without `else` gets an undefined value as its `else`. `params` of a macro is a list of `{name, default_or_nil}`, and `special_names` lists which of `caller`, `varargs` and `kwargs` the body uses.
+
+  As in Jinja2, an unknown filter or test is a syntax error, except inside an `if` block or an inline `if`, where it fails only when the template uses it.
+  """
+
+  alias Otera.SyntaxError
+
+  @compare_ops %{"==" => :eq, "!=" => :ne, "<" => :lt, "<=" => :lteq, ">" => :gt, ">=" => :gteq}
+  @math1_ops %{"+" => :add, "-" => :sub}
+  @math2_ops %{"*" => :mul, "/" => :div, "//" => :floordiv, "%" => :mod}
+  @special_names ["caller", "varargs", "kwargs"]
+  @unsupported_tags ~w(block extends include import from autoescape)
+
+  @doc """
+  Returns the syntax tree of `tokens`. Raises `Otera.SyntaxError`.
+
+  Options: `:filters` and `:tests`, the names of the custom filters and tests besides the builtin ones.
+  """
+  @spec parse([Otera.Lexer.token()], keyword) :: [tuple | atom]
+  def parse(tokens, opts \\ []) do
+    {body, _eof} = subparse(tokens, nil, %{tags: [], ends: [], loop: false})
+    known = %{filter: Keyword.get(opts, :filters, []), test: Keyword.get(opts, :tests, [])}
+    check_names(body, known, false)
+    body
+  end
+
+  # Jinja2 resolves filters and tests at compile time, but not in the soft frames of if blocks and inline ifs.
+  defp check_names({:if, branches, else_body}, known, _soft) do
+    check_names(branches, known, true)
+    check_names(else_body, known, true)
+  end
+
+  defp check_names({:for, _target, iter, test, body, else_body, _recursive}, known, soft) do
+    check_names(iter, known, soft)
+    check_names([test, body, else_body], known, false)
+  end
+
+  defp check_names({:macro, _name, params, body, _special}, known, _soft),
+    do: check_names([params, body], known, false)
+
+  defp check_names({:call_block, call, params, body, _special}, known, soft) do
+    check_names(call, known, soft)
+    check_names([params, body], known, false)
+  end
+
+  defp check_names({:with, assignments, body}, known, soft) do
+    check_names(assignments, known, soft)
+    check_names(body, known, false)
+  end
+
+  defp check_names({tag, _target, filter, body}, known, _soft) when tag == :set_block,
+    do: check_names([filter, body], known, false)
+
+  defp check_names({tag, filter, body}, known, _soft) when tag == :filter_block,
+    do: check_names([filter, body], known, false)
+
+  defp check_names({:generation, body}, known, _soft), do: check_names(body, known, false)
+
+  defp check_names({:cond, test, then_expr, else_expr}, known, _soft),
+    do: check_names([test, then_expr, else_expr], known, true)
+
+  defp check_names({type, name, expr, args, kwargs, line}, known, soft)
+       when type in [:filter, :test] do
+    builtin? =
+      if type == :filter, do: Otera.Filters.builtin?(name), else: Otera.Tests.builtin?(name)
+
+    unless soft or builtin? or name in known[type] do
+      fail("No #{type} named #{repr(name)}.", line)
+    end
+
+    check_names([expr, args, kwargs], known, soft)
+  end
+
+  defp check_names(node, known, soft) when is_tuple(node),
+    do: check_names(Tuple.to_list(node), known, soft)
+
+  defp check_names(nodes, known, soft) when is_list(nodes),
+    do: Enum.each(nodes, &check_names(&1, known, soft))
+
+  defp check_names(_leaf, _known, _soft), do: :ok
+
+  ## Statements
+
+  defp subparse(tokens, ends, ctx) do
+    ctx = if ends, do: %{ctx | ends: [ends | ctx.ends]}, else: ctx
+    subparse(tokens, ends, ctx, [])
+  end
+
+  defp subparse([{:data, text, _} | rest], ends, ctx, acc),
+    do: subparse(rest, ends, ctx, [{:text, text} | acc])
+
+  defp subparse([{:variable_begin, _, _} | rest], ends, ctx, acc) do
+    {expr, rest} = parse_tuple(rest, with_condexpr: true)
+    rest = expect(rest, :variable_end)
+    subparse(rest, ends, ctx, [{:output, expr} | acc])
+  end
+
+  defp subparse([{:block_begin, _, _} | rest], ends, ctx, acc) do
+    case rest do
+      [{:name, name, _} | _] when is_list(ends) and is_binary(name) ->
+        if name in ends, do: {Enum.reverse(acc), rest}, else: statement(rest, ends, ctx, acc)
+
+      _ ->
+        statement(rest, ends, ctx, acc)
+    end
+  end
+
+  defp subparse([{:eof, _, _} | _] = tokens, nil, _ctx, acc), do: {Enum.reverse(acc), tokens}
+  defp subparse([{:eof, _, line} | _], _ends, ctx, _acc), do: fail_unexpected_tag(nil, ctx, line)
+
+  defp statement(tokens, ends, ctx, acc) do
+    {nodes, rest} = parse_statement(tokens, ctx)
+    rest = expect(rest, :block_end)
+    subparse(rest, ends, ctx, Enum.reverse(List.wrap(nodes), acc))
+  end
+
+  defp parse_statement([{:name, tag, line} | rest], ctx),
+    do: parse_tag(tag, rest, %{ctx | tags: [tag | ctx.tags]}, line)
+
+  defp parse_statement([token | _], _ctx), do: fail("tag name expected", line(token))
+
+  defp parse_tag("if", rest, ctx, _line), do: parse_if(rest, ctx)
+  defp parse_tag("for", rest, ctx, _line), do: parse_for(rest, ctx)
+  defp parse_tag("set", rest, ctx, _line), do: parse_set(rest, ctx)
+  defp parse_tag("macro", rest, ctx, _line), do: parse_macro(rest, ctx)
+  defp parse_tag("call", rest, ctx, _line), do: parse_call_block(rest, ctx)
+  defp parse_tag("filter", rest, ctx, _line), do: parse_filter_block(rest, ctx)
+  defp parse_tag("with", rest, ctx, _line), do: parse_with(rest, ctx)
+  defp parse_tag("print", rest, _ctx, _line), do: parse_print(rest)
+  defp parse_tag("generation", rest, ctx, _line), do: parse_generation(rest, ctx)
+
+  defp parse_tag(control, rest, ctx, line) when control in ["break", "continue"],
+    do: loop_control(control, rest, ctx, line)
+
+  defp parse_tag(tag, _rest, _ctx, line) when tag in @unsupported_tags,
+    do: fail("Otera does not support the '#{tag}' tag yet", line)
+
+  defp parse_tag(tag, _rest, ctx, line),
+    do: fail_unexpected_tag(tag, %{ctx | tags: tl(ctx.tags)}, line)
+
+  defp loop_control(control, rest, %{loop: true}, _line),
+    do: {String.to_existing_atom(control), rest}
+
+  defp loop_control("break", _rest, _ctx, line), do: fail("'break' outside loop", line)
+
+  defp loop_control("continue", _rest, _ctx, line),
+    do: fail("'continue' not properly in loop", line)
+
+  defp parse_statements(tokens, ends, ctx, drop_needle? \\ false) do
+    tokens = skip_if(tokens, :operator, ":")
+    tokens = expect(tokens, :block_end)
+    {body, rest} = subparse(tokens, ends, ctx)
+    {body, if(drop_needle?, do: tl(rest), else: rest)}
+  end
+
+  defp parse_if(tokens, ctx), do: parse_if(tokens, ctx, [])
+
+  defp parse_if(tokens, ctx, branches) do
+    {test, rest} = parse_tuple(tokens, with_condexpr: false)
+    {body, rest} = parse_statements(rest, ["elif", "else", "endif"], ctx)
+    branches = [{test, body} | branches]
+
+    case rest do
+      [{:name, "elif", _} | rest] ->
+        parse_if(rest, ctx, branches)
+
+      [{:name, "else", _} | rest] ->
+        {else_body, rest} = parse_statements(rest, ["endif"], ctx, true)
+        {{:if, Enum.reverse(branches), else_body}, rest}
+
+      [{:name, "endif", _} | rest] ->
+        {{:if, Enum.reverse(branches), []}, rest}
+    end
+  end
+
+  defp parse_for(tokens, ctx) do
+    {target, rest} = parse_assign_target(tokens, extra_end: ["in"])
+
+    if "loop" in target_names(target),
+      do: fail("Can't assign to special loop variable in for-loop target", line(hd(tokens)))
+
+    rest = expect(rest, :name, "in")
+    {iter, rest} = parse_tuple(rest, with_condexpr: false, extra_end: ["recursive"])
+
+    {test, rest} =
+      case rest do
+        [{:name, "if", _} | rest] -> parse_expression(rest)
+        rest -> {nil, rest}
+      end
+
+    {recursive?, rest} =
+      case rest do
+        [{:name, "recursive", _} | rest] -> {true, rest}
+        rest -> {false, rest}
+      end
+
+    {body, rest} = parse_statements(rest, ["endfor", "else"], %{ctx | loop: true})
+
+    {else_body, rest} =
+      case rest do
+        [{:name, "endfor", _} | rest] -> {[], rest}
+        [{:name, "else", _} | rest] -> parse_statements(rest, ["endfor"], ctx, true)
+      end
+
+    {{:for, target, iter, test, body, else_body, recursive?}, rest}
+  end
+
+  defp parse_set(tokens, ctx) do
+    {target, rest} = parse_assign_target(tokens, with_namespace: true)
+
+    case rest do
+      [{:operator, "=", _} | rest] ->
+        {expr, rest} = parse_tuple(rest)
+        {{:set, target, expr}, rest}
+
+      rest ->
+        {filter, rest} = parse_filter(nil, rest)
+        {body, rest} = parse_statements(rest, ["endset"], ctx, true)
+        {{:set_block, target, filter, body}, rest}
+    end
+  end
+
+  defp parse_macro(tokens, ctx) do
+    {{:name, name}, rest} = parse_assign_target(tokens, name_only: true)
+    {params, rest} = parse_signature(rest)
+    {body, rest} = parse_statements(rest, ["endmacro"], %{ctx | loop: false}, true)
+    {{:macro, name, params, body, special_names(body)}, rest}
+  end
+
+  defp parse_call_block(tokens, ctx) do
+    {params, rest} =
+      case tokens do
+        [{:operator, "(", _} | _] -> parse_signature(tokens)
+        tokens -> {[], tokens}
+      end
+
+    {call, rest} = parse_expression(rest)
+    unless match?({:call, _, _, _}, call), do: fail("expected call", line(hd(tokens)))
+    {body, rest} = parse_statements(rest, ["endcall"], %{ctx | loop: false}, true)
+    {{:call_block, call, params, body, special_names(body)}, rest}
+  end
+
+  defp parse_filter_block(tokens, ctx) do
+    {filter, rest} = parse_filter(nil, tokens, true)
+    {body, rest} = parse_statements(rest, ["endfilter"], ctx, true)
+    {{:filter_block, filter, body}, rest}
+  end
+
+  defp parse_with(tokens, ctx), do: parse_with(tokens, ctx, [])
+
+  defp parse_with([{:block_end, _, _} | _] = tokens, ctx, assignments) do
+    {body, rest} = parse_statements(tokens, ["endwith"], ctx, true)
+    {{:with, Enum.reverse(assignments), body}, rest}
+  end
+
+  defp parse_with(tokens, ctx, assignments) do
+    tokens = if assignments == [], do: tokens, else: expect(tokens, :operator, ",")
+    {target, rest} = parse_assign_target(tokens)
+    rest = expect(rest, :operator, "=")
+    {value, rest} = parse_expression(rest)
+    parse_with(rest, ctx, [{target, value} | assignments])
+  end
+
+  defp parse_print(tokens), do: parse_print(tokens, [])
+
+  defp parse_print([{:block_end, _, _} | _] = tokens, nodes), do: {Enum.reverse(nodes), tokens}
+
+  defp parse_print(tokens, nodes) do
+    tokens = if nodes == [], do: tokens, else: expect(tokens, :operator, ",")
+    {expr, rest} = parse_expression(tokens)
+    parse_print(rest, [{:output, expr} | nodes])
+  end
+
+  defp parse_generation(tokens, ctx) do
+    {body, rest} = parse_statements(tokens, ["endgeneration"], %{ctx | loop: false}, true)
+    {{:generation, body}, rest}
+  end
+
+  defp parse_signature(tokens) do
+    tokens = expect(tokens, :operator, "(")
+    parse_signature(tokens, [])
+  end
+
+  defp parse_signature([{:operator, ")", _} | rest], params), do: {Enum.reverse(params), rest}
+
+  defp parse_signature(tokens, params) do
+    tokens = if params == [], do: tokens, else: expect(tokens, :operator, ",")
+
+    case tokens do
+      [{:operator, ")", _} | rest] ->
+        {Enum.reverse(params), rest}
+
+      tokens ->
+        {{:name, name}, rest} = parse_assign_target(tokens, name_only: true)
+        parse_param(name, rest, params)
+    end
+  end
+
+  defp parse_param(name, [{:operator, "=", _} | rest], params) do
+    {default, rest} = parse_expression(rest)
+    parse_signature(rest, [{name, default} | params])
+  end
+
+  defp parse_param(name, [token | _] = rest, params) do
+    if Enum.any?(params, fn {_, default} -> default end),
+      do: fail("non-default argument follows default argument", line(token))
+
+    parse_signature(rest, [{name, nil} | params])
+  end
+
+  defp special_names(body), do: body |> collect_names(MapSet.new()) |> MapSet.to_list()
+
+  defp collect_names({:name, name}, names) when name in @special_names,
+    do: MapSet.put(names, name)
+
+  defp collect_names(node, names) when is_tuple(node),
+    do: node |> Tuple.to_list() |> collect_names(names)
+
+  defp collect_names(nodes, names) when is_list(nodes),
+    do: Enum.reduce(nodes, names, &collect_names/2)
+
+  defp collect_names(_node, names), do: names
+
+  defp target_names({:name, name}), do: [name]
+  defp target_names({:tuple, items}), do: Enum.flat_map(items, &target_names/1)
+  defp target_names(_target), do: []
+
+  defp parse_assign_target(tokens, opts \\ []) do
+    {target, rest} =
+      if opts[:name_only] do
+        parse_name_target(tokens)
+      else
+        opts = [
+          simplified: true,
+          extra_end: opts[:extra_end],
+          with_namespace: opts[:with_namespace]
+        ]
+
+        parse_tuple(tokens, opts)
+      end
+
+    unless assignable?(target),
+      do: fail("can't assign to #{repr(node_type(target))}", line(hd(tokens)))
+
+    {target, rest}
+  end
+
+  defp parse_name_target([{:name, name, _} | rest]), do: {{:name, name}, rest}
+  defp parse_name_target(tokens), do: expect(tokens, :name)
+
+  defp assignable?({:name, name}), do: name not in ~w(true false none True False None)
+  defp assignable?({:ns_ref, _, _}), do: true
+  defp assignable?({:tuple, items}), do: Enum.all?(items, &assignable?/1)
+  defp assignable?(_target), do: false
+
+  defp node_type(node), do: node |> elem(0) |> Atom.to_string()
+
+  ## Expressions
+
+  defp parse_expression(tokens, with_condexpr \\ true) do
+    if with_condexpr, do: parse_condexpr(tokens), else: parse_or(tokens)
+  end
+
+  defp parse_condexpr([token | _] = tokens) do
+    {expr, rest} = parse_or(tokens)
+    parse_condexpr_tail(expr, rest, line(token))
+  end
+
+  defp parse_condexpr_tail(expr, [{:name, "if", _} | rest], line) do
+    {test, rest} = parse_or(rest)
+
+    {else_expr, [next | _] = rest} =
+      case rest do
+        [{:name, "else", _} | rest] ->
+          parse_condexpr(rest)
+
+        rest ->
+          hint =
+            "the inline if-expression on line #{line} evaluated to false and no else section was defined."
+
+          {{:const, %Otera.Undefined{hint: hint}}, rest}
+      end
+
+    parse_condexpr_tail({:cond, test, expr, else_expr}, rest, line(next))
+  end
+
+  defp parse_condexpr_tail(expr, rest, _line), do: {expr, rest}
+
+  defp parse_or(tokens), do: parse_logical(tokens, "or", :or, &parse_and/1)
+  defp parse_and(tokens), do: parse_logical(tokens, "and", :and, &parse_not/1)
+
+  defp parse_logical(tokens, keyword, node, parse_operand) do
+    {left, rest} = parse_operand.(tokens)
+    parse_logical_tail(left, rest, keyword, node, parse_operand)
+  end
+
+  defp parse_logical_tail(left, [{:name, keyword, _} | rest], keyword, node, parse_operand) do
+    {right, rest} = parse_operand.(rest)
+    parse_logical_tail({node, left, right}, rest, keyword, node, parse_operand)
+  end
+
+  defp parse_logical_tail(left, rest, _keyword, _node, _parse_operand), do: {left, rest}
+
+  defp parse_not([{:name, "not", _} | rest]) do
+    {expr, rest} = parse_not(rest)
+    {{:not, expr}, rest}
+  end
+
+  defp parse_not(tokens), do: parse_compare(tokens)
+
+  defp parse_compare(tokens) do
+    {expr, rest} = parse_math1(tokens)
+
+    case parse_compare_ops(rest, []) do
+      {[], rest} -> {expr, rest}
+      {ops, rest} -> {{:compare, expr, ops}, rest}
+    end
+  end
+
+  defp parse_compare_ops([{:operator, op, _} | rest] = tokens, ops) do
+    case @compare_ops do
+      %{^op => name} -> compare_operand(name, rest, ops)
+      _ -> {Enum.reverse(ops), tokens}
+    end
+  end
+
+  defp parse_compare_ops([{:name, "in", _} | rest], ops), do: compare_operand(:in, rest, ops)
+
+  defp parse_compare_ops([{:name, "not", _}, {:name, "in", _} | rest], ops),
+    do: compare_operand(:notin, rest, ops)
+
+  defp parse_compare_ops(tokens, ops), do: {Enum.reverse(ops), tokens}
+
+  defp compare_operand(op, tokens, ops) do
+    {operand, rest} = parse_math1(tokens)
+    parse_compare_ops(rest, [{op, operand} | ops])
+  end
+
+  defp parse_math1(tokens), do: parse_binary(tokens, @math1_ops, &parse_concat/1)
+  defp parse_math2(tokens), do: parse_binary(tokens, @math2_ops, &parse_pow/1)
+  defp parse_pow(tokens), do: parse_binary(tokens, %{"**" => :pow}, &parse_unary/1)
+
+  defp parse_binary(tokens, ops, parse_operand) do
+    {left, rest} = parse_operand.(tokens)
+    parse_binary_tail(left, rest, ops, parse_operand)
+  end
+
+  defp parse_binary_tail(left, [{:operator, op, _} | rest] = tokens, ops, parse_operand) do
+    case ops do
+      %{^op => name} ->
+        {right, rest} = parse_operand.(rest)
+        parse_binary_tail({:binop, name, left, right}, rest, ops, parse_operand)
+
+      _ ->
+        {left, tokens}
+    end
+  end
+
+  defp parse_binary_tail(left, tokens, _ops, _parse_operand), do: {left, tokens}
+
+  defp parse_concat(tokens) do
+    {first, rest} = parse_math2(tokens)
+    parse_concat_tail([first], rest)
+  end
+
+  defp parse_concat_tail(args, [{:operator, "~", _} | rest]) do
+    {arg, rest} = parse_math2(rest)
+    parse_concat_tail([arg | args], rest)
+  end
+
+  defp parse_concat_tail([arg], rest), do: {arg, rest}
+  defp parse_concat_tail(args, rest), do: {{:concat, Enum.reverse(args)}, rest}
+
+  defp parse_unary(tokens, with_filter \\ true) do
+    {node, rest} =
+      case tokens do
+        [{:operator, "-", _} | rest] ->
+          {operand, rest} = parse_unary(rest, false)
+          {{:neg, operand}, rest}
+
+        [{:operator, "+", _} | rest] ->
+          {operand, rest} = parse_unary(rest, false)
+          {{:pos, operand}, rest}
+
+        tokens ->
+          parse_primary(tokens)
+      end
+
+    {node, rest} = parse_postfix(node, rest)
+    if with_filter, do: parse_filter_expr(node, rest), else: {node, rest}
+  end
+
+  defp parse_primary(tokens, with_namespace \\ false)
+
+  defp parse_primary([{:name, name, _} | rest], with_namespace) do
+    case {name, rest} do
+      {name, rest} when name in ["true", "True"] ->
+        {{:const, true}, rest}
+
+      {name, rest} when name in ["false", "False"] ->
+        {{:const, false}, rest}
+
+      {name, rest} when name in ["none", "None"] ->
+        {{:const, nil}, rest}
+
+      {name, [{:operator, ".", _} | rest]} when with_namespace ->
+        case rest do
+          [{:name, attr, _} | rest] -> {{:ns_ref, name, attr}, rest}
+          rest -> expect(rest, :name)
+        end
+
+      {name, rest} ->
+        {{:name, name}, rest}
+    end
+  end
+
+  defp parse_primary([{:string, value, _} | rest], _with_namespace),
+    do: parse_strings(rest, [value])
+
+  defp parse_primary([{type, value, _} | rest], _with_namespace) when type in [:integer, :float],
+    do: {{:const, value}, rest}
+
+  defp parse_primary([{:operator, "(", _} | rest], _with_namespace) do
+    {expr, rest} = parse_tuple(rest, explicit_parentheses: true)
+    {expr, expect(rest, :operator, ")")}
+  end
+
+  defp parse_primary([{:operator, "[", _} | rest], _with_namespace), do: parse_list(rest, [])
+  defp parse_primary([{:operator, "{", _} | rest], _with_namespace), do: parse_dict(rest, [])
+
+  defp parse_primary([token | _], _with_namespace),
+    do: fail("unexpected #{inspect_token(token)}", line(token))
+
+  defp parse_strings([{:string, value, _} | rest], acc), do: parse_strings(rest, [value | acc])
+
+  defp parse_strings(rest, acc),
+    do: {{:const, acc |> Enum.reverse() |> IO.iodata_to_binary()}, rest}
+
+  defp parse_tuple(tokens, opts \\ []) do
+    parse =
+      if opts[:simplified],
+        do: &parse_primary(&1, opts[:with_namespace] || false),
+        else: &parse_expression(&1, Keyword.get(opts, :with_condexpr, true))
+
+    parse_tuple_items(tokens, parse, opts, [])
+  end
+
+  defp parse_tuple_items(tokens, parse, opts, items) do
+    tokens = if items == [], do: tokens, else: expect(tokens, :operator, ",")
+
+    if tuple_end?(tokens, opts[:extra_end]) do
+      finish_tuple(tokens, opts, items, items != [])
+    else
+      {item, rest} = parse.(tokens)
+
+      case rest do
+        [{:operator, ",", _} | _] -> parse_tuple_items(rest, parse, opts, [item | items])
+        rest -> finish_tuple(rest, opts, [item | items], items != [])
+      end
+    end
+  end
+
+  defp finish_tuple(tokens, _opts, items, true), do: {{:tuple, Enum.reverse(items)}, tokens}
+  defp finish_tuple(tokens, _opts, [item], false), do: {item, tokens}
+
+  defp finish_tuple(tokens, opts, [], _tuple?),
+    do: empty_tuple(tokens, opts[:explicit_parentheses])
+
+  defp empty_tuple(tokens, true), do: {{:tuple, []}, tokens}
+
+  defp empty_tuple([token | _], _explicit),
+    do: fail("Expected an expression, got #{inspect_token(token)}", line(token))
+
+  defp tuple_end?([{type, _, _} | _], _extra) when type in [:variable_end, :block_end], do: true
+  defp tuple_end?([{:operator, ")", _} | _], _extra), do: true
+  defp tuple_end?([{:name, name, _} | _], extra) when is_list(extra), do: name in extra
+  defp tuple_end?(_tokens, _extra), do: false
+
+  defp parse_list([{:operator, "]", _} | rest], items), do: {{:list, Enum.reverse(items)}, rest}
+
+  defp parse_list(tokens, items) do
+    tokens = if items == [], do: tokens, else: expect(tokens, :operator, ",")
+
+    case tokens do
+      [{:operator, "]", _} | rest] ->
+        {{:list, Enum.reverse(items)}, rest}
+
+      tokens ->
+        {item, rest} = parse_expression(tokens)
+        parse_list(rest, [item | items])
+    end
+  end
+
+  defp parse_dict([{:operator, "}", _} | rest], pairs), do: {{:dict, Enum.reverse(pairs)}, rest}
+
+  defp parse_dict(tokens, pairs) do
+    tokens = if pairs == [], do: tokens, else: expect(tokens, :operator, ",")
+
+    case tokens do
+      [{:operator, "}", _} | rest] ->
+        {{:dict, Enum.reverse(pairs)}, rest}
+
+      tokens ->
+        {key, rest} = parse_expression(tokens)
+        rest = expect(rest, :operator, ":")
+        {value, rest} = parse_expression(rest)
+        parse_dict(rest, [{key, value} | pairs])
+    end
+  end
+
+  defp parse_postfix(node, [{:operator, op, _} | _] = tokens) when op in [".", "["] do
+    {node, rest} = parse_subscript(node, tokens)
+    parse_postfix(node, rest)
+  end
+
+  defp parse_postfix(node, [{:operator, "(", _} | _] = tokens) do
+    {node, rest} = parse_call(node, tokens)
+    parse_postfix(node, rest)
+  end
+
+  defp parse_postfix(node, tokens), do: {node, tokens}
+
+  defp parse_filter_expr(node, [{:operator, "|", _} | _] = tokens) do
+    {node, rest} = parse_filter(node, tokens)
+    parse_filter_expr(node, rest)
+  end
+
+  defp parse_filter_expr(node, [{:name, "is", _} | _] = tokens) do
+    {node, rest} = parse_test(node, tokens)
+    parse_filter_expr(node, rest)
+  end
+
+  defp parse_filter_expr(node, [{:operator, "(", _} | _] = tokens) do
+    {node, rest} = parse_call(node, tokens)
+    parse_filter_expr(node, rest)
+  end
+
+  defp parse_filter_expr(node, tokens), do: {node, tokens}
+
+  defp parse_subscript(node, [{:operator, ".", line} | rest]) do
+    case rest do
+      [{:name, name, _} | rest] -> {{:getattr, node, name}, rest}
+      [{:integer, index, _} | rest] -> {{:getitem, node, {:const, index}}, rest}
+      _ -> fail("expected name or number", line)
+    end
+  end
+
+  defp parse_subscript(node, [{:operator, "[", _} | rest]) do
+    {args, rest} = parse_subscribed_list(rest, [])
+
+    case args do
+      [arg] -> {{:getitem, node, arg}, rest}
+      args -> {{:getitem, node, {:tuple, args}}, rest}
+    end
+  end
+
+  defp parse_subscribed_list([{:operator, "]", _} | rest], args), do: {Enum.reverse(args), rest}
+
+  defp parse_subscribed_list(tokens, args) do
+    tokens = if args == [], do: tokens, else: expect(tokens, :operator, ",")
+    {arg, rest} = parse_subscribed(tokens)
+    parse_subscribed_list(rest, [arg | args])
+  end
+
+  defp parse_subscribed([{:operator, ":", _} | rest]), do: parse_slice(nil, rest)
+
+  defp parse_subscribed(tokens) do
+    case parse_expression(tokens) do
+      {start, [{:operator, ":", _} | rest]} -> parse_slice(start, rest)
+      result -> result
+    end
+  end
+
+  defp parse_slice(start, tokens) do
+    {stop, rest} = slice_part(tokens)
+
+    {step, rest} =
+      case rest do
+        [{:operator, ":", _} | rest] -> slice_part(rest)
+        rest -> {nil, rest}
+      end
+
+    {{:slice, start, stop, step}, rest}
+  end
+
+  defp slice_part([{:operator, op, _} | _] = tokens) when op in [":", "]", ","], do: {nil, tokens}
+  defp slice_part(tokens), do: parse_expression(tokens)
+
+  defp parse_call(node, tokens) do
+    {args, kwargs, rest} = parse_call_args(tokens)
+    {{:call, node, args, kwargs}, rest}
+  end
+
+  defp parse_call_args([{:operator, "(", line} | rest]), do: parse_call_args(rest, line, [], [])
+
+  defp parse_call_args(tokens), do: expect(tokens, :operator, "(")
+
+  defp parse_call_args([{:operator, ")", _} | rest], _line, args, kwargs),
+    do: {Enum.reverse(args), Enum.reverse(kwargs), rest}
+
+  defp parse_call_args(tokens, line, args, kwargs) do
+    case if(args == [] and kwargs == [], do: tokens, else: expect(tokens, :operator, ",")) do
+      [{:operator, ")", _} | rest] -> {Enum.reverse(args), Enum.reverse(kwargs), rest}
+      tokens -> parse_call_arg(tokens, line, args, kwargs)
+    end
+  end
+
+  defp parse_call_arg([{:operator, "*", _} | rest], line, args, kwargs) do
+    ensure_call(not unpacked?(args) and not unpacked?(kwargs), line)
+    {expr, rest} = parse_expression(rest)
+    parse_call_args(rest, line, [{:unpack, expr} | args], kwargs)
+  end
+
+  defp parse_call_arg([{:operator, "**", _} | rest], line, args, kwargs) do
+    ensure_call(not unpacked?(kwargs), line)
+    {expr, rest} = parse_expression(rest)
+    parse_call_args(rest, line, args, [{:unpack, expr} | kwargs])
+  end
+
+  defp parse_call_arg([{:name, name, _}, {:operator, "=", _} | rest], line, args, kwargs) do
+    ensure_call(not unpacked?(kwargs), line)
+    {expr, rest} = parse_expression(rest)
+    parse_call_args(rest, line, args, [{name, expr} | kwargs])
+  end
+
+  defp parse_call_arg(tokens, line, args, kwargs) do
+    ensure_call(not unpacked?(args) and not unpacked?(kwargs) and kwargs == [], line)
+    {expr, rest} = parse_expression(tokens)
+    parse_call_args(rest, line, [expr | args], kwargs)
+  end
+
+  defp unpacked?(items), do: Enum.any?(items, &match?({:unpack, _}, &1))
+
+  defp ensure_call(true, _line), do: :ok
+  defp ensure_call(false, line), do: fail("invalid syntax for function call expression", line)
+
+  defp parse_filter(node, tokens, start_inline \\ false)
+
+  defp parse_filter(node, [{:operator, "|", _} | rest], false), do: parse_filter(node, rest, true)
+
+  defp parse_filter(node, [token | _] = tokens, true) do
+    {name, rest} = parse_dotted_name(tokens)
+
+    {args, kwargs, rest} =
+      case rest do
+        [{:operator, "(", _} | _] -> parse_call_args(rest)
+        rest -> {[], [], rest}
+      end
+
+    parse_filter({:filter, name, node, args, kwargs, line(token)}, rest, false)
+  end
+
+  defp parse_filter(node, tokens, false), do: {node, tokens}
+
+  defp parse_dotted_name(tokens) do
+    {name, rest} =
+      case tokens do
+        [{:name, name, _} | rest] -> {name, rest}
+        tokens -> {nil, expect(tokens, :name)}
+      end
+
+    parse_dotted_tail(name, rest)
+  end
+
+  defp parse_dotted_tail(name, [{:operator, ".", _} | rest]) do
+    {part, rest} = parse_dotted_name(rest)
+    {name <> "." <> part, rest}
+  end
+
+  defp parse_dotted_tail(name, rest), do: {name, rest}
+
+  defp parse_test(node, [{:name, "is", line} | rest]) do
+    {negated?, rest} =
+      case rest do
+        [{:name, "not", _} | rest] -> {true, rest}
+        rest -> {false, rest}
+      end
+
+    {name, rest} = parse_dotted_name(rest)
+
+    {args, kwargs, rest} = parse_test_args(rest)
+    test = {:test, name, node, args, kwargs, line}
+    {if(negated?, do: {:not, test}, else: test), rest}
+  end
+
+  defp parse_test_args([{:operator, "(", _} | _] = tokens), do: parse_call_args(tokens)
+
+  defp parse_test_args([{:name, "is", line} | _]),
+    do: fail("You cannot chain multiple tests with is", line)
+
+  defp parse_test_args([{:name, name, _} | _] = tokens) when name in ["else", "or", "and"],
+    do: {[], [], tokens}
+
+  defp parse_test_args([{type, value, _} | _] = tokens)
+       when type in [:name, :string, :integer, :float] or value in ["[", "{"] do
+    {arg, rest} = parse_primary(tokens)
+    {arg, rest} = parse_postfix(arg, rest)
+    {[arg], [], rest}
+  end
+
+  defp parse_test_args(tokens), do: {[], [], tokens}
+
+  ## Token helpers
+
+  defp skip_if([{type, value, _} | rest], type, value), do: rest
+  defp skip_if(tokens, _type, _value), do: tokens
+
+  defp expect([{type, _, _} | rest], type) when type != :operator, do: rest
+
+  defp expect([token | _], type), do: fail_expect(token, describe_type(type))
+
+  defp expect([{type, value, _} | rest], type, value), do: rest
+  defp expect([token | _], _type, value), do: fail_expect(token, value)
+
+  defp fail_expect({:eof, _, line}, expected),
+    do: fail("unexpected end of template, expected #{repr(expected)}.", line)
+
+  defp fail_expect(token, expected),
+    do: fail("expected token #{repr(expected)}, got #{repr(describe(token))}", line(token))
+
+  defp fail_unexpected_tag(name, ctx, line) do
+    looking = ctx.ends |> List.first() |> Kernel.||([]) |> Enum.map_join(" or ", &repr/1)
+
+    message = [
+      if(name, do: "Encountered unknown tag #{repr(name)}.", else: "Unexpected end of template."),
+      cond do
+        looking == "" ->
+          nil
+
+        name && name in List.flatten(ctx.ends) ->
+          "You probably made a nesting mistake. Jinja is expecting this tag, but currently looking for #{looking}."
+
+        true ->
+          "Jinja was looking for the following tags: #{looking}."
+      end,
+      if(ctx.tags != [],
+        do: "The innermost block that needs to be closed is #{repr(hd(ctx.tags))}."
+      )
+    ]
+
+    fail(message |> Enum.reject(&is_nil/1) |> Enum.join(" "), line)
+  end
+
+  defp describe({:name, name, _}), do: name
+  defp describe({:operator, op, _}), do: op
+  defp describe({type, _, _}), do: describe_type(type)
+
+  defp describe_type(:block_begin), do: "begin of statement block"
+  defp describe_type(:block_end), do: "end of statement block"
+  defp describe_type(:variable_begin), do: "begin of print statement"
+  defp describe_type(:variable_end), do: "end of print statement"
+  defp describe_type(:data), do: "template data / text"
+  defp describe_type(:eof), do: "end of template"
+  defp describe_type(type), do: Atom.to_string(type)
+
+  defp inspect_token(token), do: repr(describe(token))
+
+  defp line({_, _, line}), do: line
+
+  defp repr(value), do: Otera.Value.repr(value)
+
+  defp fail(message, line), do: raise(SyntaxError, message: message, line: line)
+end
