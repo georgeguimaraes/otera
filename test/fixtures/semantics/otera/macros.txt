@@ -1,0 +1,14 @@
+{}
+---
+{% macro greet(name, greeting="Hello", punct=greeting|length) -%}
+{{ greeting }}, {{ name }}{{ "!" * punct }}
+{%- endmacro %}
+{{ greet("A") }}|{{ greet("B", "Hi") }}|{{ greet(name="C", punct=1) }}|{{ greet() }}
+{% macro va(a) %}{{ a }}:{{ varargs }}:{{ kwargs }}{% endmacro %}{{ va(1, 2, 3, x=4) }}
+{% macro wrap(tag) %}<{{ tag }}>{{ caller() }}</{{ tag }}>{% endmacro -%}
+{% call wrap("p") %}inside {{ "call" }}{% endcall %}
+{% macro each(items) %}{% for i in items %}{{ caller(i, loop.index) }}{% endfor %}{% endmacro -%}
+{% call(item, n) each(["x", "y"]) %}[{{ n }}:{{ item }}]{% endcall %}
+{% macro rec(n) %}{% if n > 0 %}{{ n }}{{ rec(n - 1) }}{% endif %}{% endmacro %}{{ rec(3) }}
+{{ greet }} {{ greet.name }} {{ greet.arguments }}
+{% filter upper %}{{ greet("filtered") }}{% endfilter %}

@@ -1,0 +1,13 @@
+{"x": "outer"}
+---
+loop: {% for i in [1, 2] %}{{ x }}{% set x = "inner" ~ i %}{{ x }};{% endfor %} after={{ x }}
+fresh: {% for i in [1, 2, 3] %}{% if loop.first %}{% set y = "set" %}{% endif %}[{{ y }}]{% endfor %}
+if: {% if true %}{% set z = "from if" %}{% endif %}{{ z }}
+ns: {% set ns = namespace(count=0, items=[]) %}{% for i in range(3) %}{% set ns.count = ns.count + i %}{% set ns.items = ns.items + [i] %}{% endfor %}{{ ns.count }} {{ ns.items }}
+ns-macro: {% macro bump() %}{% set ns.count = ns.count + 100 %}{% endmacro %}{{ bump() }}{{ ns.count }}
+macro-root: {% macro show() %}{{ late }}{% endmacro %}{% set late = 1 %}{{ show() }}{% set late = 2 %}{{ show() }}
+nested: {% for a in [1, 2] %}{% for b in [1, 2] %}{{ loop.index }}{% endfor %}{{ loop.index }}|{% endfor %}
+with: {% with w = 1, v = x %}{{ w }}{{ v }}{% set x = "with" %}{{ x }}{% endwith %} {{ x }}
+set-block: {% set captured %}{% set inside = 1 %}{{ x|upper }}{% endset %}{{ captured }} {{ inside is defined }}
+tuple: {% set a, b = 1, 2 %}{{ a }}{{ b }} {% set c, d = "xy" %}{{ c }}{{ d }}
+ns-dict: {% set ns2 = namespace({"k": "v"}, other=1) %}{{ ns2.k }}{{ ns2.other }}

@@ -1,0 +1,18 @@
+{"text": "  The quick brown fox jumps over the lazy dog  ", "html": "<a href='x'>Tom & \"Jerry\"</a>", "lines": "first\nsecond\n\nfourth"}
+---
+trim: [{{ text|trim }}] [{{ "xxhixx"|trim("x") }}] [{{ none|trim }}] [{{ missing|trim }}]
+case: {{ "hello WORLD"|upper }} {{ "Hello"|lower }} {{ "hELLO wORLD"|capitalize }} {{ "hello-world foo(bar) [baz] <qux>"|title }} {{ "o'neil mc-donald"|title }}
+replace: {{ "aaa"|replace("a", "b") }} {{ "aaa"|replace("a", "b", 1) }} {{ 123|replace(2, 9) }}
+indent:
+{{ lines|indent }}
+{{ lines|indent(2, true) }}
+{{ lines|indent("> ", first=true, blank=true) }}
+truncate: {{ text|trim|truncate(20) }}|{{ text|trim|truncate(20, true) }}|{{ text|trim|truncate(20, false, "…") }}|{{ "short"|truncate(10) }}|{{ text|trim|truncate(40) }}
+wordcount: {{ text|wordcount }} {{ "it's a well-known fact"|wordcount }}
+center: [{{ "hi"|center(8) }}]
+format: {{ "%s has %d items"|format("cart", 3) }} {{ "%(name)s"|format(name="x") }}
+escape: {{ html|escape }} {{ html|e }} {{ none|escape }}
+string: {{ 42|string }} {{ [1, "a"]|string }} {{ none|string }} {{ missing|string }}
+safe: {{ "<b>"|safe }} {{ 1|safe }}
+default: {{ missing|default("d") }} {{ none|default("d") }} {{ none|default("d", true) }} {{ ""|d("empty") }} {{ ""|d("empty", true) }} {{ 0|default(5, boolean=true) }}
+length: {{ "héllo"|length }} {{ "👨‍👩‍👧"|length }} {{ [1, 2]|count }} {{ {"a": 1}|length }} {{ missing|length }}

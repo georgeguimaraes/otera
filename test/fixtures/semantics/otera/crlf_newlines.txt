@@ -1,0 +1,9 @@
+{"": {"trim_blocks": true}}
+---
+first
+{% if true %}
+second
+{% endif %}
+thirdfourth
+{{ "a
+b" }}

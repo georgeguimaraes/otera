@@ -1,0 +1,3 @@
+{"args": "not a mapping"}
+---
+{% for k, v in args|items %}{{ k }}{% endfor %}

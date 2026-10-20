@@ -1,0 +1,625 @@
+{
+ "minijinja/adding.txt": {
+  "output": "Strings:\ntoWorldyou!\ntoyou!\n\nSequences:\n[1, 2]\n[1, 2, 4, 5]\n\nAdding:\n3\n\nMinus:\n1\n\nDivide:\n50.0"
+ },
+ "minijinja/call.txt": {
+  "output": "[0][1][2][3][4][5][6][7][8][9]\n[a:1][b:2][c:3]"
+ },
+ "minijinja/cmp.txt": {
+  "output": "\n  test\n"
+ },
+ "minijinja/coerce.txt": {
+  "output": "True\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue\nTrue"
+ },
+ "minijinja/concat.txt": {
+  "output": "foobar\nfoobar\nfoo"
+ },
+ "minijinja/context_number_types.txt": {
+  "output": "integer: 4 True False\nfloat: 4.0 False True\nexponent: 4.0 False True\narithmetic: 5.0"
+ },
+ "minijinja/dict.txt": {
+  "output": "{'a': 1, 'b': 2}\n{'x': 1, 'y': 2}\n{'a': 1, 'b': 2, 'c': 3}\n[('extra', 2)]"
+ },
+ "minijinja/err_bad_addition.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate list (not \"int\") to list"
+  }
+ },
+ "minijinja/err_bad_args_unpack.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "Value after * must be an iterable, not bool"
+  }
+ },
+ "minijinja/err_bad_call.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'an_unknown_function' is undefined"
+  }
+ },
+ "minijinja/err_bad_call_block_call.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected call",
+   "line": 1
+  }
+ },
+ "minijinja/err_bad_call_block_list_call.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected call",
+   "line": 1
+  }
+ },
+ "minijinja/err_bad_dotted_assign_forloop.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected token 'in', got '.'",
+   "line": 1
+  }
+ },
+ "minijinja/err_bad_dotted_assign_macro.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected token ',', got '.'",
+   "line": 1
+  }
+ },
+ "minijinja/err_bad_dotted_assign_with.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected token '=', got '.'",
+   "line": 1
+  }
+ },
+ "minijinja/err_bad_fast_recurse.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'loop' is undefined"
+  }
+ },
+ "minijinja/err_bad_filter.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'int' object is not iterable"
+  }
+ },
+ "minijinja/err_bad_nested_subtraction.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "unsupported operand type(s) for -: 'int' and 'list'"
+  }
+ },
+ "minijinja/err_bad_range.txt": {
+  "error": {
+   "type": "OverflowError",
+   "message": "Range too big. The sandbox blocks ranges larger than MAX_RANGE (100000)."
+  }
+ },
+ "minijinja/err_bad_recursion.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'int' object is not iterable"
+  }
+ },
+ "minijinja/err_bad_test.txt": {
+  "error": {
+   "type": "TemplateRuntimeError",
+   "message": "No test named 'reallyEven' found."
+  }
+ },
+ "minijinja/err_bad_trailing_underscore.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected token 'end of print statement', got '_'",
+   "line": 1
+  }
+ },
+ "minijinja/err_bad_unary.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "bad operand type for unary -: 'list'"
+  }
+ },
+ "minijinja/err_debug_info_in_loop.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'int object' has no attribute 'missing'"
+  }
+ },
+ "minijinja/err_debug_info_in_macro.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'list object' has no attribute 'missing'"
+  }
+ },
+ "minijinja/err_duplicate_macro_arg.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "macro 'two_args' takes no keyword argument 'a'"
+  }
+ },
+ "minijinja/err_int_unknown_kwarg.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "do_int() got an unexpected keyword argument 'nonsense'"
+  }
+ },
+ "minijinja/err_missing_nested_filter.txt": {
+  "error": {
+   "type": "TemplateAssertionError",
+   "message": "No filter named 'missingFilter'.",
+   "line": 1
+  }
+ },
+ "minijinja/err_partial_float.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected token 'end of print statement', got 'e'",
+   "line": 1
+  }
+ },
+ "minijinja/err_raw_block_missing_end.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "Missing end of raw directive",
+   "line": 1
+  }
+ },
+ "minijinja/err_repeat_iterator_with_object.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "can't multiply sequence by non-int of type 'dict'"
+  }
+ },
+ "minijinja/err_repeat_iterator_with_string.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "can't multiply sequence by non-int of type 'str'"
+  }
+ },
+ "minijinja/err_too_large_integer.txt": {
+  "output": "10234237582375823572357238572385723582375827582375238572385723857238572385723523758"
+ },
+ "minijinja/err_too_many_macro_args.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "macro 'two_args' takes not more than 2 argument(s)"
+  }
+ },
+ "minijinja/err_too_many_macro_kwargs.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "macro 'two_args' takes no keyword argument 'c'"
+  }
+ },
+ "minijinja/err_too_many_macro_kwargs2.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "macro 'two_args' takes no keyword argument 'c'"
+  }
+ },
+ "minijinja/err_trailing_underscore_eol.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected token 'end of print statement', got '_'",
+   "line": 1
+  }
+ },
+ "minijinja/err_undefined_attr.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'undefined_value' is undefined"
+  }
+ },
+ "minijinja/err_undefined_item.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "list object has no element 42"
+  }
+ },
+ "minijinja/err_undefined_nested_attr.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'list object' has no attribute 'whatever'"
+  }
+ },
+ "minijinja/err_unexpected_caller_macro.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "macro 'no_caller' was invoked with two values for the special caller argument. This is most likely a bug."
+  }
+ },
+ "minijinja/err_unexpected_character.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "unexpected char '@' at 7",
+   "line": 1
+  }
+ },
+ "minijinja/err_unterminated_string.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "unexpected char '\"' at 3",
+   "line": 1
+  }
+ },
+ "minijinja/filter.txt": {
+  "output": "FOO BAR BAZ"
+ },
+ "minijinja/filter_block.txt": {
+  "output": "HUMPTY DUMPTY SAT ON A WALL"
+ },
+ "minijinja/float_div_by_zero.txt": {
+  "error": {
+   "type": "ZeroDivisionError",
+   "message": "float division by zero"
+  }
+ },
+ "minijinja/format_kwargs.txt": {
+  "output": "named: 1-x\nspec: 002.2\nmapping: {'a': 1}"
+ },
+ "minijinja/getattr.txt": {
+  "output": "name: Peter\nactive: True"
+ },
+ "minijinja/getitem.txt": {
+  "output": "first: first_item\nlast: last_item\nname: Peter"
+ },
+ "minijinja/hello.txt": {
+  "output": "Hello World!"
+ },
+ "minijinja/if_cond.txt": {
+  "output": "\n  was true\n"
+ },
+ "minijinja/if_cond_elif.txt": {
+  "output": "\n  else\n"
+ },
+ "minijinja/if_cond_else.txt": {
+  "output": "\n  was false\n"
+ },
+ "minijinja/ifexpr.txt": {
+  "output": "42\n23\n\nTrue"
+ },
+ "minijinja/in.txt": {
+  "output": "True\nTrue\nTrue\nFalse\nFalse\nFalse"
+ },
+ "minijinja/indexing.txt": {
+  "output": "H\nl\nd\nTrue\n0\n3\n9\nTrue"
+ },
+ "minijinja/inexpr.txt": {
+  "output": "True\nFalse\nFalse\nTrue"
+ },
+ "minijinja/int_div_by_zero.txt": {
+  "error": {
+   "type": "ZeroDivisionError",
+   "message": "integer division or modulo by zero"
+  }
+ },
+ "minijinja/int_float_default_base.txt": {
+  "output": "default: 7, 7, 7, 7, 0\nbase: 255, 31, -31, 5, 15, 1295\nbase fallback: 42, 1, 0\nfloat: 1.5, 2, 1.5, 2.5"
+ },
+ "minijinja/int_rem_by_zero.txt": {
+  "error": {
+   "type": "ZeroDivisionError",
+   "message": "integer modulo by zero"
+  }
+ },
+ "minijinja/kwarg_ifexpr.txt": {
+  "output": "function-true: value\nfunction-false: default\nmissing-else: True\nmultiple: 2, 3\nnested: 3\nfilter: \"x\\n    y\"\nmacro: right"
+ },
+ "minijinja/list.txt": {
+  "output": "3"
+ },
+ "minijinja/literals.txt": {
+  "output": "True\nFalse\n\n1.0\n2\n[1, 2, 3]\n{'foo': 'bar'}\n-9223372036854775808\n-170141183460469231731687303715884105728\n170141183460469231731687303715884105727\n340282366920938463463374607431768211455"
+ },
+ "minijinja/loop.txt": {
+  "output": "<ul>\n\n    <li>1</li>\n\n    <li>2</li>\n\n    <li>3</li>\n\n</ul>"
+ },
+ "minijinja/loop_bad_unpacking.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "cannot unpack non-iterable int object"
+  }
+ },
+ "minijinja/loop_bad_unpacking_wrong_len.txt": {
+  "error": {
+   "type": "ValueError",
+   "message": "too many values to unpack (expected 2)"
+  }
+ },
+ "minijinja/loop_changed.txt": {
+  "output": "simple: True False True False True \nargs: True False True False True \ngroups: [a]onetwo[b]three\nnested: True False True False \nrecursive: 1:True;2:True;2:False;1:False;"
+ },
+ "minijinja/loop_controls.txt": {
+  "output": "024"
+ },
+ "minijinja/loop_dictsort.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'<' not supported between instances of 'str' and 'int'"
+  }
+ },
+ "minijinja/loop_else.txt": {
+  "output": "\n  else block!\n"
+ },
+ "minijinja/loop_else2.txt": {
+  "output": "\n  - 1\n  - 2\n  - 3"
+ },
+ "minijinja/loop_filter.txt": {
+  "output": "\n- 2 (1 / 5)\n- 4 (2 / 5)\n- 6 (3 / 5)\n- 8 (4 / 5)\n- 10 (5 / 5)"
+ },
+ "minijinja/loop_over_non_iterable.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'int' object is not iterable"
+  }
+ },
+ "minijinja/loop_over_none.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "minijinja/loop_over_string.txt": {
+  "output": "a\nb\nc\nd\ne\nf\ng\n"
+ },
+ "minijinja/loop_over_undefined.txt": {
+  "output": "[]"
+ },
+ "minijinja/loop_recursive.txt": {
+  "output": "<ul class=\"nav\">\n\n  <li><a href=/\">Index</a></li>\n\n  <li><a href=/docs\">Docs</a><ul>\n  <li><a href=/docs/installation\">Installation</a><ul>\n  <li><a href=/docs/installation/quickstart\">Quickstart</a></li>\n\n  <li><a href=/docs/installation/advanced\">Advanced</a></li>\n</ul></li>\n\n  <li><a href=/docs/faq\">FAQ</a></li>\n</ul></li>\n\n</ul>\n\n<ul class=\"nav\">\n\n  <li><a href=/\">Index</a></li>\n\n  <li><a href=/docs\">Docs</a><ul>\n  <LI><A HREF=/DOCS/INSTALLATION\">INSTALLATION</A><UL>\n  <LI><A HREF=/DOCS/INSTALLATION/QUICKSTART\">QUICKSTART</A></LI>\n\n  <LI><A HREF=/DOCS/INSTALLATION/ADVANCED\">ADVANCED</A></LI>\n</UL></LI>\n\n  <LI><A HREF=/DOCS/FAQ\">FAQ</A></LI>\n</ul></li>\n\n</ul>"
+ },
+ "minijinja/loop_recursive_alias.txt": {
+  "output": "<ul class=\"nav\">\n\n  \n  \n    <li class=blue><a href=/\">Index</a></li>\n  \n    <li class=red><a href=/\">Index</a></li>\n  \n\n  \n  \n    <li class=blue><a href=/docs\">Docs</a><ul>\n  \n  \n    <li class=blue><a href=/docs/installation\">Installation</a><ul>\n  \n  \n    <li class=blue><a href=/docs/installation/quickstart\">Quickstart</a></li>\n  \n    <li class=red><a href=/docs/installation/quickstart\">Quickstart</a></li>\n  \n\n  \n  \n    <li class=blue><a href=/docs/installation/advanced\">Advanced</a></li>\n  \n    <li class=red><a href=/docs/installation/advanced\">Advanced</a></li>\n  \n</ul></li>\n  \n    <li class=red><a href=/docs/installation\">Installation</a><ul>\n  \n  \n    <li class=blue><a href=/docs/installation/quickstart\">Quickstart</a></li>\n  \n    <li class=red><a href=/docs/installation/quickstart\">Quickstart</a></li>\n  \n\n  \n  \n    <li class=blue><a href=/docs/installation/advanced\">Advanced</a></li>\n  \n    <li class=red><a href=/docs/installation/advanced\">Advanced</a></li>\n  \n</ul></li>\n  \n\n  \n  \n    <li class=blue><a href=/docs/faq\">FAQ</a></li>\n  \n    <li class=red><a href=/docs/faq\">FAQ</a></li>\n  \n</ul></li>\n  \n    <li class=red><a href=/docs\">Docs</a><ul>\n  \n  \n    <li class=blue><a href=/docs/installation\">Installation</a><ul>\n  \n  \n    <li class=blue><a href=/docs/installation/quickstart\">Quickstart</a></li>\n  \n    <li class=red><a href=/docs/installation/quickstart\">Quickstart</a></li>\n  \n\n  \n  \n    <li class=blue><a href=/docs/installation/advanced\">Advanced</a></li>\n  \n    <li class=red><a href=/docs/installation/advanced\">Advanced</a></li>\n  \n</ul></li>\n  \n    <li class=red><a href=/docs/installation\">Installation</a><ul>\n  \n  \n    <li class=blue><a href=/docs/installation/quickstart\">Quickstart</a></li>\n  \n    <li class=red><a href=/docs/installation/quickstart\">Quickstart</a></li>\n  \n\n  \n  \n    <li class=blue><a href=/docs/installation/advanced\">Advanced</a></li>\n  \n    <li class=red><a href=/docs/installation/advanced\">Advanced</a></li>\n  \n</ul></li>\n  \n\n  \n  \n    <li class=blue><a href=/docs/faq\">FAQ</a></li>\n  \n    <li class=red><a href=/docs/faq\">FAQ</a></li>\n  \n</ul></li>\n  \n\n</ul>"
+ },
+ "minijinja/loop_unpacking.txt": {
+  "output": "<ul>\n\n  <li>1 + 2 = ?\n\n  <li>3 - 4 = ?\n\n</ul>"
+ },
+ "minijinja/loop_var.txt": {
+  "output": "\n  a (1 of 4)\n    first=True\n    last=False\n    revindex=4\n    revindex0=3\n    cycle=odd\n    previtem=\n    nextitem=b\n\n  b (2 of 4)\n    first=False\n    last=False\n    revindex=3\n    revindex0=2\n    cycle=even\n    previtem=a\n    nextitem=c\n\n  c (3 of 4)\n    first=False\n    last=False\n    revindex=2\n    revindex0=1\n    cycle=odd\n    previtem=b\n    nextitem=d\n\n  d (4 of 4)\n    first=False\n    last=True\n    revindex=1\n    revindex0=0\n    cycle=even\n    previtem=c\n    nextitem=\n"
+ },
+ "minijinja/macro_basic.txt": {
+  "output": "1|2\n1|2\n1|2\n1|2\nadd\n('a', 'b')\nFalse\n<Macro 'add'>"
+ },
+ "minijinja/macro_caller.txt": {
+  "output": "\n\n<div class=\"dialog\">\n        <h2>Hello World</h2>\n        <div class=\"contents\">\n            \n    This is a simple dialog rendered by using a macro and\n    a call block.\n\n        </div>\n    </div>\n\ncaller: True"
+ },
+ "minijinja/macro_caller_methods.txt": {
+  "output": "\n\n\n\n  closure: other closure\n  name: None\n  args: ('a', 'b')\n  caller: False\n  a: 1\n  b: 2\n  result: [1, 2, 'other closure']\n"
+ },
+ "minijinja/macro_closure_behavior.txt": {
+  "output": "\n2\n2\n2"
+ },
+ "minijinja/macro_hoisting.txt": {
+  "output": "\n\nfirst: second: 42"
+ },
+ "minijinja/macro_kwargs.txt": {
+  "output": "[1, 2, 3, Undefined]\n[{'blub': 'blah'}, Undefined, Undefined, Undefined]\n[1, 2, 3, Undefined]\n[1, 2, 3, 4]"
+ },
+ "minijinja/macro_recursive.txt": {
+  "output": "<nest><child><nest><child><nest></nest></child><child><nest></nest></child></nest></child><child><nest><child><nest></nest></child></nest></child></nest>"
+ },
+ "minijinja/macro_recursive_alias.txt": {
+  "output": "\n<nest><child><nest><child><nest></nest></child><child><nest></nest></child></nest></child><child><nest><child><nest></nest></child></nest></child></nest>"
+ },
+ "minijinja/map.txt": {
+  "output": "bar"
+ },
+ "minijinja/math.txt": {
+  "output": "should be -2.5: -2.5\nshould be -3.0: -3.0\nshould be 2.0: 2.0\nshould be 2: 2\nshould be 0: 0\nshould be 0: 0\nshould be -1: -1"
+ },
+ "minijinja/namespace.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected token 'end of statement block', got '.'",
+   "line": 9
+  }
+ },
+ "minijinja/namespace_bad.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'int' object is not iterable"
+  }
+ },
+ "minijinja/or.txt": {
+  "output": "42\n23\n23"
+ },
+ "minijinja/set.txt": {
+  "output": "Basic:\nroot value\n\nnew value\n\n  \n  new value 2\n\nnew value\n\nInto Loop:\n\n  1\n  \n  2\n\n  2\n  \n  4\n\n  3\n  \n  6\n\n\nConditional:\n\nwas true\n\nMultiline:\n\n\nhello\nworld\n\nMultiline:\n\nhello\nworld\n\nBlock:\n\n[This is a was true]\n\nFilter block\n\n[THIS IS A WAS TRUE]\n\nSet with +\n\nhelloworld"
+ },
+ "minijinja/slicing.txt": {
+  "output": "Hällo Wörld\nällo Wörld\nällo Wörl\nHloWrd\nllo Wörl\nloWr\n[0, 1, 2, 3, 4, 5, 6, 7, 8, 9]\n[1, 2, 3, 4, 5, 6, 7, 8, 9]\n[1, 2, 3, 4, 5, 6, 7, 8]\n[0, 2, 4, 6, 8]\n[2, 3, 4, 5, 6, 7, 8, 9]\n[2, 4, 6, 8]\n2\n4\n[9, 8, 7, 6, 5, 4, 3, 2, 1, 0]\n[9, 7, 5, 3, 1]\n[4, 3]\n[4]\n[5, 4, 3, 2, 1, 0]\n[5, 4, 3]"
+ },
+ "minijinja/tojson.txt": {
+  "output": "[1, 2, 3]\n[\n 1,\n 2,\n 3\n]\n[\n    1,\n    2,\n    3\n]\n[\n 1,\n 2,\n 3\n]\n[\n        1,\n        2,\n        3\n]"
+ },
+ "minijinja/unary_neg_precedence.txt": {
+  "output": "attr: -5\nitem: -2\ndotted item: -1\ndouble: 1\nfilter applies to result: 1\nbinop: -3\npow: 4\nin list: [-2, -1]"
+ },
+ "minijinja/undefined.txt": {
+  "output": "None\n"
+ },
+ "minijinja/whitespace_control_unicode.txt": {
+  "output": "[ab]\n[ab]\n[x]"
+ },
+ "minijinja/with.txt": {
+  "output": "\n  42|23|11\n\n\n\n  1|2|3\n\n\n\n  1|2|3\n"
+ },
+ "otera/comparisons.txt": {
+  "output": "chain: True False True True False True False\norder: True True True True True\nin: True True True False True False True\ndict-eq: True True\nlogic: fallback  b None True True False\ntruthy: FFFFFFTTTT"
+ },
+ "otera/concat_precedence_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "unsupported operand type(s) for +: 'int' and 'str'"
+  }
+ },
+ "otera/concat_type_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "otera/conditional_expressions.txt": {
+  "output": "x y q\n0 1 fallback {} both\na12.5NoneTrue\n33 xxy 64\nTrue 2 4"
+ },
+ "otera/crlf_newlines.txt": {
+  "output": "first\n\nsecond\n\nthird\nfourth\na\nb"
+ },
+ "otera/dict_methods.txt": {
+  "output": "attr-vs-item: [True] [an item key] [2] [2]\nmethods: dict_keys(['items', 'b', 'a']) dict_values(['an item key', 2, 1]) dict_items([('items', 'an item key'), ('b', 2), ('a', 1)]) 2 0\nloop: items:an item key b:2 a:1 \nliteral: {'b': 3, 'a': 2} {'z': 1, 'y': 2} {'k': 'v'}\nkeys-order: ['z', 'a']"
+ },
+ "otera/filters_sequences.txt": {
+  "output": "first/last:  dave a c True b\nlist: ['a', 'b'] ['b', 'A', 'c'] [1, 2] []\njoin: bAcaB b, A, c, a, B bob, Alice, carol, dave 1-None-True Paris/Berlin/Rome\nsort: ['A', 'a', 'b', 'B', 'c'] ['A', 'B', 'a', 'b', 'c'] ['c', 'b', 'B', 'A', 'a'] Alice,dave,bob,carol Alice,dave,bob,carol carol,bob,Alice,dave\nunique: ['b', 'A', 'c'] ['b', 'A', 'c', 'a', 'B'] ['bob', 'Alice', 'carol']\nminmax: A c {'name': 'Alice', 'age': 25, 'role': 'user', 'info': {'city': 'Berlin'}}  True\nreverse: ['B', 'a', 'c', 'A', 'b'] cba ['c', 'A', 'b']\nmap: ['B', 'A', 'C', 'A', 'B'] ['bob', 'Alice', 'carol', 'dave'] ['Paris', 'Berlin', 'Rome', '?'] ['1', '2'] ['z', 'b']\nselect: [1, 3] [2, 4] [1, 'x'] [5, 7] [2, 3]\nselectattr: ['Alice', 'carol'] ['bob', 'dave'] ['bob', 'Alice', 'carol'] 3\ndictsort: [('A', 1), ('b', 2), ('c', 3)] [('A', 1), ('b', 2), ('c', 3)] [('A', 1), ('b', 2), ('c', 3)] [('c', 3), ('b', 2), ('A', 1)]\nitems: [('b', 2), ('A', 1), ('c', 3)] b=2;A=1;c=3; []\nbatch: [[1, 2], [3, 4], [5]] [[1, 2], [3, 'x']]\nslice: [[1, 2, 3], [4, 5]] [[1, 2], [3, 4], [5, 0]]\nsum: 115"
+ },
+ "otera/filters_text.txt": {
+  "output": "trim: [The quick brown fox jumps over the lazy dog] [hi] [None] []\ncase: HELLO WORLD hello Hello world Hello-World Foo(Bar) [Baz] <Qux> O'neil Mc-Donald\nreplace: bbb baa 193\nindent:\nfirst\n    second\n\n    fourth\n  first\n  second\n\n  fourth\n> first\n> second\n> \n> fourth\ntruncate: The quick brown...|The quick brown f...|The quick brown…|short|The quick brown fox jumps over the lazy dog\nwordcount: 9 6\ncenter: [   hi   ]\nformat: cart has 3 items x\nescape: &lt;a href=&#39;x&#39;&gt;Tom &amp; &#34;Jerry&#34;&lt;/a&gt; &lt;a href=&#39;x&#39;&gt;Tom &amp; &#34;Jerry&#34;&lt;/a&gt; None\nstring: 42 [1, 'a'] None \nsafe: <b> 1\ndefault: d None d  empty 5\nlength: 5 5 2 1 0"
+ },
+ "otera/generation_like_call.txt": {
+  "output": "hi|hello|"
+ },
+ "otera/items_type_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "Can only get item pairs from a mapping."
+  }
+ },
+ "otera/keep_trailing_newline.txt": {
+  "output": "line one\nline two\n\n"
+ },
+ "otera/loops.txt": {
+  "output": "vars: 1032TrueFalse31 2121FalseFalse31 3210FalseTrue31 \nadjacent: <a>b|a<b>c|b<c>|\ncycle: odd even odd \nfilter: 1,3,5,7,9 (22)\nelse-empty: empty\nelse-filtered: none passed\nbreak-first: else after break\nbreak-later: ab\ncontinue-all: else after continue\ncontinue-some: 135\ndict: xy x=1 y=2 \nstring: h.é.l.l.o.\nunpack: 123 456 \nnested-loop: 1/2 2/2 1/1 \nrecursive: 1@1[2@2[3@3[]]]\nundefined: missing is empty"
+ },
+ "otera/macros.txt": {
+  "output": "\nHello, A!!!!!|Hi, B!!|Hello, C!|Hello, !!!!!\n1:(2, 3):{'x': 4}\n<p>inside call</p>\n[1:x][2:y]\n321\n<Macro 'greet'> greet ('name', 'greeting', 'punct')\nHELLO, FILTERED!!!!!"
+ },
+ "otera/none_attribute_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'None' has no attribute 'strip'"
+  }
+ },
+ "otera/none_in_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "argument of type 'NoneType' is not iterable"
+  }
+ },
+ "otera/none_iteration_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "otera/numbers.txt": {
+  "output": "int: 10 -3 21 3.5 2.0 3 -4 1 2 -2 1024 0.5\nfloat: 0.30000000000000004 3.0 3.0 0.5 1.4142135623730951 0.30000000000000004 1000.0 1.5e-07 123456789.123 1e+22 3.0\nbool: 2 3 -1 0.5\nbig: 12345678901234567890 152415787532388367501905199875019052100 1.2345678901234567e+19\nneg: -3 -3 9 4 4\nunary: 5 -0.0 0.0\nfilters: 42 42 4 0 3 1.5 0.0 3.0 3 2.5\nround: 2.0 4.0 2.67 1.2 1.3 42 0.0\nsum: 6 3.5 13\nminmax: 1 3 A c"
+ },
+ "otera/repr.txt": {
+  "output": "{'b': [1, 2.5, None, True], 'a': {'nested': \"it's\"}}\n[1, 2.5, None, True]\n{'nested': \"it's\"}\n[['x', 1], ['y', 2]]\n(1, 'two', 3.0) (1,) () [] {}\n[\"quote's\", 'say \"hi\"', 'both \\' and \"', 'new\\nline', 'tab\\t', 'nul\\x00', 'nbsp\\xa0', 'é', '😀', '\\u200b']\n[None, True, False]\n{1: 'int key', 's': 2, None: 3}\nNone True False\ndict_items([('b', [1, 2.5, None, True]), ('a', {'nested': \"it's\"})])\n[1.0, 1e+100, -0.5, 1e-10]"
+ },
+ "otera/sandbox_append_error.txt": {
+  "error": {
+   "type": "SecurityError",
+   "message": "access to attribute 'append' of 'list' object is unsafe."
+  }
+ },
+ "otera/sandbox_unsafe_print.txt": {
+  "output": "[] [] [key named pop]"
+ },
+ "otera/sandbox_update_error.txt": {
+  "error": {
+   "type": "SecurityError",
+   "message": "access to attribute 'update' of 'dict' object is unsafe."
+  }
+ },
+ "otera/scoping.txt": {
+  "output": "loop: outerinner1;outerinner2; after=outer\nfresh: [set][][]\nif: from if\nns: 3 [0, 1, 2]\nns-macro: 103\nmacro-root: 12\nnested: 121|122|\nwith: 1outerwith outer\nset-block: OUTER False\ntuple: 12 xy\nns-dict: v1"
+ },
+ "otera/slicing.txt": {
+  "output": "[1, 2, 3, 4, 5] [0, 1, 2, 3, 4] [0, 2, 4] [5, 4, 3, 2, 1, 0] [4, 5] [4, 3, 2] [] [0, 1] [0, 1, 2, 3, 4, 5]\néll dlröw olléh wörld h d\n(2, 3) [1, 3]"
+ },
+ "otera/string_literals.txt": {
+  "output": "tab\there|single 'quoted'|double \"quoted\"|back\\slash\nunicode é 😀 A|octal A|unknown \\d escape\nadjacent strings concatenate\nmulti\nline\nits\n日本語 ✓"
+ },
+ "otera/string_methods.txt": {
+  "output": "strip: [Hello, World!] [Hello, World!  ] [  Hello, World!] [hi] [c]\nsplit: ['a', 'b', '', 'c'] ['Hello,', 'World!'] ['a', 'b', '', 'c'] ['a', 'b,,c'] ['a', 'b  c  ']\nrsplit: ['/usr/local', 'bin'] ['a', 'b', 'c'] ['a b', 'c', 'd']\nsplitlines: ['one', 'two', 'three'] ['one\\n', 'two\\r\\n', 'three\\n']\ncase: HELLO WORLD hello Hello World Hello They'Re Bill'S mIxEd\nfind: 2 3 -1 1 6 3\ncount: 3 2 7\nreplace: bbb bba -a-b-c- -a-bc\nstarts: True True True\njoin: a, b, c x-y-z\npad: [***ab**] [ abc  ] [ab...] [   ab] [00042] [-0042]\npartition: ('key', '=', 'value=x') ('key=value', '=', 'x') ('nokey', '', '')\nprefix: name file\npredicates: True True True True True True False\nformat: a and b ba hi!     a|b    |  c   3.14 {literal}\npercent: a-42-2.2 00007|x   |'y' 1"
+ },
+ "otera/syntax_bad_expression.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "unexpected 'end of print statement'",
+   "line": 1
+  }
+ },
+ "otera/syntax_missing_end_of_print.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected token 'end of print statement', got 'b'",
+   "line": 1
+  }
+ },
+ "otera/syntax_nesting_mistake.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "Encountered unknown tag 'endfor'. You probably made a nesting mistake. Jinja is expecting this tag, but currently looking for 'elif' or 'else' or 'endif'. The innermost block that needs to be closed is 'if'.",
+   "line": 1
+  }
+ },
+ "otera/syntax_unbalanced_brace.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "unexpected ']', expected ')'",
+   "line": 1
+  }
+ },
+ "otera/syntax_unclosed_comment.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "Missing end of comment tag",
+   "line": 1
+  }
+ },
+ "otera/syntax_unclosed_for.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "Unexpected end of template. Jinja was looking for the following tags: 'endfor' or 'else'. The innermost block that needs to be closed is 'for'.",
+   "line": 2
+  }
+ },
+ "otera/syntax_unknown_tag.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "Encountered unknown tag 'frobnicate'.",
+   "line": 2
+  }
+ },
+ "otera/tests.txt": {
+  "output": "defined: True False True True False\ntypes: True True True True True False True False\ncontainers: True False True True True False True True True False False\nnone: True True False False\nbools: True False True False True False\nnumbers: True True True False\ncompare: True False True True True True False True False\nin: True True True\ncase: True True False\ncallable: True True False True\nsameas: True True True\nfilters: True False True False\nnegated: False True"
+ },
+ "otera/tojson.txt": {
+  "output": "{\"a\": {\"nested\": {}}, \"m\": [], \"z\": [1, 2.5, null, true, \"\\u00e9 \\u003ctag\\u003e \\u0026 \\u0027quote\\u0027\"]}\n{\n  \"a\": {\n    \"nested\": {}\n  },\n  \"m\": [],\n  \"z\": [\n    1,\n    2.5,\n    null,\n    true,\n    \"\\u00e9 \\u003ctag\\u003e \\u0026 \\u0027quote\\u0027\"\n  ]\n}\n\"string\" 1.0 null [1, 2]\n{\"a\": 2, \"b\": 1}"
+ },
+ "otera/undefined.txt": {
+  "output": "print: [] [] [] [] [] []\ndefault: dflt 1\ntruthy: F False True\niterate: [] 0 [] \nconcat: [ab]\ncompare: True False True False\nget: 1 None fallback\ncond: [] True"
+ },
+ "otera/undefined_arithmetic_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'missing' is undefined"
+  }
+ },
+ "otera/undefined_attribute_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'dict object' has no attribute 'missing'"
+  }
+ },
+ "otera/whitespace_chat_settings.txt": {
+  "output": "<start>\n    a\n    b\n    stripped left\ntab before tag  plus keeps indent\nplus keeps newline\n  text  after\n  variable tags are not stripped  {{ raw }}  xyz\n<end>"
+ },
+ "otera/whitespace_default_settings.txt": {
+  "output": "<start>\n  \n    1\n  \n    2\n  \n    3\n  [1][2][3]left   rightdone\n  {% not a tag %}{{ nor this }}<end>\n"
+ }
+}

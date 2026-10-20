@@ -1,0 +1,6 @@
+{"data": {"z": [1, 2.5, null, true, "é <tag> & 'quote'"], "a": {"nested": {}}, "m": []}}
+---
+{{ data|tojson }}
+{{ data|tojson(indent=2) }}
+{{ "string"|tojson }} {{ 1.0|tojson }} {{ none|tojson }} {{ (1, 2)|tojson }}
+{{ {"b": 1, "a": 2}|tojson }}

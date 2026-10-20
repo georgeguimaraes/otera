@@ -1,0 +1,15 @@
+{"items": [1, 2, 3]}
+---
+<start>
+  {% for item in items %}
+    {{ item }}
+  {% endfor %}
+  {%- for item in items -%}
+    [{{ item }}]
+  {%- endfor %}
+  {{- "left" }}   {{ "right" -}}
+  done
+  {% raw %}{% not a tag %}{{ nor this }}{% endraw %}
+  {#- comment -#}
+<end>
+

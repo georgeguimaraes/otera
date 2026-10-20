@@ -1,0 +1,3 @@
+{"items": [1, 2], "d": {"pop": "key named pop"}}
+---
+[{{ items.append }}] [{{ d.pop }}] [{{ d["pop"] }}]

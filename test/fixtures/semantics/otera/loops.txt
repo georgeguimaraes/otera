@@ -1,0 +1,18 @@
+{"items": ["a", "b", "c"], "d": {"x": 1, "y": 2}}
+---
+vars: {% for i in items %}{{ loop.index }}{{ loop.index0 }}{{ loop.revindex }}{{ loop.revindex0 }}{{ loop.first }}{{ loop.last }}{{ loop.length }}{{ loop.depth }} {% endfor %}
+adjacent: {% for i in items %}{{ loop.previtem }}<{{ i }}>{{ loop.nextitem }}|{% endfor %}
+cycle: {% for i in items %}{{ loop.cycle("odd", "even") }} {% endfor %}
+filter: {% for i in range(10) if i is odd %}{{ i }}{{ "," if not loop.last }}{% endfor %} ({% for i in range(10) if i > 7 %}{{ loop.length }}{% endfor %})
+else-empty: {% for i in [] %}x{% else %}empty{% endfor %}
+else-filtered: {% for i in [1, 2] if i > 5 %}x{% else %}none passed{% endfor %}
+break-first: {% for i in items %}{% break %}{% else %}else after break{% endfor %}
+break-later: {% for i in items %}{{ i }}{% if loop.index == 2 %}{% break %}{% endif %}{% else %}else{% endfor %}
+continue-all: {% for i in items %}{% continue %}{% else %}else after continue{% endfor %}
+continue-some: {% for i in range(6) %}{% if i is even %}{% continue %}{% endif %}{{ i }}{% else %}else{% endfor %}
+dict: {% for k in d %}{{ k }}{% endfor %} {% for k, v in d.items() %}{{ k }}={{ v }} {% endfor %}
+string: {% for c in "héllo" %}{{ c }}.{% endfor %}
+unpack: {% for a, (b, c) in [(1, (2, 3)), (4, (5, 6))] %}{{ a }}{{ b }}{{ c }} {% endfor %}
+nested-loop: {% for row in [[1, 2], [3]] %}{% for col in row %}{{ loop.index }}/{{ loop.length }} {% endfor %}{% endfor %}
+recursive: {% for node in [{"n": 1, "c": [{"n": 2, "c": [{"n": 3, "c": []}]}]}] recursive %}{{ node.n }}@{{ loop.depth }}[{{ loop(node.c) }}]{% endfor %}
+undefined: {% for i in missing %}x{% else %}missing is empty{% endfor %}

@@ -1,0 +1,7 @@
+{"d": {"items": "an item key", "b": 2, "a": 1}}
+---
+attr-vs-item: [{{ d.items is callable }}] [{{ d["items"] }}] [{{ d.b }}] [{{ d["b"] }}]
+methods: {{ d.keys() }} {{ d.values() }} {{ d.items() }} {{ d.get("b") }} {{ d.get("zz", 0) }}
+loop: {% for k, v in d.items() %}{{ k }}:{{ v }} {% endfor %}
+literal: {{ {"b": 1, "a": 2, "b": 3} }} {{ dict(z=1, y=2) }} {{ dict([("k", "v")]) }}
+keys-order: {{ {"z": 1, "a": 2}|list }}

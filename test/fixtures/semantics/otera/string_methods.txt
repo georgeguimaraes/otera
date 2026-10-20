@@ -1,0 +1,18 @@
+{"text": "  Hello, World!  ", "csv": "a,b,,c", "multi": "one\ntwo\r\nthree\n", "path": "/usr/local/bin"}
+---
+strip: [{{ text.strip() }}] [{{ text.lstrip() }}] [{{ text.rstrip() }}] [{{ "xxhixx".strip("x") }}] [{{ "abcba".strip("ab") }}]
+split: {{ csv.split(",") }} {{ text.split() }} {{ "a b  c".split(" ") }} {{ csv.split(",", 1) }} {{ "  a  b  c  ".split(none, 1) }}
+rsplit: {{ path.rsplit("/", 1) }} {{ "a b c".rsplit() }} {{ "a b c d".rsplit(none, 2) }}
+splitlines: {{ multi.splitlines() }} {{ multi.splitlines(true) }}
+case: {{ "hello WORLD".upper() }} {{ "Hello".lower() }} {{ "hello world".title() }} {{ "hELLO".capitalize() }} {{ "they're bill's".title() }} {{ "MiXeD".swapcase() }}
+find: {{ "hello".find("l") }} {{ "hello".rfind("l") }} {{ "hello".find("z") }} {{ "hello".index("e") }} {{ "héllo wörld".find("w") }} {{ "hello".find("l", 3) }}
+count: {{ "banana".count("a") }} {{ "banana".count("an") }} {{ "banana".count("") }}
+replace: {{ "aaa".replace("a", "b") }} {{ "aaa".replace("a", "b", 2) }} {{ "abc".replace("", "-") }} {{ "abc".replace("", "-", 2) }}
+starts: {{ text.strip().startswith("Hello") }} {{ path.endswith(("bin", "sbin")) }} {{ "abc".startswith("b", 1) }}
+join: {{ ", ".join(["a", "b", "c"]) }} {{ "-".join("xyz") }}
+pad: [{{ "ab".center(7, "*") }}] [{{ "abc".center(6) }}] [{{ "ab".ljust(5, ".") }}] [{{ "ab".rjust(5) }}] [{{ "42".zfill(5) }}] [{{ "-42".zfill(5) }}]
+partition: {{ "key=value=x".partition("=") }} {{ "key=value=x".rpartition("=") }} {{ "nokey".partition("=") }}
+prefix: {{ "prefix_name".removeprefix("prefix_") }} {{ "file.txt".removesuffix(".txt") }}
+predicates: {{ "123".isdigit() }} {{ "abc".isalpha() }} {{ "ab1".isalnum() }} {{ " \t".isspace() }} {{ "abc".islower() }} {{ "ABC".isupper() }} {{ "".isdigit() }}
+format: {{ "{} and {}".format("a", "b") }} {{ "{1}{0}".format("a", "b") }} {{ "{name}!".format(name="hi") }} {{ "{:>5}|{:<5}|{:^5}".format("a", "b", "c") }} {{ "{:.2f}".format(3.14159) }} {{ "{{literal}}".format() }}
+percent: {{ "%s-%d-%.1f" % ("a", 42, 2.25) }} {{ "%05d|%-4s|%r" % (7, "x", "y") }} {{ "%(a)s" % {"a": 1} }}

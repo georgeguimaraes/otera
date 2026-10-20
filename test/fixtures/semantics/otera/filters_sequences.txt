@@ -1,0 +1,17 @@
+{"users": [{"name": "bob", "age": 30, "role": "admin", "info": {"city": "Paris"}}, {"name": "Alice", "age": 25, "role": "user", "info": {"city": "Berlin"}}, {"name": "carol", "age": 35, "role": "user", "info": {"city": "Rome"}}, {"name": "dave", "age": 25}], "words": ["b", "A", "c", "a", "B"], "d": {"b": 2, "A": 1, "c": 3}}
+---
+first/last: {{ users|first|attr("name") }} {{ (users|last).name }} {{ "abc"|first }} {{ "abc"|last }} {{ []|first is undefined }} {{ d|first }}
+list: {{ "ab"|list }} {{ d|list }} {{ (1, 2)|list }} {{ missing|list }}
+join: {{ words|join }} {{ words|join(", ") }} {{ users|join(", ", attribute="name") }} {{ [1, none, true]|join("-") }} {{ users[:3]|join("/", attribute="info.city") }}
+sort: {{ words|sort }} {{ words|sort(case_sensitive=true) }} {{ words|sort(reverse=true) }} {{ users|sort(attribute="age")|map(attribute="name")|join(",") }} {{ users|sort(attribute="age,name")|map(attribute="name")|join(",") }} {{ users|sort(attribute="age", reverse=true)|map(attribute="name")|join(",") }}
+unique: {{ words|unique|list }} {{ words|unique(case_sensitive=true)|list }} {{ users|unique(attribute="age")|map(attribute="name")|list }}
+minmax: {{ words|min }} {{ words|max }} {{ users|min(attribute="age") }} {{ users|max(attribute="name")|attr("name") }} {{ []|max is undefined }}
+reverse: {{ words|reverse|list }} {{ "abc"|reverse }} {{ d|reverse|list }}
+map: {{ words|map("upper")|list }} {{ users|map(attribute="name")|list }} {{ users|map(attribute="info.city", default="?")|list }} {{ [1, 2]|map("string")|list }} {{ ["a", "b"]|map("replace", "a", "z")|list }}
+select: {{ [1, 2, 3, 4]|select("odd")|list }} {{ [1, 2, 3, 4]|reject("odd")|list }} {{ [0, 1, "", "x", none]|select|list }} {{ [3, 5, 7]|select(">", 4)|list }} {{ [1, 2, 3]|select("in", [2, 3])|list }}
+selectattr: {{ users|selectattr("role", "equalto", "user")|map(attribute="name")|list }} {{ users|rejectattr("role", "equalto", "user")|map(attribute="name")|list }} {{ users|selectattr("info")|map(attribute="name")|list }} {{ users|selectattr("info", "defined")|list|length }}
+dictsort: {{ d|dictsort }} {{ d|dictsort(true) }} {{ d|dictsort(by="value") }} {{ d|dictsort(reverse=true) }}
+items: {{ d|items|list }} {% for k, v in d|items %}{{ k }}={{ v }};{% endfor %} {{ missing|items|list }}
+batch: {{ [1, 2, 3, 4, 5]|batch(2)|list }} {{ [1, 2, 3]|batch(2, "x")|list }}
+slice: {{ [1, 2, 3, 4, 5]|slice(2)|list }} {{ [1, 2, 3, 4, 5]|slice(3, 0)|list }}
+sum: {{ users|sum(attribute="age") }}

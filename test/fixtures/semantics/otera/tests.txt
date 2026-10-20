@@ -1,0 +1,15 @@
+{"d": {"a": 1}, "l": [1], "s": "Abc", "n": null}
+---
+defined: {{ d is defined }} {{ missing is defined }} {{ missing is undefined }} {{ d.a is defined }} {{ d.b is defined }}
+types: {{ s is string }} {{ 1 is number }} {{ 1.5 is number }} {{ true is number }} {{ 1 is integer }} {{ true is integer }} {{ 1.5 is float }} {{ 1 is float }}
+containers: {{ d is mapping }} {{ l is mapping }} {{ l is sequence }} {{ s is sequence }} {{ d is sequence }} {{ 1 is sequence }} {{ l is iterable }} {{ s is iterable }} {{ d is iterable }} {{ 1 is iterable }} {{ n is iterable }}
+none: {{ n is none }} {{ none is none }} {{ 0 is none }} {{ missing is none }}
+bools: {{ true is boolean }} {{ 1 is boolean }} {{ true is true }} {{ 1 is true }} {{ false is false }} {{ 0 is false }}
+numbers: {{ 3 is odd }} {{ 4 is even }} {{ 9 is divisibleby 3 }} {{ 10 is divisibleby(3) }}
+compare: {{ 1 is eq 1 }} {{ 1 is equalto 2 }} {{ 1 is ne 2 }} {{ 1 is lt 2 }} {{ 2 is gt 1 }} {{ 2 is ge 2 }} {{ 1 is le 0 }} {{ 1 is lessthan 2 }} {{ 1 is greaterthan 2 }}
+in: {{ 1 is in l }} {{ "b" is in s }} {{ "a" is in d }}
+case: {{ "abc" is lower }} {{ "ABC" is upper }} {{ s is lower }}
+callable: {{ range is callable }} {{ s.upper is callable }} {{ s is callable }} {{ missing is callable }}
+sameas: {{ none is sameas none }} {{ 1 is sameas 1 }} {{ true is sameas true }}
+filters: {{ "upper" is filter }} {{ "nope" is filter }} {{ "odd" is test }} {{ "nope" is test }}
+negated: {{ s is not string }} {{ missing is not defined }}

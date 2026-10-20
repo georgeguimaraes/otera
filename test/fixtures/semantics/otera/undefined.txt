@@ -1,0 +1,10 @@
+{"d": {"a": 1}, "l": [1, 2], "n": null}
+---
+print: [{{ missing }}] [{{ d.missing }}] [{{ d["missing"] }}] [{{ l[10] }}] [{{ n.attr }}] [{{ "s".attr }}]
+default: {{ d.missing|default("dflt") }} {{ missing|default(d.a) }}
+truthy: {{ "T" if missing else "F" }} {{ missing is defined }} {{ not missing }}
+iterate: [{% for x in missing %}{{ x }}{% endfor %}] {{ missing|length }} {{ missing|list }} {{ missing|join }}
+concat: [{{ "a" ~ missing ~ "b" }}]
+compare: {{ missing == missing }} {{ missing == none }} {{ missing != 1 }} {{ 1 in missing }}
+get: {{ d.get("a") }} {{ d.get("missing") }} {{ d.get("missing", "fallback") }}
+cond: [{{ "yes" if false }}] {{ ("yes" if false) is undefined }}

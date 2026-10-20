@@ -1,0 +1,13 @@
+{"data": {"b": [1, 2.5, null, true], "a": {"nested": "it's"}}, "pairs": [["x", 1], ["y", 2]]}
+---
+{{ data }}
+{{ data.b }}
+{{ data.a }}
+{{ pairs }}
+{{ (1, "two", 3.0) }} {{ (1,) }} {{ () }} {{ [] }} {{ {} }}
+{{ ["quote's", 'say "hi"', 'both \' and "', "new\nline", "tab\t", "nul\x00", "nbsp ", "é", "😀", "​"] }}
+{{ [none, true, false] }}
+{{ {1: "int key", "s": 2, none: 3} }}
+{{ none }} {{ true }} {{ false }}
+{{ data.items() }}
+{{ [1.0, 1e100, -0.5, 1e-10] }}

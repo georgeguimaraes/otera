@@ -1,0 +1,3 @@
+{"messages": [{"role": "user", "content": "hi"}, {"role": "assistant", "content": "hello"}]}
+---
+{% for m in messages %}{% if m.role == "assistant" %}{% filter trim %}  {{ m.content }}  {% endfilter %}{% else %}{{ m.content }}{% endif %}|{% endfor %}

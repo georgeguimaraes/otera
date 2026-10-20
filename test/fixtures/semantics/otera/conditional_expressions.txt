@@ -1,0 +1,7 @@
+{"a": 1, "b": 0}
+---
+{{ "x" if a else "y" }} {{ "x" if b else "y" if a else "z" }} {{ ("p" if b) ~ "q" }}
+{{ a and b }} {{ a or b }} {{ b or "fallback" }} {{ [] or {} }} {{ a and "both" }}
+{{ "a" ~ 1 ~ 2.5 ~ none ~ true }}
+{{ (1 + 2) ~ 3 }} {{ "x" * 2 ~ "y" }} {{ 2 * 3 ~ 4 }}
+{{ not a == b }} {{ - a + 3 }} {{ (a + 1) * 2 }}

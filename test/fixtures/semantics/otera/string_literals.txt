@@ -1,0 +1,9 @@
+{}
+---
+{{ "tab\there" }}|{{ 'single \'quoted\'' }}|{{ "double \"quoted\"" }}|{{ "back\\slash" }}
+{{ "unicode é \U0001F600 \x41" }}|{{ "octal \101" }}|{{ "unknown \d escape" }}
+{{ "adjacent" " strings" ' concatenate' }}
+{{ "multi
+line" }}
+{{ 'it''s' }}
+{{ "日本語 ✓" }}

@@ -1,0 +1,20 @@
+{"$settings": {"trim_blocks": true, "lstrip_blocks": true}, "items": ["a", "b"]}
+---
+<start>
+  {% for item in items %}
+    {{ item }}
+  {% endfor %}
+  {%- if true %}
+    stripped left
+  {% endif %}
+	{% if true %}tab before tag{% endif %}
+  {%+ if true %}plus keeps indent{% endif %}
+  {% if true +%}
+plus keeps newline
+  {% endif %}
+  {# a comment #}
+  text {# inline comment #} after
+  {{ "variable tags are not stripped" }}
+  {%- raw %}  {{ raw }}  {% endraw -%}
+  x {%- if true -%} y {%- endif -%} z
+<end>

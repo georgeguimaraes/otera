@@ -1,0 +1,5 @@
+{}
+---
+named: {{ "%(a)s-%(b)s"|format(a=1, b="x") }}
+spec: {{ "%(n)05.1f"|format(n=2.25) }}
+mapping: {{ "%s"|format(a=1) }}
