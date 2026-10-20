@@ -1,5 +1,45 @@
 # Changelog
 
+## [0.2.0](https://github.com/georgeguimaraes/otera/compare/v0.1.0...v0.2.0) (2026-10-20)
+
+
+### Features
+
+* Add a template cache across renders ([fe549c9](https://github.com/georgeguimaraes/otera/commit/fe549c985fcaba9bc85da2533494e5a511eb6625))
+* Add autoescape and the Markup type of markupsafe ([22c67f9](https://github.com/georgeguimaraes/otera/commit/22c67f9af1984fba4405db72c6a46b9ae7eeef04))
+* Add template inheritance, includes, imports and loaders ([8cf7390](https://github.com/georgeguimaraes/otera/commit/8cf7390c887c21fe3637599b371b4f04e2e559e1))
+* Add the auto_reload option of Otera.Cache ([81f6aaf](https://github.com/georgeguimaraes/otera/commit/81f6aafdbc344fd47c61096ca6059d2e0e20308d))
+* Add the range object and single-pass generators ([18ead38](https://github.com/georgeguimaraes/otera/commit/18ead3853deeaac81406013bc2d36138166ff762))
+* Add the urlize filter ([c1c1cb7](https://github.com/georgeguimaraes/otera/commit/c1c1cb744742d26b361fcd20245dcab2ffcf9af4))
+* Give macros the scopes of Jinja2 closures ([903548c](https://github.com/georgeguimaraes/otera/commit/903548cf07c8637a99a1fc16d018c4c6745e4a64))
+* Give runtime errors the line of the template ([1a88865](https://github.com/georgeguimaraes/otera/commit/1a8886527f1f5122de06ee1d18561e049ba53f7b))
+
+
+### Bug Fixes
+
+* Add str.maketrans ([9adf212](https://github.com/georgeguimaraes/otera/commit/9adf2121cf1ccea82e92f1066f425cc8d1637baf))
+* Bind the arguments of Markup methods like Python functions ([1381567](https://github.com/georgeguimaraes/otera/commit/138156773ffa6cb99645a78e16388436e5a33e0c))
+* Make generators lazy like Python generators ([6ffe9f6](https://github.com/georgeguimaraes/otera/commit/6ffe9f60f584cab1e00d604530e53f16de1ca475))
+* Match Jinja2 in the cases that the verifier of milestone 2 found ([2982d21](https://github.com/georgeguimaraes/otera/commit/2982d21c37578f7174fd4f9648a675aa2fa3cd2d))
+
+
+### Miscellaneous
+
+* **ci:** Pin georgeguimaraes/workflows to v1.0.1 ([65d6507](https://github.com/georgeguimaraes/otera/commit/65d6507365819c9e15041decbc996e6a75cc9b87))
+* **ci:** Pin GitHub Actions to commit SHAs ([083e20d](https://github.com/georgeguimaraes/otera/commit/083e20dc4373149d09f233d2b9a9b9ebec7d2ba6))
+* Release 0.2.0 ([b13450d](https://github.com/georgeguimaraes/otera/commit/b13450d17d221fbeca8f998b63ebb5a48dfa1c72))
+
+
+### Documentation
+
+* Give the Hex dependency in the README ([6272817](https://github.com/georgeguimaraes/otera/commit/6272817323b9964a06fc2065837bf7cd551920cd))
+* List the filter block result and urlize as known differences ([e3368bf](https://github.com/georgeguimaraes/otera/commit/e3368bfbd1a562d3e6bf829efdbbda5a1c7845ca))
+
+
+### Performance Improvements
+
+* Keep only the scopes that a closure can read in Otera.State ([5b56897](https://github.com/georgeguimaraes/otera/commit/5b56897e6d4b9323dcc8c8a82f8d4952454c4ea5))
+
 ## [0.1.0](https://github.com/georgeguimaraes/otera/compare/v0.1.0...v0.1.0) (2026-10-20)
 
 
