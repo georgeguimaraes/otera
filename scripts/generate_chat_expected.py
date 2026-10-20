@@ -2,27 +2,24 @@
 
 Usage (from the repository root):
 
-    uv run --no-project --with transformers==5.20.2 --with jinja2==3.1.6 python -I scripts/generate_chat_expected.py
+    uv run --project scripts python -I scripts/generate_chat_expected.py
 
 The script reads test/fixtures/chat_templates/manifest.json and test/fixtures/conversations.json,
 renders each pair with `render_jinja_template` of transformers, which `apply_chat_template` uses,
 and writes test/fixtures/chat_expected/<template>.json. Each case has the rendered "output", or the
 "error" type and message when the template raises. The variables of each render are the special
 tokens of the template and the "variables" of the conversation. `strftime_now` sees a fixed time,
-so that the output does not change from day to day.
+so that the output does not change from day to day. scripts/pyproject.toml and scripts/uv.lock pin
+the versions of Python, Jinja2 and transformers.
 """
 
 import datetime as dt
 import json
 import os
 
-import jinja2
-import transformers
 from transformers.utils import chat_template_utils
 from transformers.utils.chat_template_utils import render_jinja_template
 
-TRANSFORMERS_VERSION = "5.20.2"
-JINJA2_VERSION = "3.1.6"
 FIXED_NOW = dt.datetime(2025, 3, 9, 14, 30, 5)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -55,8 +52,6 @@ def render(source, conversation, special_tokens):
 
 
 def main():
-    assert transformers.__version__ == TRANSFORMERS_VERSION, transformers.__version__
-    assert jinja2.__version__ == JINJA2_VERSION, jinja2.__version__
     chat_template_utils.datetime = FixedDatetime
 
     with open(os.path.join(TEMPLATES, "manifest.json"), encoding="utf-8") as f:

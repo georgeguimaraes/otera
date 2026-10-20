@@ -2,7 +2,7 @@
 
 Usage (from the repository root):
 
-    uv run --no-project python -I scripts/fetch_chat_templates.py
+    uv run --project scripts python -I scripts/fetch_chat_templates.py
 
 The script takes the most downloaded text-generation models of the Hub, plus a fixed list of
 model families that the corpus must cover. It reads the chat template of each model from
