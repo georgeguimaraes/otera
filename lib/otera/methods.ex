@@ -15,8 +15,37 @@ defmodule Otera.Methods do
   @float ~w(as_integer_ratio conjugate fromhex hex is_integer)
 
   @markup ~w(escape striptags unescape)
-  # The methods that markupsafe wraps to give a Markup.
-  @markup_results ~w(capitalize casefold center expandtabs ljust lower lstrip removeprefix removesuffix replace rjust rstrip strip swapcase title translate upper zfill)
+  # The methods of the Markup class of markupsafe, with their positional-only parameters and
+  # their other parameters.
+  @markup_signatures %{
+    "join" => {["iterable"], []},
+    "split" => {[], [{"sep", nil}, {"maxsplit", -1}]},
+    "rsplit" => {[], [{"sep", nil}, {"maxsplit", -1}]},
+    "splitlines" => {[], [{"keepends", false}]},
+    "unescape" => {[], []},
+    "striptags" => {[], []},
+    "escape" => {["s"], []},
+    "capitalize" => {[], []},
+    "title" => {[], []},
+    "lower" => {[], []},
+    "upper" => {[], []},
+    "swapcase" => {[], []},
+    "casefold" => {[], []},
+    "replace" => {["old", "new", {"count", -1}], []},
+    "ljust" => {["width", {"fillchar", " "}], []},
+    "rjust" => {["width", {"fillchar", " "}], []},
+    "center" => {["width", {"fillchar", " "}], []},
+    "lstrip" => {[{"chars", nil}], []},
+    "rstrip" => {[{"chars", nil}], []},
+    "strip" => {[{"chars", nil}], []},
+    "translate" => {["table"], []},
+    "expandtabs" => {[], [{"tabsize", 8}]},
+    "zfill" => {["width"], []},
+    "removeprefix" => {["prefix"], []},
+    "removesuffix" => {[], ["suffix"]},
+    "partition" => {["sep"], []},
+    "rpartition" => {["sep"], []}
+  }
 
   @unsafe_list ~w(append clear pop reverse insert sort extend remove)
   @unsafe_dict ~w(clear pop popitem setdefault update)
@@ -59,6 +88,9 @@ defmodule Otera.Methods do
   def call(receiver, "format", args, kwargs) when is_binary(receiver),
     do: Format.format(receiver, args, kwargs)
 
+  def call(receiver, "format_map", args, kwargs) when is_binary(receiver),
+    do: Format.format(receiver, [], format_map_argument(args, kwargs))
+
   def call(%Markup{} = markup, name, args, kwargs), do: markup_method(markup, name, args, kwargs)
 
   def call(%Loop{} = loop, "cycle", args, _kwargs) do
@@ -96,37 +128,65 @@ defmodule Otera.Methods do
   defp plain(value), do: value
 
   # The methods of markupsafe: they escape the strings that they add, and most give a Markup.
-  defp markup_method(markup, "join", args, kwargs) do
-    [items] = bind(args, kwargs, ["iterable"], "join")
-    text = items |> Value.to_list() |> Enum.map_join(markup.text, &Markup.escape(&1).text)
-    Markup.new(text)
-  end
-
+  # They are Python functions, so they bind their arguments like a Python call, with `self`. The
+  # sandbox of Jinja2 runs format and format_map with its own formatter.
   defp markup_method(markup, name, args, kwargs) when name in ["format", "format_map"] do
     {args, kwargs} =
       if name == "format",
         do: {args, kwargs},
-        else: {[], hd(bind(args, kwargs, ["mapping"], name))}
+        else: {[], format_map_argument(args, kwargs)}
 
     Markup.new(Format.format(markup.text, args, kwargs, true))
   end
 
-  defp markup_method(_markup, "escape", args, kwargs),
-    do: Markup.escape(hd(bind(args, kwargs, ["s"], "escape")))
+  defp markup_method(markup, name, args, kwargs) when is_map_key(@markup_signatures, name) do
+    {positional_only, params} = @markup_signatures[name]
 
-  defp markup_method(markup, name, args, kwargs) when name in ["striptags", "unescape"] do
-    bind(args, kwargs, [], name)
-    if name == "striptags", do: HTML.striptags(markup.text), else: HTML.unescape(markup.text)
+    case Enum.find(kwargs.pairs, fn {key, _} ->
+           key in Enum.map(positional_only, &param_name/1)
+         end) do
+      nil ->
+        :ok
+
+      {key, _} ->
+        type_error(
+          "Markup.#{name}() got some positional-only arguments passed as keyword arguments: #{Value.repr(key)}"
+        )
+    end
+
+    [_self | values] =
+      bind([markup | args], kwargs, ["self" | positional_only ++ params], "Markup.#{name}")
+
+    markupsafe(markup, name, values)
   end
 
-  defp markup_method(markup, name, args, kwargs) do
-    args = escape_args(name, args)
-    result = call(markup.text, name, args, kwargs)
+  defp markup_method(markup, name, args, kwargs), do: call(markup.text, name, args, kwargs)
+
+  # The sandbox of Jinja2 checks the arguments of format_map with its own messages.
+  defp format_map_argument(_args, %Dict{pairs: [_ | _]}),
+    do: type_error("format_map() takes no keyword arguments")
+
+  defp format_map_argument([mapping], _kwargs), do: mapping
+
+  defp format_map_argument(args, _kwargs),
+    do: type_error("format_map() takes exactly one argument (#{length(args)} given)")
+
+  defp param_name({name, _default}), do: name
+  defp param_name(name), do: name
+
+  defp markupsafe(markup, "join", [items]) do
+    text = items |> Value.to_list() |> Enum.map_join(markup.text, &Markup.escape(&1).text)
+    Markup.new(text)
+  end
+
+  defp markupsafe(_markup, "escape", [value]), do: Markup.escape(value)
+  defp markupsafe(markup, "striptags", []), do: HTML.striptags(markup.text)
+  defp markupsafe(markup, "unescape", []), do: HTML.unescape(markup.text)
+
+  defp markupsafe(markup, name, values) do
+    result = call(markup.text, name, escape_args(name, values), %Dict{})
 
     cond do
-      name in @markup_results ->
-        Markup.new(result)
-
       name in ["split", "rsplit", "splitlines"] ->
         Enum.map(result, &Markup.new/1)
 
@@ -134,7 +194,7 @@ defmodule Otera.Methods do
         result |> Tuple.to_list() |> Enum.map(&Markup.new/1) |> List.to_tuple()
 
       true ->
-        result
+        Markup.new(result)
     end
   end
 
@@ -302,7 +362,7 @@ defmodule Otera.Methods do
         {:clinic, ["width", {"fillchar", " "}]}
 
       name
-      when name in ~w(join zfill partition rpartition removeprefix removesuffix format_map translate) ->
+      when name in ~w(join zfill partition rpartition removeprefix removesuffix translate) ->
         {:one, ["arg"]}
 
       "splitlines" ->
@@ -568,8 +628,6 @@ defmodule Otera.Methods do
     do: all_chars?(string, &(Unicode.alpha?(&1) or Unicode.numeric?(&1)))
 
   defp str_method(string, "isascii", []), do: string =~ ~r/\A[\x00-\x7F]*\z/
-  defp str_method(string, "format_map", [mapping]), do: Format.format(string, [], mapping)
-
   # str.translate looks up each code point in the table: a string, a code point or None.
   defp str_method(string, "translate", [table]) do
     for <<char::utf8 <- string>>, into: "" do

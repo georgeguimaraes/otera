@@ -1,0 +1,5 @@
+{}
+---
+{%- set m = "ab"|safe -%}
+{%- macro try(f) %}{% endmacro -%}
+{{ m.split(sep="a", maxsplit=1) }} {{ m.removesuffix(suffix="b") }} {{ m.expandtabs(tabsize=2) }} {{ m.strip("a") }}

@@ -1,0 +1,3 @@
+{}
+---
+{{ ("a"|safe).join(iterable=[1]) }}

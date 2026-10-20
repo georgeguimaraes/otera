@@ -1103,6 +1103,13 @@
  "otera/macros.txt": {
   "output": "\nHello, A!!!!!|Hi, B!!|Hello, C!|Hello, !!!!!\n1:(2, 3):{'x': 4}\n<p>inside call</p>\n[1:x][2:y]\n321\n<Macro 'greet'> greet ('name', 'greeting', 'punct')\nHELLO, FILTERED!!!!!"
  },
+ "otera/markup_center_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "Markup.center() missing 1 required positional argument: 'width'",
+   "line": 1
+  }
+ },
  "otera/markup_errors.txt": {
   "error": {
    "type": "TypeError",
@@ -1117,12 +1124,29 @@
    "line": 1
   }
  },
+ "otera/markup_format_map_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "format_map() takes exactly one argument (0 given)",
+   "line": 1
+  }
+ },
  "otera/markup_format_spec_error.txt": {
   "error": {
    "type": "ValueError",
    "message": "Unsupported format specification for Markup.",
    "line": 1
   }
+ },
+ "otera/markup_join_iterable_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "Markup.join() got some positional-only arguments passed as keyword arguments: 'iterable'",
+   "line": 1
+  }
+ },
+ "otera/markup_method_errors.txt": {
+  "output": "[Markup(''), Markup('b')] a ab b"
  },
  "otera/markup_methods.txt": {
   "output": "upper: <B>A, B</B> <b>a, b</b> <B>A, B</B> <B>A, B</B> <b>a, b</b>\nstrip: [<b>a, b</b>] [b>a, b</b] [b>a, b</b>] [<b>a, b</b]\nreplace: <b>&lt;i&gt;, b</b> <b><i>, b</b>\npad: [**<b>a, b</b>**] [<b>a, b</b>--] [  <b>a, b</b>] [00<b>a, b</b>]\nsplit: [Markup(&#39;&lt;b&gt;a&#39;), Markup(&#39;b&lt;/b&gt;&#39;)] [Markup(&#39;&lt;b&gt;a,&#39;), Markup(&#39;b&lt;/b&gt;&#39;)] [Markup(&#39;&lt;b&gt;a, b&lt;/b&gt;&#39;)] (Markup(&#39;&lt;b&gt;a&#39;), Markup(&#39;,&#39;), Markup(&#39; b&lt;/b&gt;&#39;)) (Markup(&#39;&lt;b&gt;a&#39;), Markup(&#39;,&#39;), Markup(&#39; b&lt;/b&gt;&#39;))\njoin: &lt;1&gt;<b>a, b</b>2 &lt;b&gt;a, b&lt;/b&gt;, &lt;\nformat: &lt;:<b>a, b</b> &#39;&lt;&#39; &lt; &lt;b&gt;a, b&lt;/b&gt;\nindex: < b> > True True\nplain: True 3 3 False 11\nstriptags: a, b &lt;x&gt; &lt;b&gt;y&lt;/b&gt; False\nescape method: &lt;\nremoveprefix: a, b</b> <b>a, b a b\ncompare: True True True False\nloop: &lt;a"
@@ -1134,10 +1158,45 @@
    "line": 1
   }
  },
+ "otera/markup_replace_a_b_c_d_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "Markup.replace() takes from 3 to 4 positional arguments but 5 were given",
+   "line": 1
+  }
+ },
+ "otera/markup_replace_a_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "Markup.replace() missing 1 required positional argument: 'new'",
+   "line": 1
+  }
+ },
+ "otera/markup_startswith_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "startswith() takes at least 1 argument (0 given)",
+   "line": 1
+  }
+ },
  "otera/markup_sum_error.txt": {
   "error": {
    "type": "TypeError",
    "message": "unsupported operand type(s) for +: 'int' and 'Markup'",
+   "line": 1
+  }
+ },
+ "otera/markup_upper_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "Markup.upper() takes 1 positional argument but 2 were given",
+   "line": 1
+  }
+ },
+ "otera/markup_upper_x_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "Markup.upper() got an unexpected keyword argument 'x'",
    "line": 1
   }
  },
@@ -1325,6 +1384,20 @@
   "error": {
    "type": "TypeError",
    "message": "'str' object cannot be interpreted as an integer",
+   "line": 1
+  }
+ },
+ "otera/str_format_map_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "format_map() takes exactly one argument (0 given)",
+   "line": 1
+  }
+ },
+ "otera/str_format_map_keyword_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "format_map() takes no keyword arguments",
    "line": 1
   }
  },
