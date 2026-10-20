@@ -177,29 +177,42 @@ defmodule Otera.ChatTemplate do
 
   defp value_error(message), do: {:error, %Otera.Error{kind: :value_error, message: message}}
 
-  defp bind(kwargs, params, function) when is_map(kwargs) and not is_struct(kwargs),
-    do: Otera.Methods.bind([], Dict.new(Map.to_list(kwargs)), params, function)
+  # These functions get either their last positional argument, or the keyword arguments as a plain
+  # map, which a template value never is. Errors name them like the local functions of transformers.
+  defp bind(args, params, name) do
+    {args, kwargs} =
+      case List.last(args) do
+        %{} = kwargs when not is_struct(kwargs) ->
+          {Enum.drop(args, -1), Dict.new(Map.to_list(kwargs))}
 
-  defp bind(argument, params, function),
-    do: Otera.Methods.bind([argument], %Dict{}, params, function)
+        _argument ->
+          {args, %Dict{}}
+      end
 
-  # These functions get either their one positional argument, or the keyword arguments as a plain
-  # map, which a template value never is.
+    Otera.Methods.bind(args, kwargs, params, "_cached_compile_jinja_template.<locals>.#{name}")
+  end
+
   defp raise_exception(argument) do
-    [message] = bind(argument, ["message"], "raise_exception")
+    [message] = bind([argument], ["message"], "raise_exception")
     raise Otera.Error, kind: :template_error, message: Value.to_str(message)
   end
 
   defp strftime_now(argument, now) do
-    [format] = bind(argument, ["format"], "strftime_now")
+    [format] = bind([argument], ["format"], "strftime_now")
     Calendar.strftime(now, format)
   end
 
   defp tojson(value, argument) do
-    [ensure_ascii, indent, separators, sort_keys] =
+    [_value, ensure_ascii, indent, separators, sort_keys] =
       bind(
-        argument,
-        [{"ensure_ascii", false}, {"indent", nil}, {"separators", nil}, {"sort_keys", false}],
+        [value, argument],
+        [
+          "x",
+          {"ensure_ascii", false},
+          {"indent", nil},
+          {"separators", nil},
+          {"sort_keys", false}
+        ],
         "tojson"
       )
 

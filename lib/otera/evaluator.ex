@@ -449,7 +449,7 @@ defmodule Otera.Evaluator do
       true ->
         raise Otera.Error,
           kind: :type_error,
-          message: "#{inspect(fun)} takes #{arity} arguments (#{length(args)} given)"
+          message: "the function takes #{arity} arguments, but the template gave #{length(args)}"
     end
   end
 

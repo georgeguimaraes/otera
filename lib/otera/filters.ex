@@ -487,7 +487,11 @@ defmodule Otera.Filters do
   defp reverse_type(%Iterable{type: "dict_items"}), do: "dict_reverseitemiterator"
   defp reverse_type(_value), do: "reversed"
 
-  defp bind(function, args, kwargs, params), do: Methods.bind(args, kwargs, params, function)
+  # The Python filters take the value as their first argument.
+  defp bind(function, args, kwargs, params) do
+    [_value | values] = Methods.bind([nil | args], kwargs, ["value" | params], function)
+    values
+  end
 
   # dictsort calls value.items() in Python.
   defp dict_items(%Dict{pairs: pairs}), do: pairs

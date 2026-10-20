@@ -36,18 +36,25 @@ defmodule Otera.JSON do
   """
   @spec dumps(term, keyword) :: String.t()
   def dumps(value, opts \\ []) do
-    indent = indent(Keyword.get(opts, :indent))
-    {item_separator, key_separator} = separators(Keyword.get(opts, :separators), indent)
+    {item_separator, key_separator} =
+      separators(Keyword.get(opts, :separators), Keyword.get(opts, :indent))
 
-    options = %{
-      ascii: Keyword.get(opts, :ensure_ascii, true),
-      indent: indent,
-      item: item_separator,
-      key: key_separator,
-      sort: Keyword.get(opts, :sort_keys, false)
-    }
+    ascii = Keyword.get(opts, :ensure_ascii, true)
 
-    value |> encode(options, 0) |> IO.iodata_to_binary()
+    # Like Python, a string encodes before the indent is checked.
+    if is_binary(value) do
+      value |> encode_string(ascii) |> IO.iodata_to_binary()
+    else
+      options = %{
+        ascii: ascii,
+        indent: indent(Keyword.get(opts, :indent)),
+        item: item_separator,
+        key: key_separator,
+        sort: Keyword.get(opts, :sort_keys, false)
+      }
+
+      value |> encode(options, 0) |> IO.iodata_to_binary()
+    end
   end
 
   defp indent(nil), do: nil

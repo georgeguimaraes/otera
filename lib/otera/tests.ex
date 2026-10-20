@@ -44,8 +44,11 @@ defmodule Otera.Tests do
   end
 
   def call(name, value, args, kwargs, env) when name in @names do
-    params = if name in ["divisibleby", "sameas", "in"], do: ["arg"], else: []
-    test(name, value, Methods.bind(args, kwargs, params, "test_#{name}"), env)
+    params =
+      Map.get(%{"divisibleby" => ["num"], "sameas" => ["other"], "in" => ["seq"]}, name, [])
+
+    [_value | args] = Methods.bind([value | args], kwargs, ["value" | params], "test_#{name}")
+    test(name, value, args, env)
   end
 
   def call(name, _value, _args, _kwargs, _env),

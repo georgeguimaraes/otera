@@ -70,49 +70,78 @@ defmodule Otera.Methods do
   end
 
   @doc """
-  Binds positional and keyword arguments to `params`, like a Python call, and returns the values in order.
+  Binds positional and keyword arguments to `params`, like a call of a Python function, and returns the values in order. The errors have the messages of Python.
 
   A param is a name for a required argument, or `{name, default}`.
   """
   @spec bind(list, Dict.t(), list, String.t()) :: list
   def bind(args, %Dict{pairs: kwargs}, params, function) do
-    if length(args) > length(params) do
-      raise Otera.Error,
-        kind: :type_error,
-        message: "#{function}() takes at most #{length(params)} arguments (#{length(args)} given)"
-    end
-
     params = Enum.map(params, &if(is_tuple(&1), do: &1, else: {&1, :required}))
+    {positional, rest} = Enum.split(params, length(args))
     names = Enum.map(params, &elem(&1, 0))
 
-    case Enum.find(kwargs, fn {name, _} -> name not in names end) do
-      nil ->
-        {values, _} = Enum.map_reduce(params, args, &bind_param(&1, &2, kwargs, function))
-        values
+    cond do
+      length(args) > length(params) ->
+        type_error(
+          "#{function}() takes #{positional_count(params)} but #{given(length(args))} given"
+        )
 
-      {name, _} ->
-        raise Otera.Error,
-          kind: :type_error,
-          message: "#{function}() got an unexpected keyword argument #{Value.repr(name)}"
+      unexpected = Enum.find(kwargs, fn {name, _} -> name not in names end) ->
+        type_error(
+          "#{function}() got an unexpected keyword argument #{Value.repr(elem(unexpected, 0))}"
+        )
+
+      double = Enum.find(positional, fn {name, _} -> List.keymember?(kwargs, name, 0) end) ->
+        type_error(
+          "#{function}() got multiple values for argument #{Value.repr(elem(double, 0))}"
+        )
+
+      true ->
+        args ++ Enum.map(rest, &bind_param(&1, kwargs, rest, function))
     end
   end
 
-  defp bind_param(_param, [arg | rest], _kwargs, _function), do: {arg, rest}
-
-  defp bind_param({name, default}, [], kwargs, function) do
+  defp bind_param({name, default}, kwargs, rest, function) do
     case List.keyfind(kwargs, name, 0) do
-      {_, value} -> {value, []}
-      nil when default == :required -> missing_argument(function, name)
-      nil -> {default, []}
+      {_, value} -> value
+      nil when default == :required -> missing_arguments(rest, kwargs, function)
+      nil -> default
     end
   end
 
-  defp missing_argument(function, name),
-    do:
-      raise(Otera.Error,
-        kind: :type_error,
-        message: "#{function}() missing required argument: #{Value.repr(name)}"
-      )
+  defp missing_arguments(rest, kwargs, function) do
+    missing =
+      for {name, :required} <- rest, not List.keymember?(kwargs, name, 0), do: Value.repr(name)
+
+    names =
+      case missing do
+        [name] -> name
+        [first, second] -> "#{first} and #{second}"
+        names -> Enum.join(Enum.drop(names, -1), ", ") <> ", and " <> List.last(names)
+      end
+
+    plural = if length(missing) == 1, do: "", else: "s"
+
+    type_error(
+      "#{function}() missing #{length(missing)} required positional argument#{plural}: #{names}"
+    )
+  end
+
+  defp positional_count(params) do
+    total = length(params)
+    required = Enum.count(params, &match?({_, :required}, &1))
+
+    cond do
+      required == total and total == 1 -> "1 positional argument"
+      required == total -> "#{total} positional arguments"
+      true -> "from #{required} to #{total} positional arguments"
+    end
+  end
+
+  defp given(1), do: "1 was"
+  defp given(count), do: "#{count} were"
+
+  defp type_error(message), do: raise(Otera.Error, kind: :type_error, message: message)
 
   defp params(receiver, name) when is_binary(receiver) do
     case name do
@@ -251,8 +280,17 @@ defmodule Otera.Methods do
   defp method(string, "capitalize", []), do: capitalize(string)
   defp method(string, "title", []), do: title(string)
 
-  defp method(string, "swapcase", []),
-    do: string |> String.codepoints() |> Enum.map_join(&swapcase/1)
+  # Runs of upper case letters lower together, for the final sigma of Greek.
+  defp method(string, "swapcase", []) do
+    string
+    |> String.codepoints()
+    |> Enum.chunk_by(&upper?/1)
+    |> Enum.map_join(fn [char | _] = run ->
+      if upper?(char),
+        do: String.downcase(Enum.join(run), :greek),
+        else: Enum.map_join(run, &swapcase/1)
+    end)
+  end
 
   defp method(string, "expandtabs", [tabsize]) do
     {chars, _column} =
@@ -582,12 +620,12 @@ defmodule Otera.Methods do
   end
 
   defp swapcase(char) do
-    cond do
-      String.downcase(char) != char and String.upcase(char) == char -> String.downcase(char)
-      String.upcase(char) != char and String.downcase(char) == char -> String.upcase(char)
-      true -> char
-    end
+    if String.upcase(char) != char and String.downcase(char) == char,
+      do: String.upcase(char),
+      else: char
   end
+
+  defp upper?(char), do: String.downcase(char) != char and String.upcase(char) == char
 
   defp cased?(string), do: String.upcase(string) != String.downcase(string)
 end
