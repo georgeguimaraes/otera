@@ -6,7 +6,11 @@ The first goal is the chat templates of Hugging Face models. Otera renders them 
 
 The name follows Jinja, which got its name because "temple" sounds like "template". Jinja (神社) is a Shinto shrine. Otera (お寺) is a Buddhist temple.
 
-Otera is in development and is not on Hex yet.
+Add it to your dependencies:
+
+```elixir
+{:otera, "~> 0.1"}
+```
 
 ## Usage
 
