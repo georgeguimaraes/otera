@@ -1,0 +1,5 @@
+{}
+---
+{%- set ns = namespace(m=none) -%}
+{% for i in [1, 2] %}{% macro m() %}{{ i + 1 }}{% endmacro %}{% set ns.m = m %}{% endfor %}
+{{ ns.m() }}

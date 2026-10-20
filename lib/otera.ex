@@ -42,7 +42,8 @@ defmodule Otera do
       |> Lexer.tokenize(opts)
       |> Parser.parse(filters: names.(:filters), tests: names.(:tests))
 
-    {:ok, %Template{source: source, ast: ast, options: opts}}
+    {ast, scope} = Otera.Scope.annotate(ast)
+    {:ok, %Template{source: source, ast: ast, scope: scope, options: opts}}
   rescue
     error in Otera.SyntaxError -> {:error, error}
   end
@@ -56,13 +57,13 @@ defmodule Otera do
           {:ok, String.t()} | {:error, error}
   def render(template, variables \\ %{}, opts \\ [])
 
-  def render(%Template{ast: ast, options: template_opts}, variables, opts) do
+  def render(%Template{options: template_opts} = template, variables, opts) do
     opts = merge_options(template_opts, opts)
 
     variables =
       Map.new(variables, fn {name, value} -> {to_string(name), Value.from_elixir(value)} end)
 
-    {:ok, Evaluator.render(ast, variables, opts)}
+    {:ok, Evaluator.render(template, variables, opts)}
   rescue
     error in Otera.Error -> {:error, error}
   end

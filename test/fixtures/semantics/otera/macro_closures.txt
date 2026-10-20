@@ -1,0 +1,16 @@
+{}
+---
+{%- set ns = namespace(m=none, n=none, w=none, b=none, inner=none, r=none) -%}
+same iteration: {% for i in [1, 2] %}{% macro m() %}{{ i }}/{{ y }}{% endmacro %}{% set y = i * 10 %}{{ m() }};{% endfor %}
+later iteration: {% for i in [1, 2, 3] %}{% if loop.first %}{% macro m() %}{{ i }}{% endmacro %}{% set ns.m = m %}{% endif %}{{ ns.m() }};{% endfor %}
+after loop: [{{ ns.m() }}]
+{%- for i in [1, 2] %}{% set y = i %}{% macro n() %}{{ i }}|{{ y }}|{{ loop.index }}|{{ i is defined }}|{{ i|string }}{% endmacro %}{% set ns.n = n %}{% endfor %}
+loop names: [{{ ns.n() }}]
+{%- with a = 1 %}{% set c = 2 %}{% macro w() %}{{ a }}|{{ c }}{% endmacro %}{% set ns.w = w %}{% endwith %}
+with: [{{ ns.w() }}]
+{%- set b %}{% set z = 5 %}{% macro bm() %}{{ z }}{% endmacro %}{% set ns.b = bm %}{% endset %}
+set block: [{{ ns.b() }}]
+{%- macro outer(p) %}{% macro inner() %}{{ p }}{% endmacro %}{% set ns.inner = inner %}{% endmacro %}{{ outer(7) }}
+macro scope: [{{ ns.inner() }}]
+{%- for x in [[1]] recursive %}{% macro r() %}{{ x }}{% endmacro %}{% set ns.r = r %}{% if x is iterable %}{{ loop(x) }}{% endif %}{% endfor %}
+recursive: [{{ ns.r() }}]

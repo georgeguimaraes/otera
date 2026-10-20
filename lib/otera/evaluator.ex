@@ -2,7 +2,9 @@ defmodule Otera.Evaluator do
   @moduledoc """
   Renders the syntax tree of `Otera.Parser` with the semantics of Python Jinja2.
 
-  The evaluator keeps a stack of scopes. The last scope holds the variables of the render and the top-level assignments. A `for` iteration, a macro call, a `with` block and the body of a `set`, `filter` or `generation` block run in a new scope, so their assignments do not leak out, as in Jinja2. A macro reads the top-level scope as it is at call time. Namespaces are the one way to change state across scopes.
+  The evaluator keeps a stack of scopes, like the local variables of the Python functions that Jinja2 compiles. The last scope is the context, with the variables of the render and the top-level assignments. Above it is the root scope of the template. The body of a loop, a macro call, a with block, an autoescape block and the body of a set or filter block run in a new scope, so their assignments do not leak out. `Otera.Scope` gives the names that each scope starts without, and the names that become missing when the scope ends.
+
+  Each scope is a map in `Otera.State`, so a macro reads the variables of the scopes around its definition as they are when it runs, like a Python closure. Namespaces are the one way to change state across scopes.
 
   `break` and `continue` stop the rest of a loop body. As in Jinja2, the `else` block of a loop runs when no iteration reached the end of the body.
   """
@@ -27,6 +29,7 @@ defmodule Otera.Evaluator do
   # which decides if macros, set blocks and some filters give Markup. They differ only in a macro
   # that a template calls where the autoescape differs from where it defined the macro.
   defstruct frames: [],
+            root: nil,
             filters: %{},
             tests: %{},
             globals: %{},
@@ -38,18 +41,17 @@ defmodule Otera.Evaluator do
   @max_range 100_000
 
   @doc """
-  Renders `ast` with `variables`, a map with string keys. Raises `Otera.Error`.
+  Renders `template` with `variables`, a map with string keys. Raises `Otera.Error`.
 
   Options: `:filters`, `:tests` and `:globals`, maps from names to Elixir functions or values, and `:autoescape`, a boolean or a function of the template name.
   """
-  @spec render(list, map, keyword) :: String.t()
-  def render(ast, variables, opts) do
+  @spec render(Otera.Template.t(), map, keyword) :: String.t()
+  def render(template, variables, opts) do
     autoescape = autoescape?(Keyword.get(opts, :autoescape, false), nil)
 
     ctx = %__MODULE__{
       escape: autoescape,
       autoescape: autoescape,
-      frames: [variables],
       filters: names(Keyword.get(opts, :filters, %{})),
       tests: names(Keyword.get(opts, :tests, %{})),
       globals:
@@ -59,7 +61,10 @@ defmodule Otera.Evaluator do
     }
 
     State.run(fn ->
-      {output, _ctx, _signal} = exec_body(ast, ctx)
+      context = make_ref()
+      State.put(context, variables)
+      ctx = open(%{ctx | frames: [context]}, template.scope, %{})
+      {output, _ctx, _signal} = exec_body(template.ast, %{ctx | root: hd(ctx.frames)})
       IO.iodata_to_binary(output)
     end)
   end
@@ -108,8 +113,8 @@ defmodule Otera.Evaluator do
     {[], at(line, ctx, fn -> assign(target, eval(expr, ctx), ctx) end), :ok}
   end
 
-  defp exec({:set_block, target, filter, body, line}, ctx) do
-    value = capture(body, ctx)
+  defp exec({:set_block, target, filter, body, line, scope}, ctx) do
+    value = capture(body, scope, ctx)
 
     at(line, ctx, fn ->
       value = if filter, do: eval(fill_hole(filter, safe(value, ctx.escape)), ctx), else: value
@@ -118,16 +123,17 @@ defmodule Otera.Evaluator do
     end)
   end
 
-  defp exec({:for, _target, iter, _test, _body, _else_body, _recursive?, line} = node, ctx),
+  defp exec({:for, _target, iter, _test, _body, _else, _recursive?, line, _scopes} = node, ctx),
     do: loop(node, at(line, ctx, fn -> eval(iter, ctx) end), ctx, 0)
 
-  defp exec({:macro, name, params, body, special_names, line}, ctx) do
+  defp exec({:macro, name, params, body, special_names, line, scope}, ctx) do
     macro = %Macro{
       name: name,
       params: params,
       body: body,
       special_names: special_names,
-      frames: closure(ctx),
+      frames: ctx.frames,
+      scope: scope,
       line: line,
       escape: ctx.escape
     }
@@ -137,7 +143,7 @@ defmodule Otera.Evaluator do
 
   defp exec(
          {:call_block, {:call, callee, args, kwargs, _call_line}, params, body, special_names,
-          line},
+          line, scope},
          ctx
        ) do
     caller = %Macro{
@@ -145,7 +151,8 @@ defmodule Otera.Evaluator do
       params: params,
       body: body,
       special_names: special_names,
-      frames: closure(ctx),
+      frames: ctx.frames,
+      scope: scope,
       line: line,
       escape: ctx.escape
     }
@@ -157,19 +164,24 @@ defmodule Otera.Evaluator do
     end)
   end
 
-  defp exec({:filter_block, filter, body, line}, ctx) do
-    value = safe(capture(body, ctx), ctx.escape)
+  defp exec({:filter_block, filter, body, line, scope}, ctx) do
+    value = safe(capture(body, scope, ctx), ctx.escape)
     {at(line, ctx, fn -> Value.to_str(eval(fill_hole(filter, value), ctx)) end), ctx, :ok}
   end
 
-  defp exec({:autoescape, expr, body, line}, ctx) do
-    autoescape = at(line, ctx, fn -> Value.truthy?(eval(expr, ctx)) end)
-    inner = %{push(ctx, %{}) | escape: autoescape, autoescape: autoescape}
-    {output, _inner, signal} = exec_body(body, inner)
+  # Like a with block, the autoescape tag opens a scope, which Jinja2 evaluates the value in.
+  defp exec({:autoescape, expr, body, line, scope}, ctx) do
+    inner = open(ctx, scope, %{})
+    autoescape = at(line, ctx, fn -> Value.truthy?(eval(expr, inner)) end)
+
+    {output, _inner, signal} =
+      exec_body(body, %{inner | escape: autoescape, autoescape: autoescape})
+
+    close(inner, scope)
     {output, ctx, signal}
   end
 
-  defp exec({:with, assignments, body, line}, ctx) do
+  defp exec({:with, assignments, body, line, scope}, ctx) do
     frame =
       at(line, ctx, fn ->
         Enum.reduce(assignments, %{}, fn {target, expr}, frame ->
@@ -177,11 +189,17 @@ defmodule Otera.Evaluator do
         end)
       end)
 
-    {output, _inner, signal} = exec_body(body, push(ctx, frame))
+    inner = open(ctx, scope, frame)
+    {output, _inner, signal} = exec_body(body, inner)
+    close(inner, scope)
     {output, ctx, signal}
   end
 
-  defp exec({:generation, body}, ctx), do: {capture(body, ctx), ctx, :ok}
+  # The generation block of transformers is a call block, so its body runs in a function scope.
+  defp exec({:generation, body, scope}, ctx) do
+    {output, _inner, _signal} = exec_body(body, open(ctx, scope, %{}))
+    {IO.iodata_to_binary(output), ctx, :ok}
+  end
 
   # Gives a runtime error the line and template of the code that raised it, like the traceback of
   # Jinja2. The innermost code sets the position first, so a macro call keeps the line in the macro.
@@ -193,8 +211,10 @@ defmodule Otera.Evaluator do
       reraise error, __STACKTRACE__
   end
 
-  defp capture(body, ctx) do
-    {output, _inner, _signal} = exec_body(body, push(ctx, %{}))
+  defp capture(body, scope, ctx) do
+    inner = open(ctx, scope, %{})
+    {output, _inner, _signal} = exec_body(body, inner)
+    close(inner, scope)
     IO.iodata_to_binary(output)
   end
 
@@ -212,11 +232,12 @@ defmodule Otera.Evaluator do
     do: {:filter, name, fill_hole(inner, value), args, kwargs, line}
 
   defp loop(
-         {:for, target, _iter, test, body, else_body, recursive?, line} = node,
+         {:for, target, _iter, test, body, else_body, recursive?, line, scopes} = node,
          iterable,
          ctx,
          depth0
        ) do
+    {body_scope, else_scope} = scopes
     items = at(line, ctx, fn -> Value.to_list(iterable) end)
 
     items =
@@ -234,6 +255,9 @@ defmodule Otera.Evaluator do
     recurse = if recursive?, do: {node, ctx}
     ref = make_ref()
 
+    # One scope for all iterations, which each iteration starts again, like the body of a Python loop.
+    inner = open(ctx, body_scope, %{})
+
     {output, completed?} =
       Enum.reduce_while(0..(tuple_size(items) - 1)//1, {[], false}, fn index, {acc, completed?} ->
         loop = %Loop{ref: ref, items: items, index0: index, depth0: depth0, recurse: recurse}
@@ -241,7 +265,8 @@ defmodule Otera.Evaluator do
         frame =
           at(line, ctx, fn -> target |> bind(elem(items, index)) |> Map.put("loop", loop) end)
 
-        {output, _inner, signal} = exec_body(body, push(ctx, frame))
+        restart(inner, body_scope, frame)
+        {output, _inner, signal} = exec_body(body, inner)
 
         case signal do
           :ok -> {:cont, {[acc | output], true}}
@@ -250,10 +275,15 @@ defmodule Otera.Evaluator do
         end
       end)
 
+    # A recursive loop without else is a Python function, which keeps its scope.
+    unless recursive? and else_body == [], do: close(inner, body_scope)
+
     if completed? or else_body == [] do
       {output, ctx, :ok}
     else
-      {else_output, _inner, signal} = exec_body(else_body, push(ctx, %{}))
+      inner = open(ctx, else_scope, %{})
+      {else_output, _inner, signal} = exec_body(else_body, inner)
+      close(inner, else_scope)
       {[output | else_output], ctx, signal}
     end
   end
@@ -321,18 +351,48 @@ defmodule Otera.Evaluator do
 
   ## Scopes
 
+  # A frame is a reference to the map of a scope in Otera.State, or a plain map for the scope of
+  # a loop test, which no macro can see.
   defp push(ctx, frame), do: %{ctx | frames: [frame | ctx.frames]}
 
-  defp put_var(%{frames: [frame | rest]} = ctx, name, value),
-    do: %{ctx | frames: [Map.put(frame, name, value) | rest]}
+  defp open(ctx, scope, bindings) do
+    ref = make_ref()
+    restart(%{ctx | frames: [ref]}, scope, bindings)
+    push(ctx, ref)
+  end
 
-  # A macro sees the scopes around its definition, and the top-level scope at call time.
-  defp closure(ctx), do: Enum.drop(ctx.frames, -1)
+  defp restart(%{frames: [ref | _]}, scope, bindings),
+    do: State.put(ref, Enum.reduce(scope.unset, bindings, &Map.put_new(&2, &1, :unset)))
+
+  defp close(%{frames: [ref | _]}, scope),
+    do: State.put(ref, Map.merge(State.get(ref), scope.exit))
+
+  # An assignment in the root scope also sets the variable of the context, like Jinja2.
+  defp put_var(%{frames: [ref | _]} = ctx, name, value) do
+    State.put(ref, Map.put(State.get(ref), name, value))
+
+    if ref == ctx.root do
+      context = List.last(ctx.frames)
+      State.put(context, Map.put(State.get(context), name, value))
+    end
+
+    ctx
+  end
 
   defp lookup(ctx, name) do
-    case Enum.find(ctx.frames, &is_map_key(&1, name)) do
-      %{^name => value} -> value
-      nil -> global(ctx, name)
+    case find_var(ctx.frames, name) do
+      {:ok, :unset} -> %Undefined{name: name}
+      {:ok, value} -> value
+      :error -> global(ctx, name)
+    end
+  end
+
+  defp find_var([], _name), do: :error
+
+  defp find_var([frame | rest], name) do
+    case if(is_map(frame), do: frame, else: State.get(frame)) do
+      %{^name => value} -> {:ok, value}
+      _ -> find_var(rest, name)
     end
   end
 
@@ -571,12 +631,7 @@ defmodule Otera.Evaluator do
   # place that calls it has autoescape, like Macro.__call__ of Jinja2.
   defp call_macro(macro, args, kwargs, ctx) do
     {positional, extra} = Enum.split(args, length(macro.params))
-
-    macro_ctx = %{
-      ctx
-      | frames: [%{}] ++ macro.frames ++ [List.last(ctx.frames)],
-        escape: macro.escape
-    }
+    macro_ctx = open(%{ctx | frames: macro.frames, escape: macro.escape}, macro.scope, %{})
 
     {macro_ctx, kwargs} =
       at(macro.line, macro_ctx, fn -> bind_params(macro_ctx, macro.params, positional, kwargs) end)

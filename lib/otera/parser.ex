@@ -8,11 +8,11 @@ defmodule Otera.Parser do
 
     * `{:text, string}` and `{:output, expr, line}`
     * `{:if, [{test, body, line}], else_body}`
-    * `{:for, target, iter, {test, line} | nil, body, else_body, recursive?, line}`
-    * `{:set, target, expr, line, check_line}` and `{:set_block, target, filter_or_nil, body, line}`
-    * `{:macro, name, params, body, special_names, line}` and `{:call_block, call, params, body, special_names, line}`
-    * `{:filter_block, filter, body, line}`, `{:with, [{target, expr}], body, line}` and `{:generation, body}`
-    * `{:autoescape, expr, body, line}`
+    * `{:for, target, iter, {test, line} | nil, body, else_body, recursive?, line, scopes}`
+    * `{:set, target, expr, line, check_line}` and `{:set_block, target, filter_or_nil, body, line, scope}`
+    * `{:macro, name, params, body, special_names, line, scope}` and `{:call_block, call, params, body, special_names, line, scope}`
+    * `{:filter_block, filter, body, line, scope}`, `{:with, [{target, expr}], body, line, scope}` and `{:generation, body, scope}`
+    * `{:autoescape, expr, body, line, scope}`
     * `{:break, line}` and `{:continue, line}`
 
   Expressions:
@@ -24,6 +24,8 @@ defmodule Otera.Parser do
     * `{:binop, op, left, right, line}` with op `:add`, `:sub`, `:mul`, `:div`, `:floordiv`, `:mod` or `:pow`
     * `{:concat, exprs}`, `{:compare, expr, [{op, expr}], line}` and `{:cond, test, then, else, line}`
     * `{:ns_ref, name, attr}` as an assignment target
+
+  A node that opens a scope has `nil` as its scope, which `Otera.Scope.annotate/1` fills in. A loop has the scopes of its body and of its else block.
 
   The lines are the lines that Jinja2 gives to its nodes. The evaluator gives them to the runtime errors, like the template traceback of Jinja2. The line of a statement is the line of its tag, and the line of an output is the line of the outermost node of its expression. The `check_line` of a set and the `line` of a with block and of an autoescape block are the line of the code before them, because Jinja2 compiles the namespace check and the assignments without a line of their own.
 
@@ -79,47 +81,47 @@ defmodule Otera.Parser do
     {{:if, branches, else_body}, last}
   end
 
-  defp fill_line({:for, target, iter, test, body, else_body, recursive?, line}, _last) do
+  defp fill_line({:for, target, iter, test, body, else_body, recursive?, line, nil}, _last) do
     {body, last} = fill_lines(body, line)
     {else_body, last} = fill_lines(else_body, last)
     # A recursive loop is a function, and the code that calls it comes after it.
     last = if recursive?, do: line, else: last
-    {{:for, target, iter, test, body, else_body, recursive?, line}, last}
+    {{:for, target, iter, test, body, else_body, recursive?, line, nil}, last}
   end
 
-  defp fill_line({:set_block, target, filter, body, line}, last) do
+  defp fill_line({:set_block, target, filter, body, line, nil}, last) do
     {body, _last} = fill_lines(body, last)
-    {{:set_block, target, filter, body, line}, line}
+    {{:set_block, target, filter, body, line, nil}, line}
   end
 
-  defp fill_line({:macro, name, params, body, special_names, line}, _last) do
+  defp fill_line({:macro, name, params, body, special_names, line, nil}, _last) do
     {body, last} = fill_lines(body, line)
-    {{:macro, name, params, body, special_names, line}, last}
+    {{:macro, name, params, body, special_names, line, nil}, last}
   end
 
-  defp fill_line({:call_block, call, params, body, special_names, line}, _last) do
+  defp fill_line({:call_block, call, params, body, special_names, line, nil}, _last) do
     {body, _last} = fill_lines(body, line)
-    {{:call_block, call, params, body, special_names, line}, line}
+    {{:call_block, call, params, body, special_names, line, nil}, line}
   end
 
-  defp fill_line({:filter_block, filter, body, line}, last) do
+  defp fill_line({:filter_block, filter, body, line, nil}, last) do
     {body, _last} = fill_lines(body, last)
-    {{:filter_block, filter, body, line}, line}
+    {{:filter_block, filter, body, line, nil}, line}
   end
 
-  defp fill_line({:with, assignments, body, nil}, last) do
+  defp fill_line({:with, assignments, body, nil, nil}, last) do
     {body, body_last} = fill_lines(body, last)
-    {{:with, assignments, body, last}, body_last}
+    {{:with, assignments, body, last, nil}, body_last}
   end
 
-  defp fill_line({:autoescape, expr, body, nil}, last) do
+  defp fill_line({:autoescape, expr, body, nil, nil}, last) do
     {body, body_last} = fill_lines(body, last)
-    {{:autoescape, expr, body, last}, body_last}
+    {{:autoescape, expr, body, last, nil}, body_last}
   end
 
-  defp fill_line({:generation, body}, last) do
+  defp fill_line({:generation, body, nil}, last) do
     {body, last} = fill_lines(body, last)
-    {{:generation, body}, last}
+    {{:generation, body, nil}, last}
   end
 
   defp fill_line(node, last), do: {node, last}
@@ -130,33 +132,37 @@ defmodule Otera.Parser do
     check_names(else_body, known, true)
   end
 
-  defp check_names({:for, _target, iter, test, body, else_body, _recursive, _line}, known, soft) do
+  defp check_names(
+         {:for, _target, iter, test, body, else_body, _recursive, _line, _scope},
+         known,
+         soft
+       ) do
     check_names(iter, known, soft)
     check_names([test, body, else_body], known, false)
   end
 
-  defp check_names({:macro, _name, params, body, _special, _line}, known, _soft),
+  defp check_names({:macro, _name, params, body, _special, _line, _scope}, known, _soft),
     do: check_names([params, body], known, false)
 
-  defp check_names({:call_block, call, params, body, _special, _line}, known, soft) do
+  defp check_names({:call_block, call, params, body, _special, _line, _scope}, known, soft) do
     check_names(call, known, soft)
     check_names([params, body], known, false)
   end
 
-  defp check_names({:with, assignments, body, _line}, known, soft) do
+  defp check_names({:with, assignments, body, _line, _scope}, known, soft) do
     check_names(assignments, known, soft)
     check_names(body, known, false)
   end
 
-  defp check_names({:set_block, _target, filter, body, _line}, known, _soft),
+  defp check_names({:set_block, _target, filter, body, _line, _scope}, known, _soft),
     do: check_names([filter, body], known, false)
 
-  defp check_names({:filter_block, filter, body, _line}, known, _soft),
+  defp check_names({:filter_block, filter, body, _line, _scope}, known, _soft),
     do: check_names([filter, body], known, false)
 
-  defp check_names({:generation, body}, known, _soft), do: check_names(body, known, false)
+  defp check_names({:generation, body, _scope}, known, _soft), do: check_names(body, known, false)
 
-  defp check_names({:autoescape, expr, body, _line}, known, _soft),
+  defp check_names({:autoescape, expr, body, _line, _scope}, known, _soft),
     do: check_names([expr, body], known, false)
 
   defp check_names({:cond, test, then_expr, else_expr, _line}, known, _soft),
@@ -309,7 +315,7 @@ defmodule Otera.Parser do
     if "loop" in store_names([target, body, else_body]),
       do: fail("Can't assign to special loop variable in for-loop target", line(hd(tokens)))
 
-    {{:for, target, iter, test, body, else_body, recursive?, line}, rest}
+    {{:for, target, iter, test, body, else_body, recursive?, line, nil}, rest}
   end
 
   # The line of the namespace check of a set is the line before the set, which parse/2 fills in.
@@ -324,7 +330,7 @@ defmodule Otera.Parser do
       rest ->
         {filter, rest} = parse_filter(nil, rest)
         {body, rest} = parse_statements(rest, ["endset"], ctx, true)
-        {{:set_block, target, filter, body, line}, rest}
+        {{:set_block, target, filter, body, line, nil}, rest}
     end
   end
 
@@ -332,7 +338,7 @@ defmodule Otera.Parser do
     {{:name, name}, rest} = parse_assign_target(tokens, name_only: true)
     {params, rest} = parse_signature(rest)
     {body, rest} = parse_statements(rest, ["endmacro"], %{ctx | loop: false}, true)
-    {{:macro, name, params, body, special_names(body), line}, rest}
+    {{:macro, name, params, body, special_names(body), line, nil}, rest}
   end
 
   defp parse_call_block(tokens, ctx, line) do
@@ -345,20 +351,20 @@ defmodule Otera.Parser do
     {call, rest} = parse_expression(rest)
     unless match?({:call, _, _, _, _}, call), do: fail("expected call", line(hd(tokens)))
     {body, rest} = parse_statements(rest, ["endcall"], %{ctx | loop: false}, true)
-    {{:call_block, call, params, body, special_names(body), line}, rest}
+    {{:call_block, call, params, body, special_names(body), line, nil}, rest}
   end
 
   defp parse_filter_block(tokens, ctx, line) do
     {filter, rest} = parse_filter(nil, tokens, true)
     {body, rest} = parse_statements(rest, ["endfilter"], ctx, true)
-    {{:filter_block, filter, body, line}, rest}
+    {{:filter_block, filter, body, line, nil}, rest}
   end
 
   defp parse_with(tokens, ctx), do: parse_with(tokens, ctx, [])
 
   defp parse_with([{:block_end, _, _} | _] = tokens, ctx, assignments) do
     {body, rest} = parse_statements(tokens, ["endwith"], ctx, true)
-    {{:with, Enum.reverse(assignments), body, nil}, rest}
+    {{:with, Enum.reverse(assignments), body, nil, nil}, rest}
   end
 
   defp parse_with(tokens, ctx, assignments) do
@@ -373,7 +379,7 @@ defmodule Otera.Parser do
   defp parse_autoescape(tokens, ctx) do
     {expr, rest} = parse_expression(tokens)
     {body, rest} = parse_statements(rest, ["endautoescape"], ctx, true)
-    {{:autoescape, expr, body, nil}, rest}
+    {{:autoescape, expr, body, nil, nil}, rest}
   end
 
   defp parse_print(tokens), do: parse_print(tokens, [])
@@ -388,7 +394,7 @@ defmodule Otera.Parser do
 
   defp parse_generation(tokens, ctx) do
     {body, rest} = parse_statements(tokens, ["endgeneration"], %{ctx | loop: false}, true)
-    {{:generation, body}, rest}
+    {{:generation, body, nil}, rest}
   end
 
   defp parse_signature(tokens) do
@@ -439,10 +445,10 @@ defmodule Otera.Parser do
   # The names that the targets of set statements and for loops in `node` assign.
   defp store_names({:set, target, _value, _line, _check_line}), do: target_names(target)
 
-  defp store_names({:set_block, target, _filter, body, _line}),
+  defp store_names({:set_block, target, _filter, body, _line, _scope}),
     do: target_names(target) ++ store_names(body)
 
-  defp store_names({:for, target, _iter, _test, body, else_body, _recursive, _line}),
+  defp store_names({:for, target, _iter, _test, body, else_body, _recursive, _line, _scope}),
     do: target_names(target) ++ store_names([body, else_body])
 
   defp store_names(node) when is_tuple(node), do: node |> Tuple.to_list() |> store_names()

@@ -84,6 +84,7 @@ defmodule Otera.Value do
   """
   @spec type_name(term) :: String.t()
   def type_name(nil), do: "NoneType"
+  def type_name(:missing), do: "_MissingType"
   def type_name(value) when is_boolean(value), do: "bool"
   def type_name(value) when is_integer(value), do: "int"
   def type_name(value) when is_float(value), do: "float"
@@ -112,6 +113,7 @@ defmodule Otera.Value do
   """
   @spec object_type_repr(term) :: String.t()
   def object_type_repr(nil), do: "None"
+  def object_type_repr(:missing), do: "jinja2.utils._MissingType object"
   def object_type_repr(%Namespace{}), do: "jinja2.utils.Namespace object"
   def object_type_repr(%Undefined{}), do: "jinja2.runtime.Undefined object"
   def object_type_repr(%Macro{}), do: "jinja2.runtime.Macro object"
@@ -143,6 +145,8 @@ defmodule Otera.Value do
     do: "<#{object_type_repr(value)}>"
 
   def repr(nil), do: "None"
+  # The `missing` of Jinja2, which a macro reads for a loop variable after the loop ends.
+  def repr(:missing), do: "missing"
   def repr(true), do: "True"
   def repr(false), do: "False"
   def repr(value) when is_integer(value), do: Integer.to_string(value)

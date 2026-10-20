@@ -1,0 +1,9 @@
+{"x": 5, "y": 6}
+---
+loop before set: [{% for i in [1] %}{{ x }}{% endfor %}]{% set x = 1 %} {{ x }}
+if before set: [{% if true %}{{ y }}{% endif %}]{% set y = 2 %} {{ y }}
+macro before set: {% macro m() %}[{{ z }}]{% endmacro %}{{ m() }}{% set z = 3 %}{{ m() }}
+read then set in loop: {% for i in [1, 2] %}{{ w }}{% set w = i %}{% endfor %}
+set in branch: {% if false %}{% set v = 1 %}{% endif %}{% for i in [1] %}[{{ v }}]{% endfor %}
+with before set: {% with %}[{% for i in [1] %}{{ u }}{% endfor %}]{% set u = 4 %}{% endwith %}
+macro body: {% macro n() %}[{% for i in [1] %}{{ t }}{% endfor %}]{% set t = 7 %}{{ t }}{% endmacro %}{{ n() }}

@@ -94,7 +94,6 @@ Known differences from Python:
 * Otera values have no identity, so `x is sameas y` compares two equal lists or dicts as the same object.
 * `range()` gives a list, so it prints as a list.
 * Otera does not model the single pass of a Python generator, such as the result of `map` or `select`.
-* A macro that a template defines inside a loop reads the variables of the loop as they were when the template defined it.
 * `break` outside a loop raises an `Otera.SyntaxError` instead of a Python `SyntaxError`.
 * Python prints functions and generators with their memory address, and Otera prints them without one.
 * The character properties come from the pinned Python, but upper and lower case mappings come from Elixir and Erlang/OTP, whose Unicode version can be newer.

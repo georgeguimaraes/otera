@@ -689,6 +689,16 @@
  "otera/loops.txt": {
   "output": "vars: 1032TrueFalse31 2121FalseFalse31 3210FalseTrue31 \nadjacent: <a>b|a<b>c|b<c>|\ncycle: odd even odd \nfilter: 1,3,5,7,9 (22)\nelse-empty: empty\nelse-filtered: none passed\nbreak-first: else after break\nbreak-later: ab\ncontinue-all: else after continue\ncontinue-some: 135\ndict: xy x=1 y=2 \nstring: h.é.l.l.o.\nunpack: 123 456 \nnested-loop: 1/2 2/2 1/1 \nrecursive: 1@1[2@2[3@3[]]]\nundefined: missing is empty"
  },
+ "otera/macro_closure_missing_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "unsupported operand type(s) for +: '_MissingType' and 'int'",
+   "line": 2
+  }
+ },
+ "otera/macro_closures.txt": {
+  "output": "same iteration: 1/10;2/20;\nlater iteration: 1;2;3;\nafter loop: [missing]\nloop names: [missing|||True|missing]\nwith: [missing|]\nset block: []\nmacro scope: [7]\nrecursive: [1]"
+ },
  "otera/macros.txt": {
   "output": "\nHello, A!!!!!|Hi, B!!|Hello, C!|Hello, !!!!!\n1:(2, 3):{'x': 4}\n<p>inside call</p>\n[1:x][2:y]\n321\n<Macro 'greet'> greet ('name', 'greeting', 'punct')\nHELLO, FILTERED!!!!!"
  },
@@ -862,6 +872,9 @@
    "message": "access to attribute 'update' of 'dict' object is unsafe.",
    "line": 1
   }
+ },
+ "otera/scope_set_before_read.txt": {
+  "output": "loop before set: [] 1\nif before set: [6] 2\nmacro before set: [][3]\nread then set in loop: \nset in branch: []\nwith before set: []\nmacro body: []7"
  },
  "otera/scoping.txt": {
   "output": "loop: outerinner1;outerinner2; after=outer\nfresh: [set][][]\nif: from if\nns: 3 [0, 1, 2]\nns-macro: 103\nmacro-root: 12\nnested: 121|122|\nwith: 1outerwith outer\nset-block: OUTER False\ntuple: 12 xy\nns-dict: v1"
