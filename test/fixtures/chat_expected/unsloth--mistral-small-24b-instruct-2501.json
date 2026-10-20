@@ -17,13 +17,15 @@
  "tool_call_roundtrip": {
   "error": {
    "type": "TemplateError",
-   "message": "Only user, system and assistant roles are supported!"
+   "message": "Only user, system and assistant roles are supported!",
+   "line": 23
   }
  },
  "tool_call_string_arguments": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for +: 'NoneType' and 'str'"
+   "message": "unsupported operand type(s) for +: 'NoneType' and 'str'",
+   "line": 21
   }
  },
  "continue_final_message": {
@@ -44,7 +46,8 @@
  "content_parts": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"list\") to str"
+   "message": "can only concatenate str (not \"list\") to str",
+   "line": 17
   }
  },
  "roles_not_alternating": {

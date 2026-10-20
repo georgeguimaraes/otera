@@ -20,7 +20,8 @@
  "tool_call_string_arguments": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 64
   }
  },
  "continue_final_message": {

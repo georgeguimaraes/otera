@@ -41,7 +41,8 @@ defmodule OteraTest do
        {:error,
         %Otera.Error{
           kind: :type_error,
-          message: "shout() missing 1 required positional argument: 'name'"
+          message: "shout() missing 1 required positional argument: 'name'",
+          line: 1
         }}}
     ]
 

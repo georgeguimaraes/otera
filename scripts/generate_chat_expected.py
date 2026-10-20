@@ -16,11 +16,35 @@ the versions of Python, Jinja2 and transformers.
 import datetime as dt
 import json
 import os
+import sys
+
+import jinja2
+import jinja2.debug
+import jinja2.utils
 
 from transformers.utils import chat_template_utils
 from transformers.utils.chat_template_utils import render_jinja_template
 
 FIXED_NOW = dt.datetime(2025, 3, 9, 14, 30, 5)
+
+def record_position(rewrite):
+    """Wrap jinja2.debug.rewrite_traceback_stack to keep the line of a runtime error, like the template traceback.
+
+    scripts/generate_semantics_expected.py has the same function.
+    """
+
+    def wrapper(source=None):
+        _, error, tb = sys.exc_info()
+        while tb is not None:
+            template = tb.tb_frame.f_globals.get("__jinja_template__")
+            # Like the traceback of Jinja2, skip the internal functions, such as the stub of a missing test.
+            if template is not None and tb.tb_frame.f_code not in jinja2.utils.internal_code:
+                error.template_line = template.get_corresponding_lineno(tb.tb_lineno)
+            tb = tb.tb_next
+        return rewrite(source)
+
+    return wrapper
+
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FIXTURES = os.path.join(ROOT, "test", "fixtures")
@@ -47,12 +71,18 @@ def render(source, conversation, special_tokens):
             **variables,
         )
         return {"output": rendered[0]}
+    except jinja2.TemplateSyntaxError as error:
+        return {"error": {"type": type(error).__name__, "message": error.message, "line": error.lineno}}
     except Exception as error:
-        return {"error": {"type": type(error).__name__, "message": str(error)}}
+        described = {"type": type(error).__name__, "message": str(error)}
+        if hasattr(error, "template_line"):
+            described["line"] = error.template_line
+        return {"error": described}
 
 
 def main():
     chat_template_utils.datetime = FixedDatetime
+    jinja2.debug.rewrite_traceback_stack = record_position(jinja2.debug.rewrite_traceback_stack)
 
     with open(os.path.join(TEMPLATES, "manifest.json"), encoding="utf-8") as f:
         manifest = json.load(f)

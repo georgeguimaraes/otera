@@ -14,19 +14,22 @@
  "tools_defined": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'description'"
+   "message": "'dict object' has no attribute 'description'",
+   "line": 100
   }
  },
  "tool_call_roundtrip": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'description'"
+   "message": "'dict object' has no attribute 'description'",
+   "line": 100
   }
  },
  "tool_call_string_arguments": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'description'"
+   "message": "'dict object' has no attribute 'description'",
+   "line": 100
   }
  },
  "continue_final_message": {
@@ -47,7 +50,8 @@
  "content_parts": {
   "error": {
    "type": "TemplateError",
-   "message": "Invalid user message: user"
+   "message": "Invalid user message: user",
+   "line": 215
   }
  },
  "roles_not_alternating": {

@@ -20,7 +20,8 @@
  "tool_call_string_arguments": {
   "error": {
    "type": "UndefinedError",
-   "message": "'str object' has no attribute 'items'"
+   "message": "'str object' has no attribute 'items'",
+   "line": 85
   }
  },
  "continue_final_message": {

@@ -8,7 +8,8 @@
  "system_multiturn": {
   "error": {
    "type": "TemplateError",
-   "message": "System role not supported"
+   "message": "System role not supported",
+   "line": 1
   }
  },
  "multiturn_ending_with_assistant": {
@@ -20,13 +21,15 @@
  "tool_call_roundtrip": {
   "error": {
    "type": "TemplateError",
-   "message": "System role not supported"
+   "message": "System role not supported",
+   "line": 1
   }
  },
  "tool_call_string_arguments": {
   "error": {
    "type": "TemplateError",
-   "message": "Conversation roles must alternate user/assistant/user/assistant/..."
+   "message": "Conversation roles must alternate user/assistant/user/assistant/...",
+   "line": 1
   }
  },
  "continue_final_message": {
@@ -35,7 +38,8 @@
  "unicode": {
   "error": {
    "type": "TemplateError",
-   "message": "System role not supported"
+   "message": "System role not supported",
+   "line": 1
   }
  },
  "thinking_disabled": {
@@ -47,7 +51,8 @@
  "date_string": {
   "error": {
    "type": "TemplateError",
-   "message": "System role not supported"
+   "message": "System role not supported",
+   "line": 1
   }
  },
  "content_parts": {
@@ -56,7 +61,8 @@
  "roles_not_alternating": {
   "error": {
    "type": "TemplateError",
-   "message": "Conversation roles must alternate user/assistant/user/assistant/..."
+   "message": "Conversation roles must alternate user/assistant/user/assistant/...",
+   "line": 1
   }
  },
  "documents": {
@@ -65,7 +71,8 @@
  "reasoning_effort": {
   "error": {
    "type": "TemplateError",
-   "message": "System role not supported"
+   "message": "System role not supported",
+   "line": 1
   }
  }
 }

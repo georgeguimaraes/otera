@@ -23,19 +23,22 @@
  "minijinja/err_bad_addition.txt": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate list (not \"int\") to list"
+   "message": "can only concatenate list (not \"int\") to list",
+   "line": 1
   }
  },
  "minijinja/err_bad_args_unpack.txt": {
   "error": {
    "type": "TypeError",
-   "message": "Value after * must be an iterable, not bool"
+   "message": "Value after * must be an iterable, not bool",
+   "line": 1
   }
  },
  "minijinja/err_bad_call.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'an_unknown_function' is undefined"
+   "message": "'an_unknown_function' is undefined",
+   "line": 1
   }
  },
  "minijinja/err_bad_call_block_call.txt": {
@@ -76,37 +79,43 @@
  "minijinja/err_bad_fast_recurse.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'loop' is undefined"
+   "message": "'loop' is undefined",
+   "line": 1
   }
  },
  "minijinja/err_bad_filter.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'int' object is not iterable"
+   "message": "'int' object is not iterable",
+   "line": 1
   }
  },
  "minijinja/err_bad_nested_subtraction.txt": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for -: 'int' and 'list'"
+   "message": "unsupported operand type(s) for -: 'int' and 'list'",
+   "line": 2
   }
  },
  "minijinja/err_bad_range.txt": {
   "error": {
    "type": "OverflowError",
-   "message": "Range too big. The sandbox blocks ranges larger than MAX_RANGE (100000)."
+   "message": "Range too big. The sandbox blocks ranges larger than MAX_RANGE (100000).",
+   "line": 1
   }
  },
  "minijinja/err_bad_recursion.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'int' object is not iterable"
+   "message": "'int' object is not iterable",
+   "line": 1
   }
  },
  "minijinja/err_bad_test.txt": {
   "error": {
    "type": "TemplateRuntimeError",
-   "message": "No test named 'reallyEven' found."
+   "message": "No test named 'reallyEven' found.",
+   "line": 2
   }
  },
  "minijinja/err_bad_trailing_underscore.txt": {
@@ -119,31 +128,36 @@
  "minijinja/err_bad_unary.txt": {
   "error": {
    "type": "TypeError",
-   "message": "bad operand type for unary -: 'list'"
+   "message": "bad operand type for unary -: 'list'",
+   "line": 1
   }
  },
  "minijinja/err_debug_info_in_loop.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'int object' has no attribute 'missing'"
+   "message": "'int object' has no attribute 'missing'",
+   "line": 2
   }
  },
  "minijinja/err_debug_info_in_macro.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'list object' has no attribute 'missing'"
+   "message": "'list object' has no attribute 'missing'",
+   "line": 2
   }
  },
  "minijinja/err_duplicate_macro_arg.txt": {
   "error": {
    "type": "TypeError",
-   "message": "macro 'two_args' takes no keyword argument 'a'"
+   "message": "macro 'two_args' takes no keyword argument 'a'",
+   "line": 4
   }
  },
  "minijinja/err_int_unknown_kwarg.txt": {
   "error": {
    "type": "TypeError",
-   "message": "do_int() got an unexpected keyword argument 'nonsense'"
+   "message": "do_int() got an unexpected keyword argument 'nonsense'",
+   "line": 1
   }
  },
  "minijinja/err_missing_nested_filter.txt": {
@@ -170,13 +184,15 @@
  "minijinja/err_repeat_iterator_with_object.txt": {
   "error": {
    "type": "TypeError",
-   "message": "can't multiply sequence by non-int of type 'dict'"
+   "message": "can't multiply sequence by non-int of type 'dict'",
+   "line": 1
   }
  },
  "minijinja/err_repeat_iterator_with_string.txt": {
   "error": {
    "type": "TypeError",
-   "message": "can't multiply sequence by non-int of type 'str'"
+   "message": "can't multiply sequence by non-int of type 'str'",
+   "line": 1
   }
  },
  "minijinja/err_too_large_integer.txt": {
@@ -185,19 +201,22 @@
  "minijinja/err_too_many_macro_args.txt": {
   "error": {
    "type": "TypeError",
-   "message": "macro 'two_args' takes not more than 2 argument(s)"
+   "message": "macro 'two_args' takes not more than 2 argument(s)",
+   "line": 4
   }
  },
  "minijinja/err_too_many_macro_kwargs.txt": {
   "error": {
    "type": "TypeError",
-   "message": "macro 'two_args' takes no keyword argument 'c'"
+   "message": "macro 'two_args' takes no keyword argument 'c'",
+   "line": 4
   }
  },
  "minijinja/err_too_many_macro_kwargs2.txt": {
   "error": {
    "type": "TypeError",
-   "message": "macro 'two_args' takes no keyword argument 'c'"
+   "message": "macro 'two_args' takes no keyword argument 'c'",
+   "line": 4
   }
  },
  "minijinja/err_trailing_underscore_eol.txt": {
@@ -210,25 +229,29 @@
  "minijinja/err_undefined_attr.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undefined_value' is undefined"
+   "message": "'undefined_value' is undefined",
+   "line": 1
   }
  },
  "minijinja/err_undefined_item.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "list object has no element 42"
+   "message": "list object has no element 42",
+   "line": 1
   }
  },
  "minijinja/err_undefined_nested_attr.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'list object' has no attribute 'whatever'"
+   "message": "'list object' has no attribute 'whatever'",
+   "line": 2
   }
  },
  "minijinja/err_unexpected_caller_macro.txt": {
   "error": {
    "type": "TypeError",
-   "message": "macro 'no_caller' was invoked with two values for the special caller argument. This is most likely a bug."
+   "message": "macro 'no_caller' was invoked with two values for the special caller argument. This is most likely a bug.",
+   "line": 2
   }
  },
  "minijinja/err_unexpected_character.txt": {
@@ -254,7 +277,8 @@
  "minijinja/float_div_by_zero.txt": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "float division by zero"
+   "message": "float division by zero",
+   "line": 1
   }
  },
  "minijinja/format_kwargs.txt": {
@@ -293,7 +317,8 @@
  "minijinja/int_div_by_zero.txt": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "integer division or modulo by zero"
+   "message": "integer division or modulo by zero",
+   "line": 1
   }
  },
  "minijinja/int_float_default_base.txt": {
@@ -302,7 +327,8 @@
  "minijinja/int_rem_by_zero.txt": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "integer modulo by zero"
+   "message": "integer modulo by zero",
+   "line": 1
   }
  },
  "minijinja/kwarg_ifexpr.txt": {
@@ -320,13 +346,15 @@
  "minijinja/loop_bad_unpacking.txt": {
   "error": {
    "type": "TypeError",
-   "message": "cannot unpack non-iterable int object"
+   "message": "cannot unpack non-iterable int object",
+   "line": 2
   }
  },
  "minijinja/loop_bad_unpacking_wrong_len.txt": {
   "error": {
    "type": "ValueError",
-   "message": "too many values to unpack (expected 2)"
+   "message": "too many values to unpack (expected 2)",
+   "line": 2
   }
  },
  "minijinja/loop_changed.txt": {
@@ -338,7 +366,8 @@
  "minijinja/loop_dictsort.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'str' and 'int'"
+   "message": "'<' not supported between instances of 'str' and 'int'",
+   "line": 10
   }
  },
  "minijinja/loop_else.txt": {
@@ -353,13 +382,15 @@
  "minijinja/loop_over_non_iterable.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'int' object is not iterable"
+   "message": "'int' object is not iterable",
+   "line": 1
   }
  },
  "minijinja/loop_over_none.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 1
   }
  },
  "minijinja/loop_over_string.txt": {
@@ -420,7 +451,8 @@
  "minijinja/namespace_bad.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'int' object is not iterable"
+   "message": "'int' object is not iterable",
+   "line": 1
   }
  },
  "minijinja/or.txt": {
@@ -450,7 +482,8 @@
  "otera/abs_undefined_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "bad operand type for abs(): 'Undefined'"
+   "message": "bad operand type for abs(): 'Undefined'",
+   "line": 1
   }
  },
  "otera/builtins_more.txt": {
@@ -468,13 +501,15 @@
  "otera/concat_precedence_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for +: 'int' and 'str'"
+   "message": "unsupported operand type(s) for +: 'int' and 'str'",
+   "line": 1
   }
  },
  "otera/concat_type_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"list\") to str"
+   "message": "can only concatenate str (not \"list\") to str",
+   "line": 1
   }
  },
  "otera/conditional_expressions.txt": {
@@ -486,13 +521,15 @@
  "otera/cycler_empty_error.txt": {
   "error": {
    "type": "RuntimeError",
-   "message": "at least one item has to be provided"
+   "message": "at least one item has to be provided",
+   "line": 1
   }
  },
  "otera/dict_get_argument_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "get expected at least 1 argument, got 0"
+   "message": "get expected at least 1 argument, got 0",
+   "line": 1
   }
  },
  "otera/dict_methods.txt": {
@@ -501,7 +538,8 @@
  "otera/dict_unhashable_key_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "unhashable type: 'list'"
+   "message": "unhashable type: 'list'",
+   "line": 1
   }
  },
  "otera/dict_views.txt": {
@@ -510,37 +548,43 @@
  "otera/dictsort_undefined_error.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "otera/dunder_attribute_error.txt": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute '__class__' of 'str' object is unsafe."
+   "message": "access to attribute '__class__' of 'str' object is unsafe.",
+   "line": 1
   }
  },
  "otera/dunder_method_error.txt": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute '__len__' of 'list' object is unsafe."
+   "message": "access to attribute '__len__' of 'list' object is unsafe.",
+   "line": 1
   }
  },
  "otera/encode_ascii_error.txt": {
   "error": {
    "type": "UnicodeEncodeError",
-   "message": "'ascii' codec can't encode character '\\xe9' in position 0: ordinal not in range(128)"
+   "message": "'ascii' codec can't encode character '\\xe9' in position 0: ordinal not in range(128)",
+   "line": 1
   }
  },
  "otera/encode_lookup_error.txt": {
   "error": {
    "type": "LookupError",
-   "message": "unknown encoding: rot13x"
+   "message": "unknown encoding: rot13x",
+   "line": 1
   }
  },
  "otera/filesizeformat_value_error.txt": {
   "error": {
    "type": "ValueError",
-   "message": "could not convert string to float: 'abc'"
+   "message": "could not convert string to float: 'abc'",
+   "line": 1
   }
  },
  "otera/filters_sequences.txt": {
@@ -552,19 +596,22 @@
  "otera/format_index_error.txt": {
   "error": {
    "type": "IndexError",
-   "message": "tuple index out of range"
+   "message": "tuple index out of range",
+   "line": 1
   }
  },
  "otera/format_single_brace_error.txt": {
   "error": {
    "type": "ValueError",
-   "message": "Single '{' encountered in format string"
+   "message": "Single '{' encountered in format string",
+   "line": 1
   }
  },
  "otera/format_spec_type_error.txt": {
   "error": {
    "type": "ValueError",
-   "message": "Unknown format code 's' for object of type 'int'"
+   "message": "Unknown format code 's' for object of type 'int'",
+   "line": 1
   }
  },
  "otera/generation_like_call.txt": {
@@ -576,31 +623,36 @@
  "otera/in_dict_unhashable_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "unhashable type: 'list'"
+   "message": "unhashable type: 'list'",
+   "line": 1
   }
  },
  "otera/indent_int_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for +=: 'int' and 'str'"
+   "message": "unsupported operand type(s) for +=: 'int' and 'str'",
+   "line": 1
   }
  },
  "otera/indent_undefined_error.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "otera/int_to_float_overflow_error.txt": {
   "error": {
    "type": "OverflowError",
-   "message": "int too large to convert to float"
+   "message": "int too large to convert to float",
+   "line": 1
   }
  },
  "otera/items_type_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "Can only get item pairs from a mapping."
+   "message": "Can only get item pairs from a mapping.",
+   "line": 1
   }
  },
  "otera/keep_trailing_newline.txt": {
@@ -622,37 +674,43 @@
  "otera/method_argument_count_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "strip expected at most 1 argument, got 2"
+   "message": "strip expected at most 1 argument, got 2",
+   "line": 1
   }
  },
  "otera/method_keyword_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'x' is an invalid keyword argument for split()"
+   "message": "'x' is an invalid keyword argument for split()",
+   "line": 1
   }
  },
  "otera/method_no_keyword_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "str.strip() takes no keyword arguments"
+   "message": "str.strip() takes no keyword arguments",
+   "line": 1
   }
  },
  "otera/none_attribute_error.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'None' has no attribute 'strip'"
+   "message": "'None' has no attribute 'strip'",
+   "line": 1
   }
  },
  "otera/none_in_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "argument of type 'NoneType' is not iterable"
+   "message": "argument of type 'NoneType' is not iterable",
+   "line": 1
   }
  },
  "otera/none_iteration_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 1
   }
  },
  "otera/numbers.txt": {
@@ -661,31 +719,36 @@
  "otera/percent_char_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "%c requires int or char"
+   "message": "%c requires int or char",
+   "line": 1
   }
  },
  "otera/percent_hex_float_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "%x format: an integer is required, not float"
+   "message": "%x format: an integer is required, not float",
+   "line": 1
   }
  },
  "otera/percent_missing_key_error.txt": {
   "error": {
    "type": "KeyError",
-   "message": "'b'"
+   "message": "'b'",
+   "line": 1
   }
  },
  "otera/percent_unsupported_error.txt": {
   "error": {
    "type": "ValueError",
-   "message": "unsupported format character 'z' (0x7a) at index 1"
+   "message": "unsupported format character 'z' (0x7a) at index 1",
+   "line": 1
   }
  },
  "otera/pow_overflow_error.txt": {
   "error": {
    "type": "OverflowError",
-   "message": "(34, 'Result too large')"
+   "message": "(34, 'Result too large')",
+   "line": 1
   }
  },
  "otera/python_formatting.txt": {
@@ -694,7 +757,8 @@
  "otera/raise_exception_keyword_error.txt": {
   "error": {
    "type": "TemplateError",
-   "message": "boom"
+   "message": "boom",
+   "line": 1
   }
  },
  "otera/repr.txt": {
@@ -703,7 +767,8 @@
  "otera/reverse_int_error.txt": {
   "error": {
    "type": "FilterArgumentError",
-   "message": "argument must be iterable"
+   "message": "argument must be iterable",
+   "line": 1
   }
  },
  "otera/round.txt": {
@@ -712,7 +777,8 @@
  "otera/round_undefined_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "type Undefined doesn't define __round__ method"
+   "message": "type Undefined doesn't define __round__ method",
+   "line": 1
   }
  },
  "otera/rsplit.txt": {
@@ -721,7 +787,8 @@
  "otera/sandbox_append_error.txt": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'append' of 'list' object is unsafe."
+   "message": "access to attribute 'append' of 'list' object is unsafe.",
+   "line": 1
   }
  },
  "otera/sandbox_unsafe_print.txt": {
@@ -730,7 +797,8 @@
  "otera/sandbox_update_error.txt": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'update' of 'dict' object is unsafe."
+   "message": "access to attribute 'update' of 'dict' object is unsafe.",
+   "line": 1
   }
  },
  "otera/scoping.txt": {
@@ -742,19 +810,22 @@
  "otera/sort_attribute_types_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'list' and 'str'"
+   "message": "'<' not supported between instances of 'list' and 'str'",
+   "line": 1
   }
  },
  "otera/sort_mixed_types_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'int' and 'NoneType'"
+   "message": "'<' not supported between instances of 'int' and 'NoneType'",
+   "line": 1
   }
  },
  "otera/split_maxsplit_type_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "'str' object cannot be interpreted as an integer"
+   "message": "'str' object cannot be interpreted as an integer",
+   "line": 1
   }
  },
  "otera/string_literals.txt": {
@@ -828,13 +899,15 @@
  "otera/tojson_float_indent_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "can't multiply sequence by non-int of type 'float'"
+   "message": "can't multiply sequence by non-int of type 'float'",
+   "line": 1
   }
  },
  "otera/tojson_separators_error.txt": {
   "error": {
    "type": "ValueError",
-   "message": "not enough values to unpack (expected 2, got 1)"
+   "message": "not enough values to unpack (expected 2, got 1)",
+   "line": 1
   }
  },
  "otera/transformers_functions.txt": {
@@ -846,19 +919,22 @@
  "otera/undefined_arithmetic_error.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'missing' is undefined"
+   "message": "'missing' is undefined",
+   "line": 1
   }
  },
  "otera/undefined_attribute_error.txt": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "otera/unique_unhashable_error.txt": {
   "error": {
    "type": "TypeError",
-   "message": "unhashable type: 'list'"
+   "message": "unhashable type: 'list'",
+   "line": 1
   }
  },
  "otera/whitespace_chat_settings.txt": {
@@ -870,19 +946,22 @@
  "otera/wordwrap_int_error.txt": {
   "error": {
    "type": "AttributeError",
-   "message": "'int' object has no attribute 'splitlines'"
+   "message": "'int' object has no attribute 'splitlines'",
+   "line": 1
   }
  },
  "otera/wordwrap_width_error.txt": {
   "error": {
    "type": "ValueError",
-   "message": "invalid width 0 (must be > 0)"
+   "message": "invalid width 0 (must be > 0)",
+   "line": 1
   }
  },
  "otera/xmlattr_key_error.txt": {
   "error": {
    "type": "ValueError",
-   "message": "Invalid character in attribute name: 'a b'"
+   "message": "Invalid character in attribute name: 'a b'",
+   "line": 1
   }
  }
 }

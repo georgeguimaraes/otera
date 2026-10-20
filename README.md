@@ -22,7 +22,7 @@ Parse a template once to render it many times:
 Otera.render(template, %{messages: messages})
 ```
 
-`Otera.render/3` returns `{:error, exception}` with an `Otera.SyntaxError` for an error in the template syntax, and an `Otera.Error` for an error during the render. The `kind` of an `Otera.Error` names the Python exception, for example `:undefined_error` or `:type_error`, and the message is the message of Jinja2.
+`Otera.render/3` returns `{:error, exception}` with an `Otera.SyntaxError` for an error in the template syntax, and an `Otera.Error` for an error during the render. The `kind` of an `Otera.Error` names the Python exception, for example `:undefined_error` or `:type_error`, and the message is the message of Jinja2. Both errors give the `line` of the template where the error happened. For an error during the render, the line follows the template traceback of Jinja2: an error in a macro gives the line in the macro.
 
 Custom filters, tests and functions are Elixir functions:
 

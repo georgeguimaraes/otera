@@ -6,23 +6,25 @@ defmodule Otera.Parser do
 
   Statements:
 
-    * `{:text, string}` and `{:output, expr}`
-    * `{:if, [{test, body}], else_body}`
-    * `{:for, target, iter, filter_or_nil, body, else_body, recursive?}`
-    * `{:set, target, expr}` and `{:set_block, target, filter_or_nil, body}`
-    * `{:macro, name, params, body, special_names}` and `{:call_block, call, params, body, special_names}`
-    * `{:filter_block, filter, body}`, `{:with, [{target, expr}], body}` and `{:generation, body}`
-    * `:break` and `:continue`
+    * `{:text, string}` and `{:output, expr, line}`
+    * `{:if, [{test, body, line}], else_body}`
+    * `{:for, target, iter, {test, line} | nil, body, else_body, recursive?, line}`
+    * `{:set, target, expr, line, check_line}` and `{:set_block, target, filter_or_nil, body, line}`
+    * `{:macro, name, params, body, special_names, line}` and `{:call_block, call, params, body, special_names, line}`
+    * `{:filter_block, filter, body, line}`, `{:with, [{target, expr}], body, line}` and `{:generation, body}`
+    * `{:break, line}` and `{:continue, line}`
 
   Expressions:
 
     * `{:const, value}`, `{:name, name}`, `{:list, items}`, `{:tuple, items}` and `{:dict, [{key, value}]}`
-    * `{:getattr, expr, name}`, `{:getitem, expr, key}` and `{:slice, start, stop, step}` as a key
-    * `{:call, callee, args, kwargs}`, `{:filter, name, expr, args, kwargs, line}` and `{:test, name, expr, args, kwargs, line}`, where `args` has expressions and `{:unpack, expr}` for `*expr`, and `kwargs` has `{name, expr}` and `{:unpack, expr}` for `**expr`
-    * `{:not, expr}`, `{:neg, expr}`, `{:pos, expr}`, `{:and, left, right}` and `{:or, left, right}`
-    * `{:binop, op, left, right}` with op `:add`, `:sub`, `:mul`, `:div`, `:floordiv`, `:mod` or `:pow`
-    * `{:concat, exprs}`, `{:compare, expr, [{op, expr}]}` and `{:cond, test, then, else}`
+    * `{:getattr, expr, name, line}`, `{:getitem, expr, key, line}` and `{:slice, start, stop, step}` as a key
+    * `{:call, callee, args, kwargs, line}`, `{:filter, name, expr, args, kwargs, line}` and `{:test, name, expr, args, kwargs, line}`, where `args` has expressions and `{:unpack, expr}` for `*expr`, and `kwargs` has `{name, expr}` and `{:unpack, expr}` for `**expr`
+    * `{:not, expr}`, `{:not, test, line}` for `is not`, `{:neg, expr}`, `{:pos, expr}`, `{:and, left, right, line}` and `{:or, left, right, line}`
+    * `{:binop, op, left, right, line}` with op `:add`, `:sub`, `:mul`, `:div`, `:floordiv`, `:mod` or `:pow`
+    * `{:concat, exprs}`, `{:compare, expr, [{op, expr}], line}` and `{:cond, test, then, else, line}`
     * `{:ns_ref, name, attr}` as an assignment target
+
+  The lines are the lines that Jinja2 gives to its nodes. The evaluator gives them to the runtime errors, like the template traceback of Jinja2. The line of a statement is the line of its tag, and the line of an output is the line of the outermost node of its expression. The `check_line` of a set and the `line` of a with block are the line of the code before them, because Jinja2 compiles the namespace check and the assignments without a line of their own.
 
   A filter of a filter block or a set block has `nil` as its innermost expression. An inline `if` without `else` gets an undefined value as its `else`. `params` of a macro is a list of `{name, default_or_nil}`, and `special_names` lists which of `caller`, `varargs` and `kwargs` the body uses.
 
@@ -47,8 +49,74 @@ defmodule Otera.Parser do
     {body, _eof} = subparse(tokens, nil, %{tags: [], ends: [], loop: false})
     known = %{filter: Keyword.get(opts, :filters, []), test: Keyword.get(opts, :tests, [])}
     check_names(body, known, false)
+    {body, _last} = fill_lines(body, 1)
     body
   end
+
+  # Jinja2 maps each line of the compiled Python code to the template line of the last node that
+  # it compiled before that code. Most statements and outputs set the line, but the namespace check
+  # of a set and the assignments of a with block have no line of their own, so their errors give
+  # the line of the code before them. `last` is that line, in the order of the compiled code.
+  defp fill_lines(nodes, last), do: Enum.map_reduce(nodes, last, &fill_line/2)
+
+  defp fill_line({:output, _expr, line} = node, _last), do: {node, line}
+
+  defp fill_line({control, line} = node, _last) when control in [:break, :continue],
+    do: {node, line}
+
+  defp fill_line({:set, target, expr, line, nil}, last),
+    do: {{:set, target, expr, line, last}, line}
+
+  defp fill_line({:if, branches, else_body}, last) do
+    {branches, last} =
+      Enum.map_reduce(branches, last, fn {test, body, line}, _last ->
+        {body, last} = fill_lines(body, line)
+        {{test, body, line}, last}
+      end)
+
+    {else_body, last} = fill_lines(else_body, last)
+    {{:if, branches, else_body}, last}
+  end
+
+  defp fill_line({:for, target, iter, test, body, else_body, recursive?, line}, _last) do
+    {body, last} = fill_lines(body, line)
+    {else_body, last} = fill_lines(else_body, last)
+    # A recursive loop is a function, and the code that calls it comes after it.
+    last = if recursive?, do: line, else: last
+    {{:for, target, iter, test, body, else_body, recursive?, line}, last}
+  end
+
+  defp fill_line({:set_block, target, filter, body, line}, last) do
+    {body, _last} = fill_lines(body, last)
+    {{:set_block, target, filter, body, line}, line}
+  end
+
+  defp fill_line({:macro, name, params, body, special_names, line}, _last) do
+    {body, last} = fill_lines(body, line)
+    {{:macro, name, params, body, special_names, line}, last}
+  end
+
+  defp fill_line({:call_block, call, params, body, special_names, line}, _last) do
+    {body, _last} = fill_lines(body, line)
+    {{:call_block, call, params, body, special_names, line}, line}
+  end
+
+  defp fill_line({:filter_block, filter, body, line}, last) do
+    {body, _last} = fill_lines(body, last)
+    {{:filter_block, filter, body, line}, line}
+  end
+
+  defp fill_line({:with, assignments, body, nil}, last) do
+    {body, body_last} = fill_lines(body, last)
+    {{:with, assignments, body, last}, body_last}
+  end
+
+  defp fill_line({:generation, body}, last) do
+    {body, last} = fill_lines(body, last)
+    {{:generation, body}, last}
+  end
+
+  defp fill_line(node, last), do: {node, last}
 
   # Jinja2 resolves filters and tests at compile time, but not in the soft frames of if blocks and inline ifs.
   defp check_names({:if, branches, else_body}, known, _soft) do
@@ -56,33 +124,33 @@ defmodule Otera.Parser do
     check_names(else_body, known, true)
   end
 
-  defp check_names({:for, _target, iter, test, body, else_body, _recursive}, known, soft) do
+  defp check_names({:for, _target, iter, test, body, else_body, _recursive, _line}, known, soft) do
     check_names(iter, known, soft)
     check_names([test, body, else_body], known, false)
   end
 
-  defp check_names({:macro, _name, params, body, _special}, known, _soft),
+  defp check_names({:macro, _name, params, body, _special, _line}, known, _soft),
     do: check_names([params, body], known, false)
 
-  defp check_names({:call_block, call, params, body, _special}, known, soft) do
+  defp check_names({:call_block, call, params, body, _special, _line}, known, soft) do
     check_names(call, known, soft)
     check_names([params, body], known, false)
   end
 
-  defp check_names({:with, assignments, body}, known, soft) do
+  defp check_names({:with, assignments, body, _line}, known, soft) do
     check_names(assignments, known, soft)
     check_names(body, known, false)
   end
 
-  defp check_names({tag, _target, filter, body}, known, _soft) when tag == :set_block,
+  defp check_names({:set_block, _target, filter, body, _line}, known, _soft),
     do: check_names([filter, body], known, false)
 
-  defp check_names({tag, filter, body}, known, _soft) when tag == :filter_block,
+  defp check_names({:filter_block, filter, body, _line}, known, _soft),
     do: check_names([filter, body], known, false)
 
   defp check_names({:generation, body}, known, _soft), do: check_names(body, known, false)
 
-  defp check_names({:cond, test, then_expr, else_expr}, known, _soft),
+  defp check_names({:cond, test, then_expr, else_expr, _line}, known, _soft),
     do: check_names([test, then_expr, else_expr], known, true)
 
   defp check_names({type, name, expr, args, kwargs, line}, known, soft)
@@ -115,10 +183,10 @@ defmodule Otera.Parser do
   defp subparse([{:data, text, _} | rest], ends, ctx, acc),
     do: subparse(rest, ends, ctx, [{:text, text} | acc])
 
-  defp subparse([{:variable_begin, _, _} | rest], ends, ctx, acc) do
+  defp subparse([{:variable_begin, _, _} | [token | _] = rest], ends, ctx, acc) do
     {expr, rest} = parse_tuple(rest, with_condexpr: true)
     rest = expect(rest, :variable_end)
-    subparse(rest, ends, ctx, [{:output, expr} | acc])
+    subparse(rest, ends, ctx, [{:output, expr, debug_line(expr, token)} | acc])
   end
 
   defp subparse([{:block_begin, _, _} | rest], ends, ctx, acc) do
@@ -145,12 +213,12 @@ defmodule Otera.Parser do
 
   defp parse_statement([token | _], _ctx), do: fail("tag name expected", line(token))
 
-  defp parse_tag("if", rest, ctx, _line), do: parse_if(rest, ctx)
-  defp parse_tag("for", rest, ctx, _line), do: parse_for(rest, ctx)
-  defp parse_tag("set", rest, ctx, _line), do: parse_set(rest, ctx)
-  defp parse_tag("macro", rest, ctx, _line), do: parse_macro(rest, ctx)
-  defp parse_tag("call", rest, ctx, _line), do: parse_call_block(rest, ctx)
-  defp parse_tag("filter", rest, ctx, _line), do: parse_filter_block(rest, ctx)
+  defp parse_tag("if", rest, ctx, line), do: parse_if(rest, ctx, [], line)
+  defp parse_tag("for", rest, ctx, line), do: parse_for(rest, ctx, line)
+  defp parse_tag("set", rest, ctx, line), do: parse_set(rest, ctx, line)
+  defp parse_tag("macro", rest, ctx, line), do: parse_macro(rest, ctx, line)
+  defp parse_tag("call", rest, ctx, line), do: parse_call_block(rest, ctx, line)
+  defp parse_tag("filter", rest, ctx, line), do: parse_filter_block(rest, ctx, line)
   defp parse_tag("with", rest, ctx, _line), do: parse_with(rest, ctx)
   defp parse_tag("print", rest, _ctx, _line), do: parse_print(rest)
   defp parse_tag("generation", rest, ctx, _line), do: parse_generation(rest, ctx)
@@ -164,8 +232,8 @@ defmodule Otera.Parser do
   defp parse_tag(tag, _rest, ctx, line),
     do: fail_unexpected_tag(tag, %{ctx | tags: tl(ctx.tags)}, line)
 
-  defp loop_control(control, rest, %{loop: true}, _line),
-    do: {String.to_existing_atom(control), rest}
+  defp loop_control(control, rest, %{loop: true}, line),
+    do: {{String.to_existing_atom(control), line}, rest}
 
   defp loop_control("break", _rest, _ctx, line), do: fail("'break' outside loop", line)
 
@@ -179,16 +247,15 @@ defmodule Otera.Parser do
     {body, if(drop_needle?, do: tl(rest), else: rest)}
   end
 
-  defp parse_if(tokens, ctx), do: parse_if(tokens, ctx, [])
-
-  defp parse_if(tokens, ctx, branches) do
+  defp parse_if(tokens, ctx, branches, line) do
     {test, rest} = parse_tuple(tokens, with_condexpr: false)
     {body, rest} = parse_statements(rest, ["elif", "else", "endif"], ctx)
-    branches = [{test, body} | branches]
+    branches = [{test, body, line} | branches]
 
     case rest do
-      [{:name, "elif", _} | rest] ->
-        parse_if(rest, ctx, branches)
+      # Jinja2 gives an elif the line of the token after the tag name.
+      [{:name, "elif", _}, next | _] = [_ | rest] ->
+        parse_if(rest, ctx, branches, line(next))
 
       [{:name, "else", _} | rest] ->
         {else_body, rest} = parse_statements(rest, ["endif"], ctx, true)
@@ -199,7 +266,7 @@ defmodule Otera.Parser do
     end
   end
 
-  defp parse_for(tokens, ctx) do
+  defp parse_for(tokens, ctx, line) do
     {target, rest} = parse_assign_target(tokens, extra_end: ["in"])
 
     rest = expect(rest, :name, "in")
@@ -207,8 +274,12 @@ defmodule Otera.Parser do
 
     {test, rest} =
       case rest do
-        [{:name, "if", _} | rest] -> parse_expression(rest)
-        rest -> {nil, rest}
+        [{:name, "if", _} | [token | _] = rest] ->
+          {test, rest} = parse_expression(rest)
+          {{test, debug_line(test, token)}, rest}
+
+        rest ->
+          {nil, rest}
       end
 
     {recursive?, rest} =
@@ -228,32 +299,33 @@ defmodule Otera.Parser do
     if "loop" in store_names([target, body, else_body]),
       do: fail("Can't assign to special loop variable in for-loop target", line(hd(tokens)))
 
-    {{:for, target, iter, test, body, else_body, recursive?}, rest}
+    {{:for, target, iter, test, body, else_body, recursive?, line}, rest}
   end
 
-  defp parse_set(tokens, ctx) do
+  # The line of the namespace check of a set is the line before the set, which parse/2 fills in.
+  defp parse_set(tokens, ctx, line) do
     {target, rest} = parse_assign_target(tokens, with_namespace: true)
 
     case rest do
       [{:operator, "=", _} | rest] ->
         {expr, rest} = parse_tuple(rest)
-        {{:set, target, expr}, rest}
+        {{:set, target, expr, line, nil}, rest}
 
       rest ->
         {filter, rest} = parse_filter(nil, rest)
         {body, rest} = parse_statements(rest, ["endset"], ctx, true)
-        {{:set_block, target, filter, body}, rest}
+        {{:set_block, target, filter, body, line}, rest}
     end
   end
 
-  defp parse_macro(tokens, ctx) do
+  defp parse_macro(tokens, ctx, line) do
     {{:name, name}, rest} = parse_assign_target(tokens, name_only: true)
     {params, rest} = parse_signature(rest)
     {body, rest} = parse_statements(rest, ["endmacro"], %{ctx | loop: false}, true)
-    {{:macro, name, params, body, special_names(body)}, rest}
+    {{:macro, name, params, body, special_names(body), line}, rest}
   end
 
-  defp parse_call_block(tokens, ctx) do
+  defp parse_call_block(tokens, ctx, line) do
     {params, rest} =
       case tokens do
         [{:operator, "(", _} | _] -> parse_signature(tokens)
@@ -261,22 +333,22 @@ defmodule Otera.Parser do
       end
 
     {call, rest} = parse_expression(rest)
-    unless match?({:call, _, _, _}, call), do: fail("expected call", line(hd(tokens)))
+    unless match?({:call, _, _, _, _}, call), do: fail("expected call", line(hd(tokens)))
     {body, rest} = parse_statements(rest, ["endcall"], %{ctx | loop: false}, true)
-    {{:call_block, call, params, body, special_names(body)}, rest}
+    {{:call_block, call, params, body, special_names(body), line}, rest}
   end
 
-  defp parse_filter_block(tokens, ctx) do
+  defp parse_filter_block(tokens, ctx, line) do
     {filter, rest} = parse_filter(nil, tokens, true)
     {body, rest} = parse_statements(rest, ["endfilter"], ctx, true)
-    {{:filter_block, filter, body}, rest}
+    {{:filter_block, filter, body, line}, rest}
   end
 
   defp parse_with(tokens, ctx), do: parse_with(tokens, ctx, [])
 
   defp parse_with([{:block_end, _, _} | _] = tokens, ctx, assignments) do
     {body, rest} = parse_statements(tokens, ["endwith"], ctx, true)
-    {{:with, Enum.reverse(assignments), body}, rest}
+    {{:with, Enum.reverse(assignments), body, nil}, rest}
   end
 
   defp parse_with(tokens, ctx, assignments) do
@@ -294,7 +366,7 @@ defmodule Otera.Parser do
   defp parse_print(tokens, nodes) do
     tokens = if nodes == [], do: tokens, else: expect(tokens, :operator, ",")
     {expr, rest} = parse_expression(tokens)
-    parse_print(rest, [{:output, expr} | nodes])
+    parse_print(rest, [{:output, expr, debug_line(expr, hd(tokens))} | nodes])
   end
 
   defp parse_generation(tokens, ctx) do
@@ -348,12 +420,12 @@ defmodule Otera.Parser do
   defp collect_names(_node, names), do: names
 
   # The names that the targets of set statements and for loops in `node` assign.
-  defp store_names({tag, target, _value}) when tag == :set, do: target_names(target)
+  defp store_names({:set, target, _value, _line, _check_line}), do: target_names(target)
 
-  defp store_names({:set_block, target, _filter, body}),
+  defp store_names({:set_block, target, _filter, body, _line}),
     do: target_names(target) ++ store_names(body)
 
-  defp store_names({:for, target, _iter, _test, body, else_body, _recursive}),
+  defp store_names({:for, target, _iter, _test, body, else_body, _recursive, _line}),
     do: target_names(target) ++ store_names([body, else_body])
 
   defp store_names(node) when is_tuple(node), do: node |> Tuple.to_list() |> store_names()
@@ -420,7 +492,7 @@ defmodule Otera.Parser do
           {{:const, %Otera.Undefined{hint: hint}}, rest}
       end
 
-    parse_condexpr_tail({:cond, test, expr, else_expr}, rest, line(next))
+    parse_condexpr_tail({:cond, test, expr, else_expr, line}, rest, line(next))
   end
 
   defp parse_condexpr_tail(expr, rest, _line), do: {expr, rest}
@@ -428,17 +500,19 @@ defmodule Otera.Parser do
   defp parse_or(tokens), do: parse_logical(tokens, "or", :or, &parse_and/1)
   defp parse_and(tokens), do: parse_logical(tokens, "and", :and, &parse_not/1)
 
-  defp parse_logical(tokens, keyword, node, parse_operand) do
+  # Like Jinja2, the first node of a chain such as `a or b or c` gets the line where the chain starts,
+  # and each other node the line of its operator.
+  defp parse_logical([token | _] = tokens, keyword, node, parse_operand) do
     {left, rest} = parse_operand.(tokens)
-    parse_logical_tail(left, rest, keyword, node, parse_operand)
+    parse_logical_tail(left, rest, keyword, node, parse_operand, line(token))
   end
 
-  defp parse_logical_tail(left, [{:name, keyword, _} | rest], keyword, node, parse_operand) do
-    {right, rest} = parse_operand.(rest)
-    parse_logical_tail({node, left, right}, rest, keyword, node, parse_operand)
+  defp parse_logical_tail(left, [{:name, keyword, _} | rest], keyword, node, parse_operand, line) do
+    {right, [next | _] = rest} = parse_operand.(rest)
+    parse_logical_tail({node, left, right, line}, rest, keyword, node, parse_operand, line(next))
   end
 
-  defp parse_logical_tail(left, rest, _keyword, _node, _parse_operand), do: {left, rest}
+  defp parse_logical_tail(left, rest, _keyword, _node, _parse_operand, _line), do: {left, rest}
 
   defp parse_not([{:name, "not", _} | rest]) do
     {expr, rest} = parse_not(rest)
@@ -447,12 +521,13 @@ defmodule Otera.Parser do
 
   defp parse_not(tokens), do: parse_compare(tokens)
 
+  # Jinja2 gives a comparison the line of the token after its last operand.
   defp parse_compare(tokens) do
     {expr, rest} = parse_math1(tokens)
 
     case parse_compare_ops(rest, []) do
       {[], rest} -> {expr, rest}
-      {ops, rest} -> {{:compare, expr, ops}, rest}
+      {ops, [next | _] = rest} -> {{:compare, expr, ops, line(next)}, rest}
     end
   end
 
@@ -479,23 +554,23 @@ defmodule Otera.Parser do
   defp parse_math2(tokens), do: parse_binary(tokens, @math2_ops, &parse_pow/1)
   defp parse_pow(tokens), do: parse_binary(tokens, %{"**" => :pow}, &parse_unary/1)
 
-  defp parse_binary(tokens, ops, parse_operand) do
+  defp parse_binary([token | _] = tokens, ops, parse_operand) do
     {left, rest} = parse_operand.(tokens)
-    parse_binary_tail(left, rest, ops, parse_operand)
+    parse_binary_tail(left, rest, ops, parse_operand, line(token))
   end
 
-  defp parse_binary_tail(left, [{:operator, op, _} | rest] = tokens, ops, parse_operand) do
+  defp parse_binary_tail(left, [{:operator, op, _} | rest] = tokens, ops, parse_operand, line) do
     case ops do
       %{^op => name} ->
-        {right, rest} = parse_operand.(rest)
-        parse_binary_tail({:binop, name, left, right}, rest, ops, parse_operand)
+        {right, [next | _] = rest} = parse_operand.(rest)
+        parse_binary_tail({:binop, name, left, right, line}, rest, ops, parse_operand, line(next))
 
       _ ->
         {left, tokens}
     end
   end
 
-  defp parse_binary_tail(left, tokens, _ops, _parse_operand), do: {left, tokens}
+  defp parse_binary_tail(left, tokens, _ops, _parse_operand, _line), do: {left, tokens}
 
   defp parse_concat(tokens) do
     {first, rest} = parse_math2(tokens)
@@ -676,20 +751,20 @@ defmodule Otera.Parser do
 
   defp parse_filter_expr(node, tokens), do: {node, tokens}
 
-  defp parse_subscript(node, [{:operator, ".", _line} | rest]) do
+  defp parse_subscript(node, [{:operator, ".", line} | rest]) do
     case rest do
-      [{:name, name, _} | rest] -> {{:getattr, node, name}, rest}
-      [{:integer, index, _} | rest] -> {{:getitem, node, {:const, index}}, rest}
+      [{:name, name, _} | rest] -> {{:getattr, node, name, line}, rest}
+      [{:integer, index, _} | rest] -> {{:getitem, node, {:const, index}, line}, rest}
       [token | _] -> fail("expected name or number", line(token))
     end
   end
 
-  defp parse_subscript(node, [{:operator, "[", _} | rest]) do
+  defp parse_subscript(node, [{:operator, "[", line} | rest]) do
     {args, rest} = parse_subscribed_list(rest, [])
 
     case args do
-      [arg] -> {{:getitem, node, arg}, rest}
-      args -> {{:getitem, node, {:tuple, args}}, rest}
+      [arg] -> {{:getitem, node, arg, line}, rest}
+      args -> {{:getitem, node, {:tuple, args}, line}, rest}
     end
   end
 
@@ -725,9 +800,9 @@ defmodule Otera.Parser do
   defp slice_part([{:operator, op, _} | _] = tokens) when op in [":", "]", ","], do: {nil, tokens}
   defp slice_part(tokens), do: parse_expression(tokens)
 
-  defp parse_call(node, tokens) do
+  defp parse_call(node, [token | _] = tokens) do
     {args, kwargs, rest} = parse_call_args(tokens)
-    {{:call, node, args, kwargs}, rest}
+    {{:call, node, args, kwargs, line(token)}, rest}
   end
 
   defp parse_call_args([{:operator, "(", line} | rest]), do: parse_call_args(rest, line, [], [])
@@ -819,7 +894,7 @@ defmodule Otera.Parser do
 
     {args, kwargs, rest} = parse_test_args(rest)
     test = {:test, name, node, args, kwargs, line}
-    {if(negated?, do: {:not, test}, else: test), rest}
+    {if(negated?, do: {:not, test, line}, else: test), rest}
   end
 
   defp parse_test_args([{:operator, "(", _} | _] = tokens), do: parse_call_args(tokens)
@@ -838,6 +913,21 @@ defmodule Otera.Parser do
   end
 
   defp parse_test_args(tokens), do: {[], [], tokens}
+
+  # The line of the outermost node of an expression, which Jinja2 gives to the errors of an output.
+  defp debug_line({:getattr, _expr, _name, line}, _token), do: line
+  defp debug_line({:getitem, _expr, _key, line}, _token), do: line
+  defp debug_line({:call, _callee, _args, _kwargs, line}, _token), do: line
+  defp debug_line({:filter, _name, _expr, _args, _kwargs, line}, _token), do: line
+  defp debug_line({:test, _name, _expr, _args, _kwargs, line}, _token), do: line
+  defp debug_line({:not, _test, line}, _token), do: line
+
+  defp debug_line({type, _left, _right, line}, _token) when type in [:and, :or, :compare],
+    do: line
+
+  defp debug_line({:binop, _op, _left, _right, line}, _token), do: line
+  defp debug_line({:cond, _test, _then, _else, line}, _token), do: line
+  defp debug_line(_expr, token), do: line(token)
 
   ## Token helpers
 

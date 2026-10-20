@@ -2,97 +2,113 @@
  "user": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "user_without_generation_prompt": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "system_multiturn": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "multiturn_ending_with_assistant": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "tools_defined": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'description'"
+   "message": "'dict object' has no attribute 'description'",
+   "line": 104
   }
  },
  "tool_call_roundtrip": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'description'"
+   "message": "'dict object' has no attribute 'description'",
+   "line": 104
   }
  },
  "tool_call_string_arguments": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'description'"
+   "message": "'dict object' has no attribute 'description'",
+   "line": 104
   }
  },
  "continue_final_message": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "unicode": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "thinking_disabled": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "reasoning_history": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "date_string": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "content_parts": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "roles_not_alternating": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "documents": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  },
  "reasoning_effort": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 142
   }
  }
 }

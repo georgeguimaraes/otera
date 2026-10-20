@@ -17,13 +17,15 @@
  "tool_call_roundtrip": {
   "error": {
    "type": "TemplateError",
-   "message": "Conversation roles must alternate user/assistant/user/assistant/..."
+   "message": "Conversation roles must alternate user/assistant/user/assistant/...",
+   "line": 1
   }
  },
  "tool_call_string_arguments": {
   "error": {
    "type": "UndefinedError",
-   "message": "'None' has no attribute 'strip'"
+   "message": "'None' has no attribute 'strip'",
+   "line": 1
   }
  },
  "continue_final_message": {
@@ -44,13 +46,15 @@
  "content_parts": {
   "error": {
    "type": "UndefinedError",
-   "message": "'list object' has no attribute 'strip'"
+   "message": "'list object' has no attribute 'strip'",
+   "line": 1
   }
  },
  "roles_not_alternating": {
   "error": {
    "type": "TemplateError",
-   "message": "Conversation roles must alternate user/assistant/user/assistant/..."
+   "message": "Conversation roles must alternate user/assistant/user/assistant/...",
+   "line": 1
   }
  },
  "documents": {

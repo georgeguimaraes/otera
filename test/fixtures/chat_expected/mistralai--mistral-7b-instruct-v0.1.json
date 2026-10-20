@@ -17,13 +17,15 @@
  "tool_call_roundtrip": {
   "error": {
    "type": "TemplateError",
-   "message": "After the optional system message, conversation roles must alternate user/assistant/user/assistant/..."
+   "message": "After the optional system message, conversation roles must alternate user/assistant/user/assistant/...",
+   "line": 11
   }
  },
  "tool_call_string_arguments": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"NoneType\") to str"
+   "message": "can only concatenate str (not \"NoneType\") to str",
+   "line": 20
   }
  },
  "continue_final_message": {
@@ -44,13 +46,15 @@
  "content_parts": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"list\") to str"
+   "message": "can only concatenate str (not \"list\") to str",
+   "line": 17
   }
  },
  "roles_not_alternating": {
   "error": {
    "type": "TemplateError",
-   "message": "After the optional system message, conversation roles must alternate user/assistant/user/assistant/..."
+   "message": "After the optional system message, conversation roles must alternate user/assistant/user/assistant/...",
+   "line": 11
   }
  },
  "documents": {

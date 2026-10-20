@@ -2,12 +2,12 @@ defmodule Otera.Macro do
   @moduledoc """
   A macro that a template defines with `{% macro %}`, or the `caller` of a `{% call %}` block, which has no name.
 
-  `params` is a list of `{name, default_expr_or_nil}`, `special_names` lists which of `caller`, `varargs` and `kwargs` the body uses, and `frames` holds the scopes around the definition, which the body can read.
+  `params` is a list of `{name, default_expr_or_nil}`, `special_names` lists which of `caller`, `varargs` and `kwargs` the body uses, `frames` holds the scopes around the definition, which the body can read, and `line` is the line of the definition, where Jinja2 evaluates the default values.
   """
 
   alias Otera.Undefined
 
-  defstruct [:name, :params, :body, :special_names, :frames]
+  defstruct [:name, :params, :body, :special_names, :frames, :line]
 
   @doc """
   Returns the attribute `name` of `macro`, like the Python `Macro` object of Jinja2.

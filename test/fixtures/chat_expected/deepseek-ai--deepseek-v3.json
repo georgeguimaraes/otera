@@ -38,7 +38,8 @@
  "content_parts": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"list\") to str"
+   "message": "can only concatenate str (not \"list\") to str",
+   "line": 3
   }
  },
  "roles_not_alternating": {

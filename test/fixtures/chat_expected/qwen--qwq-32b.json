@@ -20,7 +20,8 @@
  "tool_call_string_arguments": {
   "error": {
    "type": "UndefinedError",
-   "message": "'None' has no attribute 'split'"
+   "message": "'None' has no attribute 'split'",
+   "line": 31
   }
  },
  "continue_final_message": {
@@ -41,7 +42,8 @@
  "content_parts": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"list\") to str"
+   "message": "can only concatenate str (not \"list\") to str",
+   "line": 21
   }
  },
  "roles_not_alternating": {

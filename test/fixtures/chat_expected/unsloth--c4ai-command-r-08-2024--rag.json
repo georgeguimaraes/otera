@@ -2,85 +2,99 @@
  "user": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "user_without_generation_prompt": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "system_multiturn": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "multiturn_ending_with_assistant": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "tools_defined": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "tool_call_roundtrip": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "tool_call_string_arguments": {
   "error": {
    "type": "UndefinedError",
-   "message": "'None' has no attribute 'strip'"
+   "message": "'None' has no attribute 'strip'",
+   "line": 9
   }
  },
  "continue_final_message": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "unicode": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "thinking_disabled": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "reasoning_history": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "date_string": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "content_parts": {
   "error": {
    "type": "UndefinedError",
-   "message": "'list object' has no attribute 'strip'"
+   "message": "'list object' has no attribute 'strip'",
+   "line": 9
   }
  },
  "roles_not_alternating": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  },
  "documents": {
@@ -89,7 +103,8 @@
  "reasoning_effort": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 9
   }
  }
 }

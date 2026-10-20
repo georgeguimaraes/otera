@@ -17,13 +17,15 @@
  "tool_call_roundtrip": {
   "error": {
    "type": "TemplateError",
-   "message": "Conversation roles must alternate user/assistant/user/assistant/..."
+   "message": "Conversation roles must alternate user/assistant/user/assistant/...",
+   "line": 19
   }
  },
  "tool_call_string_arguments": {
   "error": {
    "type": "TemplateError",
-   "message": "Invalid content type"
+   "message": "Invalid content type",
+   "line": 39
   }
  },
  "continue_final_message": {
@@ -47,7 +49,8 @@
  "roles_not_alternating": {
   "error": {
    "type": "TemplateError",
-   "message": "Conversation roles must alternate user/assistant/user/assistant/..."
+   "message": "Conversation roles must alternate user/assistant/user/assistant/...",
+   "line": 19
   }
  },
  "documents": {

@@ -20,7 +20,8 @@
  "tool_call_string_arguments": {
   "error": {
    "type": "TypeError",
-   "message": "argument of type 'NoneType' is not iterable"
+   "message": "argument of type 'NoneType' is not iterable",
+   "line": 34
   }
  },
  "continue_final_message": {
@@ -41,7 +42,8 @@
  "content_parts": {
   "error": {
    "type": "UndefinedError",
-   "message": "'list object' has no attribute 'startswith'"
+   "message": "'list object' has no attribute 'startswith'",
+   "line": 20
   }
  },
  "roles_not_alternating": {

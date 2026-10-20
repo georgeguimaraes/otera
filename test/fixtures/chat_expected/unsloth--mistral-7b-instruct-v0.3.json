@@ -38,13 +38,15 @@
  "content_parts": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"list\") to str"
+   "message": "can only concatenate str (not \"list\") to str",
+   "line": 54
   }
  },
  "roles_not_alternating": {
   "error": {
    "type": "TemplateError",
-   "message": "After the optional system message, conversation roles must alternate user/assistant/user/assistant/..."
+   "message": "After the optional system message, conversation roles must alternate user/assistant/user/assistant/...",
+   "line": 18
   }
  },
  "documents": {

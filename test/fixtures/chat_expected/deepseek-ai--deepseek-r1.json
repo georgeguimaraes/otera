@@ -17,7 +17,8 @@
  "tool_call_roundtrip": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"dict\") to str"
+   "message": "can only concatenate str (not \"dict\") to str",
+   "line": 1
   }
  },
  "tool_call_string_arguments": {
@@ -41,7 +42,8 @@
  "content_parts": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"list\") to str"
+   "message": "can only concatenate str (not \"list\") to str",
+   "line": 1
   }
  },
  "roles_not_alternating": {

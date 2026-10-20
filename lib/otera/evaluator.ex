@@ -21,7 +21,7 @@ defmodule Otera.Evaluator do
     Value
   }
 
-  defstruct frames: [], filters: %{}, tests: %{}, globals: %{}
+  defstruct frames: [], filters: %{}, tests: %{}, globals: %{}, name: nil
 
   @builtins ["range", "dict", "namespace", "cycler", "joiner", "lipsum"]
   @max_range 100_000
@@ -65,61 +65,86 @@ defmodule Otera.Evaluator do
   end
 
   defp exec({:text, text}, ctx), do: {text, ctx, :ok}
-  defp exec({:output, expr}, ctx), do: {Value.to_str(eval(expr, ctx)), ctx, :ok}
-  defp exec(:break, ctx), do: {[], ctx, :break}
-  defp exec(:continue, ctx), do: {[], ctx, :continue}
+
+  defp exec({:output, expr, line}, ctx),
+    do: {at(line, ctx, fn -> Value.to_str(eval(expr, ctx)) end), ctx, :ok}
+
+  defp exec({control, _line}, ctx) when control in [:break, :continue], do: {[], ctx, control}
 
   defp exec({:if, branches, else_body}, ctx) do
-    case Enum.find(branches, fn {test, _body} -> Value.truthy?(eval(test, ctx)) end) do
-      {_test, body} -> exec_body(body, ctx)
+    taken =
+      Enum.find(branches, fn {test, _body, line} ->
+        at(line, ctx, fn -> Value.truthy?(eval(test, ctx)) end)
+      end)
+
+    case taken do
+      {_test, body, _line} -> exec_body(body, ctx)
       nil -> exec_body(else_body, ctx)
     end
   end
 
-  defp exec({:set, target, expr}, ctx), do: {[], assign(target, eval(expr, ctx), ctx), :ok}
-
-  defp exec({:set_block, target, filter, body}, ctx) do
-    value = capture(body, ctx)
-    value = if filter, do: eval(fill_hole(filter, value), ctx), else: value
-    {[], assign(target, value, ctx), :ok}
+  defp exec({:set, target, expr, line, check_line}, ctx) do
+    at(check_line, ctx, fn -> check_namespaces(target, ctx) end)
+    {[], at(line, ctx, fn -> assign(target, eval(expr, ctx), ctx) end), :ok}
   end
 
-  defp exec({:for, _target, iter, _test, _body, _else_body, _recursive?} = node, ctx),
-    do: loop(node, eval(iter, ctx), ctx, 0)
+  defp exec({:set_block, target, filter, body, line}, ctx) do
+    value = capture(body, ctx)
 
-  defp exec({:macro, name, params, body, special_names}, ctx) do
+    at(line, ctx, fn ->
+      value = if filter, do: eval(fill_hole(filter, value), ctx), else: value
+      {[], assign(target, value, ctx), :ok}
+    end)
+  end
+
+  defp exec({:for, _target, iter, _test, _body, _else_body, _recursive?, line} = node, ctx),
+    do: loop(node, at(line, ctx, fn -> eval(iter, ctx) end), ctx, 0)
+
+  defp exec({:macro, name, params, body, special_names, line}, ctx) do
     macro = %Macro{
       name: name,
       params: params,
       body: body,
       special_names: special_names,
-      frames: closure(ctx)
+      frames: closure(ctx),
+      line: line
     }
 
     {[], put_var(ctx, name, macro), :ok}
   end
 
-  defp exec({:call_block, {:call, callee, args, kwargs}, params, body, special_names}, ctx) do
+  defp exec(
+         {:call_block, {:call, callee, args, kwargs, _call_line}, params, body, special_names,
+          line},
+         ctx
+       ) do
     caller = %Macro{
       name: nil,
       params: params,
       body: body,
       special_names: special_names,
-      frames: closure(ctx)
+      frames: closure(ctx),
+      line: line
     }
 
-    {args, %Dict{} = kwargs} = eval_args(args, kwargs, ctx)
-    value = call_value(eval(callee, ctx), args, Dict.put(kwargs, "caller", caller), ctx)
-    {Value.to_str(value), ctx, :ok}
+    at(line, ctx, fn ->
+      {args, %Dict{} = kwargs} = eval_args(args, kwargs, ctx)
+      value = call_value(eval(callee, ctx), args, Dict.put(kwargs, "caller", caller), ctx)
+      {Value.to_str(value), ctx, :ok}
+    end)
   end
 
-  defp exec({:filter_block, filter, body}, ctx),
-    do: {Value.to_str(eval(fill_hole(filter, capture(body, ctx)), ctx)), ctx, :ok}
+  defp exec({:filter_block, filter, body, line}, ctx) do
+    value = capture(body, ctx)
+    {at(line, ctx, fn -> Value.to_str(eval(fill_hole(filter, value), ctx)) end), ctx, :ok}
+  end
 
-  defp exec({:with, assignments, body}, ctx) do
+  defp exec({:with, assignments, body, line}, ctx) do
     frame =
-      Enum.reduce(assignments, %{}, fn {target, expr}, frame ->
-        Map.merge(frame, bind(target, eval(expr, ctx)))
+      at(line, ctx, fn ->
+        Enum.reduce(assignments, %{}, fn {target, expr}, frame ->
+          Map.merge(frame, bind(target, eval(expr, ctx)))
+        end)
       end)
 
     {output, _inner, signal} = exec_body(body, push(ctx, frame))
@@ -127,6 +152,16 @@ defmodule Otera.Evaluator do
   end
 
   defp exec({:generation, body}, ctx), do: {capture(body, ctx), ctx, :ok}
+
+  # Gives a runtime error the line and template of the code that raised it, like the traceback of
+  # Jinja2. The innermost code sets the position first, so a macro call keeps the line in the macro.
+  defp at(line, ctx, fun) do
+    fun.()
+  rescue
+    error in Otera.Error ->
+      error = if error.line, do: error, else: %{error | line: line, name: ctx.name}
+      reraise error, __STACKTRACE__
+  end
 
   defp capture(body, ctx) do
     {output, _inner, _signal} = exec_body(body, push(ctx, %{}))
@@ -140,17 +175,23 @@ defmodule Otera.Evaluator do
     do: {:filter, name, fill_hole(inner, value), args, kwargs, line}
 
   defp loop(
-         {:for, target, _iter, test, body, else_body, recursive?} = node,
+         {:for, target, _iter, test, body, else_body, recursive?, line} = node,
          iterable,
          ctx,
          depth0
        ) do
-    items = Value.to_list(iterable)
+    items = at(line, ctx, fn -> Value.to_list(iterable) end)
 
     items =
-      if test,
-        do: Enum.filter(items, &Value.truthy?(eval(test, push(ctx, bind(target, &1))))),
-        else: items
+      case test do
+        {test, test_line} ->
+          at(test_line, ctx, fn ->
+            Enum.filter(items, &Value.truthy?(eval(test, push(ctx, bind(target, &1)))))
+          end)
+
+        nil ->
+          items
+      end
 
     items = List.to_tuple(items)
     recurse = if recursive?, do: {node, ctx}
@@ -159,7 +200,10 @@ defmodule Otera.Evaluator do
     {output, completed?} =
       Enum.reduce_while(0..(tuple_size(items) - 1)//1, {[], false}, fn index, {acc, completed?} ->
         loop = %Loop{ref: ref, items: items, index0: index, depth0: depth0, recurse: recurse}
-        frame = target |> bind(elem(items, index)) |> Map.put("loop", loop)
+
+        frame =
+          at(line, ctx, fn -> target |> bind(elem(items, index)) |> Map.put("loop", loop) end)
+
         {output, _inner, signal} = exec_body(body, push(ctx, frame))
 
         case signal do
@@ -178,16 +222,8 @@ defmodule Otera.Evaluator do
   end
 
   defp assign({:ns_ref, name, attr}, value, ctx) do
-    case lookup(ctx, name) do
-      %Namespace{} = namespace ->
-        Namespace.put(namespace, attr, value)
-        ctx
-
-      _other ->
-        raise Otera.Error,
-          kind: :template_runtime_error,
-          message: "cannot assign attribute on non-namespace object"
-    end
+    Namespace.put(lookup(ctx, name), attr, value)
+    ctx
   end
 
   defp assign({:tuple, targets}, value, ctx) do
@@ -197,6 +233,21 @@ defmodule Otera.Evaluator do
   end
 
   defp assign({:name, name}, value, ctx), do: put_var(ctx, name, value)
+
+  # Like Jinja2, a set checks that the targets of its namespace assignments are namespaces before it
+  # evaluates the value.
+  defp check_namespaces({:ns_ref, name, _attr}, ctx) do
+    unless is_struct(lookup(ctx, name), Namespace) do
+      raise Otera.Error,
+        kind: :template_runtime_error,
+        message: "cannot assign attribute on non-namespace object"
+    end
+  end
+
+  defp check_namespaces({:tuple, targets}, ctx),
+    do: Enum.each(targets, &check_namespaces(&1, ctx))
+
+  defp check_namespaces(_target, _ctx), do: :ok
 
   defp bind({:name, name}, value), do: %{name => value}
 
@@ -270,9 +321,9 @@ defmodule Otera.Evaluator do
     |> Dict.new()
   end
 
-  defp eval({:getattr, expr, name}, ctx), do: Value.getattr(eval(expr, ctx), name)
+  defp eval({:getattr, expr, name, _line}, ctx), do: Value.getattr(eval(expr, ctx), name)
 
-  defp eval({:getitem, expr, {:slice, start, stop, step}}, ctx),
+  defp eval({:getitem, expr, {:slice, start, stop, step}, _line}, ctx),
     do:
       Value.slice(
         eval(expr, ctx),
@@ -281,32 +332,33 @@ defmodule Otera.Evaluator do
         eval_optional(step, ctx)
       )
 
-  defp eval({:getitem, expr, key}, ctx), do: Value.getitem(eval(expr, ctx), eval(key, ctx))
+  defp eval({:getitem, expr, key, _line}, ctx), do: Value.getitem(eval(expr, ctx), eval(key, ctx))
   defp eval({:not, expr}, ctx), do: not Value.truthy?(eval(expr, ctx))
+  defp eval({:not, test, _line}, ctx), do: not Value.truthy?(eval(test, ctx))
   defp eval({:neg, expr}, ctx), do: Value.unary_op(:neg, eval(expr, ctx))
   defp eval({:pos, expr}, ctx), do: Value.unary_op(:pos, eval(expr, ctx))
 
-  defp eval({:and, left, right}, ctx) do
+  defp eval({:and, left, right, _line}, ctx) do
     left = eval(left, ctx)
     if Value.truthy?(left), do: eval(right, ctx), else: left
   end
 
-  defp eval({:or, left, right}, ctx) do
+  defp eval({:or, left, right, _line}, ctx) do
     left = eval(left, ctx)
     if Value.truthy?(left), do: left, else: eval(right, ctx)
   end
 
-  defp eval({:binop, op, left, right}, ctx),
+  defp eval({:binop, op, left, right, _line}, ctx),
     do: Value.binary_op(op, eval(left, ctx), eval(right, ctx))
 
   defp eval({:concat, exprs}, ctx), do: Enum.map_join(exprs, &Value.to_str(eval(&1, ctx)))
-  defp eval({:compare, expr, ops}, ctx), do: compare(eval(expr, ctx), ops, ctx)
+  defp eval({:compare, expr, ops, _line}, ctx), do: compare(eval(expr, ctx), ops, ctx)
 
-  defp eval({:cond, test, then_expr, else_expr}, ctx) do
+  defp eval({:cond, test, then_expr, else_expr, _line}, ctx) do
     if Value.truthy?(eval(test, ctx)), do: eval(then_expr, ctx), else: eval(else_expr, ctx)
   end
 
-  defp eval({:call, callee, args, kwargs}, ctx) do
+  defp eval({:call, callee, args, kwargs, _line}, ctx) do
     callee = eval(callee, ctx)
     {args, kwargs} = eval_args(args, kwargs, ctx)
     call_value(callee, args, kwargs, ctx)
@@ -471,7 +523,10 @@ defmodule Otera.Evaluator do
   defp call_macro(macro, args, kwargs, ctx) do
     {positional, extra} = Enum.split(args, length(macro.params))
     macro_ctx = %{ctx | frames: [%{}] ++ macro.frames ++ [List.last(ctx.frames)]}
-    {macro_ctx, kwargs} = bind_params(macro_ctx, macro.params, positional, kwargs)
+
+    {macro_ctx, kwargs} =
+      at(macro.line, macro_ctx, fn -> bind_params(macro_ctx, macro.params, positional, kwargs) end)
+
     {macro_ctx, kwargs} = bind_caller(macro_ctx, macro, kwargs)
     macro_ctx = macro_ctx |> bind_kwargs(macro, kwargs) |> bind_varargs(macro, extra)
     {output, _ctx, _signal} = exec_body(macro.body, macro_ctx)

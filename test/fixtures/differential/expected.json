@@ -1148,7 +1148,8 @@
  "b1_0382": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0383": {
@@ -1157,19 +1158,22 @@
  "b1_0384": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0385": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0386": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0387": {
@@ -1178,73 +1182,85 @@
  "b1_0388": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0389": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0390": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0391": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0392": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0393": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0394": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0395": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0396": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0397": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0398": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0399": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b1_0400": {
@@ -3894,49 +3910,57 @@
  "b2_0422": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "division by zero"
+   "message": "division by zero",
+   "line": 1
   }
  },
  "b2_0423": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "division by zero"
+   "message": "division by zero",
+   "line": 1
   }
  },
  "b2_0424": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "integer division or modulo by zero"
+   "message": "integer division or modulo by zero",
+   "line": 1
   }
  },
  "b2_0425": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "integer division or modulo by zero"
+   "message": "integer division or modulo by zero",
+   "line": 1
   }
  },
  "b2_0426": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "integer modulo by zero"
+   "message": "integer modulo by zero",
+   "line": 1
   }
  },
  "b2_0427": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "integer modulo by zero"
+   "message": "integer modulo by zero",
+   "line": 1
   }
  },
  "b2_0428": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "float division by zero"
+   "message": "float division by zero",
+   "line": 1
   }
  },
  "b2_0429": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "float division by zero"
+   "message": "float division by zero",
+   "line": 1
   }
  },
  "b2_0430": {
@@ -4254,37 +4278,43 @@
  "b2_0538": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'int' and 'str'"
+   "message": "'<' not supported between instances of 'int' and 'str'",
+   "line": 1
   }
  },
  "b2_0539": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'int' and 'str'"
+   "message": "'<' not supported between instances of 'int' and 'str'",
+   "line": 1
   }
  },
  "b2_0540": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'list' and 'str'"
+   "message": "'<' not supported between instances of 'list' and 'str'",
+   "line": 1
   }
  },
  "b2_0541": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'list' and 'str'"
+   "message": "'<' not supported between instances of 'list' and 'str'",
+   "line": 1
   }
  },
  "b2_0542": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'dict' and 'dict'"
+   "message": "'<' not supported between instances of 'dict' and 'dict'",
+   "line": 1
   }
  },
  "b2_0543": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'dict' and 'dict'"
+   "message": "'<' not supported between instances of 'dict' and 'dict'",
+   "line": 1
   }
  },
  "b2_0544": {
@@ -4320,13 +4350,15 @@
  "b2_0554": {
   "error": {
    "type": "UndefinedError",
-   "message": "'float' is undefined"
+   "message": "'float' is undefined",
+   "line": 1
   }
  },
  "b2_0555": {
   "error": {
    "type": "UndefinedError",
-   "message": "'float' is undefined"
+   "message": "'float' is undefined",
+   "line": 1
   }
  },
  "b2_0556": {
@@ -4524,19 +4556,22 @@
  "b3_0000": {
   "error": {
    "type": "OverflowError",
-   "message": "(34, 'Result too large')"
+   "message": "(34, 'Result too large')",
+   "line": 1
   }
  },
  "b3_0001": {
   "error": {
    "type": "OverflowError",
-   "message": "int too large to convert to float"
+   "message": "int too large to convert to float",
+   "line": 1
   }
  },
  "b3_0003": {
   "error": {
    "type": "OverflowError",
-   "message": "integer division result too large for a float"
+   "message": "integer division result too large for a float",
+   "line": 1
   }
  },
  "b3_0004": {
@@ -4548,13 +4583,15 @@
  "b3_0007": {
   "error": {
    "type": "UndefinedError",
-   "message": "'float' is undefined"
+   "message": "'float' is undefined",
+   "line": 1
   }
  },
  "b3_0008": {
   "error": {
    "type": "OverflowError",
-   "message": "int too large to convert to float"
+   "message": "int too large to convert to float",
+   "line": 1
   }
  },
  "b3_0010": {
@@ -4605,7 +4642,8 @@
  "b3_0025": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for ** or pow(): 'int' and 'str'"
+   "message": "unsupported operand type(s) for ** or pow(): 'int' and 'str'",
+   "line": 1
   }
  },
  "b3_0026": {
@@ -4632,7 +4670,8 @@
  "b3_0033": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for ** or pow(): 'int' and 'str'"
+   "message": "unsupported operand type(s) for ** or pow(): 'int' and 'str'",
+   "line": 1
   }
  },
  "b3_0034": {
@@ -4722,13 +4761,15 @@
  "b3_0062": {
   "error": {
    "type": "TypeError",
-   "message": "%d format: a real number is required, not str"
+   "message": "%d format: a real number is required, not str",
+   "line": 1
   }
  },
  "b3_0063": {
   "error": {
    "type": "TypeError",
-   "message": "not enough arguments for format string"
+   "message": "not enough arguments for format string",
+   "line": 1
   }
  },
  "b3_0064": {
@@ -4779,25 +4820,29 @@
  "b3_0079": {
   "error": {
    "type": "ValueError",
-   "message": "Unknown format code 'd' for object of type 'float'"
+   "message": "Unknown format code 'd' for object of type 'float'",
+   "line": 1
   }
  },
  "b3_0080": {
   "error": {
    "type": "IndexError",
-   "message": "tuple index out of range"
+   "message": "tuple index out of range",
+   "line": 1
   }
  },
  "b3_0081": {
   "error": {
    "type": "ValueError",
-   "message": "Single '{' encountered in format string"
+   "message": "Single '{' encountered in format string",
+   "line": 1
   }
  },
  "b3_0082": {
   "error": {
    "type": "ValueError",
-   "message": "Unknown format code 's' for object of type 'int'"
+   "message": "Unknown format code 's' for object of type 'int'",
+   "line": 1
   }
  },
  "b3_0083": {
@@ -4857,7 +4902,8 @@
  "b3_0101": {
   "error": {
    "type": "TypeError",
-   "message": "can't multiply sequence by non-int of type 'float'"
+   "message": "can't multiply sequence by non-int of type 'float'",
+   "line": 1
   }
  },
  "b3_0102": {
@@ -4866,7 +4912,8 @@
  "b3_0103": {
   "error": {
    "type": "TypeError",
-   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'"
+   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'",
+   "line": 1
   }
  },
  "b3_0104": {
@@ -4884,7 +4931,8 @@
  "b3_0108": {
   "error": {
    "type": "ValueError",
-   "message": "not enough values to unpack (expected 2, got 1)"
+   "message": "not enough values to unpack (expected 2, got 1)",
+   "line": 1
   }
  },
  "b3_0109": {
@@ -4926,7 +4974,8 @@
  "b3_0121": {
   "error": {
    "type": "TypeError",
-   "message": "can't multiply sequence by non-int of type 'float'"
+   "message": "can't multiply sequence by non-int of type 'float'",
+   "line": 1
   }
  },
  "b3_0122": {
@@ -4935,7 +4984,8 @@
  "b3_0123": {
   "error": {
    "type": "TypeError",
-   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'"
+   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'",
+   "line": 1
   }
  },
  "b3_0124": {
@@ -4953,7 +5003,8 @@
  "b3_0128": {
   "error": {
    "type": "ValueError",
-   "message": "not enough values to unpack (expected 2, got 1)"
+   "message": "not enough values to unpack (expected 2, got 1)",
+   "line": 1
   }
  },
  "b3_0129": {
@@ -4995,7 +5046,8 @@
  "b3_0141": {
   "error": {
    "type": "TypeError",
-   "message": "can't multiply sequence by non-int of type 'float'"
+   "message": "can't multiply sequence by non-int of type 'float'",
+   "line": 1
   }
  },
  "b3_0142": {
@@ -5004,7 +5056,8 @@
  "b3_0143": {
   "error": {
    "type": "TypeError",
-   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'"
+   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'",
+   "line": 1
   }
  },
  "b3_0144": {
@@ -5022,7 +5075,8 @@
  "b3_0148": {
   "error": {
    "type": "ValueError",
-   "message": "not enough values to unpack (expected 2, got 1)"
+   "message": "not enough values to unpack (expected 2, got 1)",
+   "line": 1
   }
  },
  "b3_0149": {
@@ -5064,7 +5118,8 @@
  "b3_0161": {
   "error": {
    "type": "TypeError",
-   "message": "can't multiply sequence by non-int of type 'float'"
+   "message": "can't multiply sequence by non-int of type 'float'",
+   "line": 1
   }
  },
  "b3_0162": {
@@ -5073,7 +5128,8 @@
  "b3_0163": {
   "error": {
    "type": "TypeError",
-   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'"
+   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'",
+   "line": 1
   }
  },
  "b3_0164": {
@@ -5091,7 +5147,8 @@
  "b3_0168": {
   "error": {
    "type": "ValueError",
-   "message": "not enough values to unpack (expected 2, got 1)"
+   "message": "not enough values to unpack (expected 2, got 1)",
+   "line": 1
   }
  },
  "b3_0169": {
@@ -5133,7 +5190,8 @@
  "b3_0181": {
   "error": {
    "type": "TypeError",
-   "message": "can't multiply sequence by non-int of type 'float'"
+   "message": "can't multiply sequence by non-int of type 'float'",
+   "line": 1
   }
  },
  "b3_0182": {
@@ -5142,7 +5200,8 @@
  "b3_0183": {
   "error": {
    "type": "TypeError",
-   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'"
+   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'",
+   "line": 1
   }
  },
  "b3_0184": {
@@ -5160,7 +5219,8 @@
  "b3_0188": {
   "error": {
    "type": "ValueError",
-   "message": "not enough values to unpack (expected 2, got 1)"
+   "message": "not enough values to unpack (expected 2, got 1)",
+   "line": 1
   }
  },
  "b3_0189": {
@@ -5208,7 +5268,8 @@
  "b3_0203": {
   "error": {
    "type": "TypeError",
-   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'"
+   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'",
+   "line": 1
   }
  },
  "b3_0204": {
@@ -5226,7 +5287,8 @@
  "b3_0208": {
   "error": {
    "type": "ValueError",
-   "message": "not enough values to unpack (expected 2, got 1)"
+   "message": "not enough values to unpack (expected 2, got 1)",
+   "line": 1
   }
  },
  "b3_0209": {
@@ -5268,7 +5330,8 @@
  "b3_0221": {
   "error": {
    "type": "TypeError",
-   "message": "can't multiply sequence by non-int of type 'float'"
+   "message": "can't multiply sequence by non-int of type 'float'",
+   "line": 1
   }
  },
  "b3_0222": {
@@ -5277,7 +5340,8 @@
  "b3_0223": {
   "error": {
    "type": "TypeError",
-   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'"
+   "message": "_cached_compile_jinja_template.<locals>.tojson() got an unexpected keyword argument 'bogus'",
+   "line": 1
   }
  },
  "b3_0224": {
@@ -5295,7 +5359,8 @@
  "b3_0228": {
   "error": {
    "type": "ValueError",
-   "message": "not enough values to unpack (expected 2, got 1)"
+   "message": "not enough values to unpack (expected 2, got 1)",
+   "line": 1
   }
  },
  "b3_0229": {
@@ -5322,31 +5387,36 @@
  "b3_0236": {
   "error": {
    "type": "TypeError",
-   "message": "Object of type dict_items is not JSON serializable"
+   "message": "Object of type dict_items is not JSON serializable",
+   "line": 1
   }
  },
  "b3_0237": {
   "error": {
    "type": "TypeError",
-   "message": "Object of type dict_keys is not JSON serializable"
+   "message": "Object of type dict_keys is not JSON serializable",
+   "line": 1
   }
  },
  "b3_0238": {
   "error": {
    "type": "TypeError",
-   "message": "Object of type generator is not JSON serializable"
+   "message": "Object of type generator is not JSON serializable",
+   "line": 1
   }
  },
  "b3_0240": {
   "error": {
    "type": "TypeError",
-   "message": "Object of type Undefined is not JSON serializable"
+   "message": "Object of type Undefined is not JSON serializable",
+   "line": 1
   }
  },
  "b3_0241": {
   "error": {
    "type": "TypeError",
-   "message": "Object of type Namespace is not JSON serializable"
+   "message": "Object of type Namespace is not JSON serializable",
+   "line": 1
   }
  },
  "b3_0242": {
@@ -5364,43 +5434,50 @@
  "b3_0246": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'str' and 'int'"
+   "message": "'<' not supported between instances of 'str' and 'int'",
+   "line": 1
   }
  },
  "b3_0247": {
   "error": {
    "type": "TypeError",
-   "message": "keys must be str, int, float, bool or None, not tuple"
+   "message": "keys must be str, int, float, bool or None, not tuple",
+   "line": 1
   }
  },
  "b4_0000": {
   "error": {
    "type": "TemplateError",
-   "message": "boom"
+   "message": "boom",
+   "line": 1
   }
  },
  "b4_0001": {
   "error": {
    "type": "TypeError",
-   "message": "_cached_compile_jinja_template.<locals>.raise_exception() missing 1 required positional argument: 'message'"
+   "message": "_cached_compile_jinja_template.<locals>.raise_exception() missing 1 required positional argument: 'message'",
+   "line": 1
   }
  },
  "b4_0002": {
   "error": {
    "type": "TypeError",
-   "message": "_cached_compile_jinja_template.<locals>.raise_exception() takes 1 positional argument but 2 were given"
+   "message": "_cached_compile_jinja_template.<locals>.raise_exception() takes 1 positional argument but 2 were given",
+   "line": 1
   }
  },
  "b4_0003": {
   "error": {
    "type": "TemplateError",
-   "message": "5"
+   "message": "5",
+   "line": 1
   }
  },
  "b4_0004": {
   "error": {
    "type": "TemplateError",
-   "message": "None"
+   "message": "None",
+   "line": 1
   }
  },
  "b4_0005": {
@@ -5412,7 +5489,8 @@
  "b4_0007": {
   "error": {
    "type": "TypeError",
-   "message": "_cached_compile_jinja_template.<locals>.strftime_now() missing 1 required positional argument: 'format'"
+   "message": "_cached_compile_jinja_template.<locals>.strftime_now() missing 1 required positional argument: 'format'",
+   "line": 1
   }
  },
  "b4_0008": {
@@ -5439,13 +5517,15 @@
  "b4_0015": {
   "error": {
    "type": "UndefinedError",
-   "message": "None has no element 0"
+   "message": "None has no element 0",
+   "line": 1
   }
  },
  "b4_0016": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'NoneType' has no len()"
+   "message": "object of type 'NoneType' has no len()",
+   "line": 1
   }
  },
  "b4_0017": {
@@ -5457,19 +5537,22 @@
  "b4_0019": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for %: 'NoneType' and 'int'"
+   "message": "unsupported operand type(s) for %: 'NoneType' and 'int'",
+   "line": 1
   }
  },
  "b4_0020": {
   "error": {
    "type": "TypeError",
-   "message": "'>' not supported between instances of 'NoneType' and 'int'"
+   "message": "'>' not supported between instances of 'NoneType' and 'int'",
+   "line": 1
   }
  },
  "b4_0021": {
   "error": {
    "type": "TypeError",
-   "message": "'>' not supported between instances of 'NoneType' and 'int'"
+   "message": "'>' not supported between instances of 'NoneType' and 'int'",
+   "line": 1
   }
  },
  "b4_0022": {
@@ -5493,7 +5576,8 @@
  "b4_0028": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'NoneType' and 'int'"
+   "message": "'<' not supported between instances of 'NoneType' and 'int'",
+   "line": 1
   }
  },
  "b4_0029": {
@@ -5502,7 +5586,8 @@
  "b4_0030": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'list' and 'str'"
+   "message": "'<' not supported between instances of 'list' and 'str'",
+   "line": 1
   }
  },
  "b4_0031": {
@@ -5538,19 +5623,22 @@
  "b4_0042": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'NoneType' has no len()"
+   "message": "object of type 'NoneType' has no len()",
+   "line": 1
   }
  },
  "b4_0043": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'int' has no len()"
+   "message": "object of type 'int' has no len()",
+   "line": 1
   }
  },
  "b4_0044": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'NoneType' and 'int'"
+   "message": "'<' not supported between instances of 'NoneType' and 'int'",
+   "line": 1
   }
  },
  "b4_0045": {
@@ -5559,7 +5647,8 @@
  "b4_0046": {
   "error": {
    "type": "UndefinedError",
-   "message": "'str object' has no attribute 'x'"
+   "message": "'str object' has no attribute 'x'",
+   "line": 1
   }
  },
  "b4_0047": {
@@ -5568,13 +5657,15 @@
  "b4_0048": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for +: 'int' and 'NoneType'"
+   "message": "unsupported operand type(s) for +: 'int' and 'NoneType'",
+   "line": 1
   }
  },
  "b4_0049": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'x'"
+   "message": "'dict object' has no attribute 'x'",
+   "line": 1
   }
  },
  "b4_0050": {
@@ -5601,7 +5692,8 @@
  "b4_0057": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undef' is undefined"
+   "message": "'undef' is undefined",
+   "line": 1
   }
  },
  "b4_0058": {
@@ -5721,7 +5813,8 @@
  "b4_0096": {
   "error": {
    "type": "TypeError",
-   "message": "Can only get item pairs from a mapping."
+   "message": "Can only get item pairs from a mapping.",
+   "line": 1
   }
  },
  "b4_0097": {
@@ -5748,7 +5841,8 @@
  "b4_0105": {
   "error": {
    "type": "TypeError",
-   "message": "bad operand type for abs(): 'str'"
+   "message": "bad operand type for abs(): 'str'",
+   "line": 1
   }
  },
  "b4_0106": {
@@ -5769,7 +5863,8 @@
  "b4_0111": {
   "error": {
    "type": "FilterArgumentError",
-   "message": "argument must be iterable"
+   "message": "argument must be iterable",
+   "line": 1
   }
  },
  "b4_0112": {
@@ -5835,7 +5930,8 @@
  "b4_0132": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for %: 'NoneType' and 'int'"
+   "message": "unsupported operand type(s) for %: 'NoneType' and 'int'",
+   "line": 1
   }
  },
  "b4_0133": {
@@ -5865,43 +5961,50 @@
  "b4_0141": {
   "error": {
    "type": "TypeError",
-   "message": "not all arguments converted during string formatting"
+   "message": "not all arguments converted during string formatting",
+   "line": 1
   }
  },
  "b4_0142": {
   "error": {
    "type": "TypeError",
-   "message": "not all arguments converted during string formatting"
+   "message": "not all arguments converted during string formatting",
+   "line": 1
   }
  },
  "b4_0143": {
   "error": {
    "type": "TypeError",
-   "message": "not all arguments converted during string formatting"
+   "message": "not all arguments converted during string formatting",
+   "line": 1
   }
  },
  "b4_0144": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for %: 'list' and 'int'"
+   "message": "unsupported operand type(s) for %: 'list' and 'int'",
+   "line": 1
   }
  },
  "b4_0145": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for %: 'list' and 'int'"
+   "message": "unsupported operand type(s) for %: 'list' and 'int'",
+   "line": 1
   }
  },
  "b4_0146": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for %: 'dict' and 'int'"
+   "message": "unsupported operand type(s) for %: 'dict' and 'int'",
+   "line": 1
   }
  },
  "b4_0147": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for %: 'dict' and 'int'"
+   "message": "unsupported operand type(s) for %: 'dict' and 'int'",
+   "line": 1
   }
  },
  "b4_0148": {
@@ -5946,19 +6049,22 @@
  "b4_0161": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undefined_x' is undefined"
+   "message": "'undefined_x' is undefined",
+   "line": 1
   }
  },
  "b4_0162": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undefined_x' is undefined"
+   "message": "'undefined_x' is undefined",
+   "line": 1
   }
  },
  "b4_0163": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undefined_x' is undefined"
+   "message": "'undefined_x' is undefined",
+   "line": 1
   }
  },
  "b4_0164": {
@@ -5970,7 +6076,8 @@
  "b4_0166": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undefined_x' is undefined"
+   "message": "'undefined_x' is undefined",
+   "line": 1
   }
  },
  "b4_0167": {
@@ -6012,7 +6119,8 @@
  "b4_0179": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "integer modulo by zero"
+   "message": "integer modulo by zero",
+   "line": 1
   }
  },
  "b4_0180": {
@@ -6021,7 +6129,8 @@
  "b4_0181": {
   "error": {
    "type": "TypeError",
-   "message": "not all arguments converted during string formatting"
+   "message": "not all arguments converted during string formatting",
+   "line": 1
   }
  },
  "b4_0182": {
@@ -6033,13 +6142,15 @@
  "b4_0184": {
   "error": {
    "type": "TypeError",
-   "message": "'in <string>' requires string as left operand, not int"
+   "message": "'in <string>' requires string as left operand, not int",
+   "line": 1
   }
  },
  "b4_0185": {
   "error": {
    "type": "TypeError",
-   "message": "argument of type 'NoneType' is not iterable"
+   "message": "argument of type 'NoneType' is not iterable",
+   "line": 1
   }
  },
  "b4_0186": {
@@ -6052,7 +6163,8 @@
  "b4_0187": {
   "error": {
    "type": "TypeError",
-   "message": "test_in() missing 1 required positional argument: 'seq'"
+   "message": "test_in() missing 1 required positional argument: 'seq'",
+   "line": 1
   }
  },
  "b5_0000": {
@@ -6070,7 +6182,8 @@
  "b5_0004": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 1
   }
  },
  "b5_0005": {
@@ -6091,7 +6204,8 @@
  "b5_0010": {
   "error": {
    "type": "ValueError",
-   "message": "not enough values to unpack (expected 2, got 1)"
+   "message": "not enough values to unpack (expected 2, got 1)",
+   "line": 1
   }
  },
  "b5_0011": {
@@ -6100,7 +6214,8 @@
  "b5_0012": {
   "error": {
    "type": "ValueError",
-   "message": "too many values to unpack (expected 2)"
+   "message": "too many values to unpack (expected 2)",
+   "line": 1
   }
  },
  "b5_0013": {
@@ -6112,7 +6227,8 @@
  "b5_0015": {
   "error": {
    "type": "TypeError",
-   "message": "'int' object is not iterable"
+   "message": "'int' object is not iterable",
+   "line": 1
   }
  },
  "b5_0016": {
@@ -6139,7 +6255,8 @@
  "b5_0023": {
   "error": {
    "type": "TemplateRuntimeError",
-   "message": "cannot assign attribute on non-namespace object"
+   "message": "cannot assign attribute on non-namespace object",
+   "line": 1
   }
  },
  "b5_0024": {
@@ -6148,7 +6265,8 @@
  "b5_0025": {
   "error": {
    "type": "ValueError",
-   "message": "not enough values to unpack (expected 2, got 1)"
+   "message": "not enough values to unpack (expected 2, got 1)",
+   "line": 1
   }
  },
  "b5_0026": {
@@ -6181,19 +6299,22 @@
  "b5_0035": {
   "error": {
    "type": "TypeError",
-   "message": "macro 'm' takes no keyword argument 'a'"
+   "message": "macro 'm' takes no keyword argument 'a'",
+   "line": 1
   }
  },
  "b5_0036": {
   "error": {
    "type": "TypeError",
-   "message": "macro 'm' takes not more than 0 argument(s)"
+   "message": "macro 'm' takes not more than 0 argument(s)",
+   "line": 1
   }
  },
  "b5_0037": {
   "error": {
    "type": "TypeError",
-   "message": "macro 'm' takes no keyword argument 'k'"
+   "message": "macro 'm' takes no keyword argument 'k'",
+   "line": 1
   }
  },
  "b5_0038": {
@@ -6276,7 +6397,8 @@
  "b5_0061": {
   "error": {
    "type": "ValueError",
-   "message": "slice step cannot be zero"
+   "message": "slice step cannot be zero",
+   "line": 1
   }
  },
  "b5_0062": {
@@ -6312,7 +6434,8 @@
  "b5_0072": {
   "error": {
    "type": "TypeError",
-   "message": "slice indices must be integers or None or have an __index__ method"
+   "message": "slice indices must be integers or None or have an __index__ method",
+   "line": 1
   }
  },
  "b5_0073": {
@@ -6321,19 +6444,22 @@
  "b5_0074": {
   "error": {
    "type": "TypeError",
-   "message": "'in <string>' requires string as left operand, not int"
+   "message": "'in <string>' requires string as left operand, not int",
+   "line": 1
   }
  },
  "b5_0075": {
   "error": {
    "type": "TypeError",
-   "message": "argument of type 'NoneType' is not iterable"
+   "message": "argument of type 'NoneType' is not iterable",
+   "line": 1
   }
  },
  "b5_0076": {
   "error": {
    "type": "TypeError",
-   "message": "argument of type 'int' is not iterable"
+   "message": "argument of type 'int' is not iterable",
+   "line": 1
   }
  },
  "b5_0077": {
@@ -6348,13 +6474,15 @@
  "b5_0080": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'str' and 'int'"
+   "message": "'<' not supported between instances of 'str' and 'int'",
+   "line": 1
   }
  },
  "b5_0081": {
   "error": {
    "type": "TypeError",
-   "message": "'<' not supported between instances of 'NoneType' and 'int'"
+   "message": "'<' not supported between instances of 'NoneType' and 'int'",
+   "line": 1
   }
  },
  "b5_0082": {
@@ -6363,25 +6491,29 @@
  "b5_0083": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate list (not \"str\") to list"
+   "message": "can only concatenate list (not \"str\") to list",
+   "line": 1
   }
  },
  "b5_0084": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"list\") to str"
+   "message": "can only concatenate str (not \"list\") to str",
+   "line": 1
   }
  },
  "b5_0085": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"int\") to str"
+   "message": "can only concatenate str (not \"int\") to str",
+   "line": 1
   }
  },
  "b5_0086": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for +: 'int' and 'str'"
+   "message": "unsupported operand type(s) for +: 'int' and 'str'",
+   "line": 1
   }
  },
  "b5_0087": {
@@ -6396,37 +6528,43 @@
  "b5_0090": {
   "error": {
    "type": "TypeError",
-   "message": "can't multiply sequence by non-int of type 'float'"
+   "message": "can't multiply sequence by non-int of type 'float'",
+   "line": 1
   }
  },
  "b5_0091": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for +: 'dict' and 'dict'"
+   "message": "unsupported operand type(s) for +: 'dict' and 'dict'",
+   "line": 1
   }
  },
  "b5_0092": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for +: 'NoneType' and 'int'"
+   "message": "unsupported operand type(s) for +: 'NoneType' and 'int'",
+   "line": 1
   }
  },
  "b5_0093": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undef' is undefined"
+   "message": "'undef' is undefined",
+   "line": 1
   }
  },
  "b5_0094": {
   "error": {
    "type": "TypeError",
-   "message": "bad operand type for unary -: 'str'"
+   "message": "bad operand type for unary -: 'str'",
+   "line": 1
   }
  },
  "b5_0095": {
   "error": {
    "type": "TypeError",
-   "message": "bad operand type for unary -: 'NoneType'"
+   "message": "bad operand type for unary -: 'NoneType'",
+   "line": 1
   }
  },
  "b5_0096": {
@@ -6444,19 +6582,22 @@
  "b5_0100": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undef' is undefined"
+   "message": "'undef' is undefined",
+   "line": 1
   }
  },
  "b5_0101": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undef' is undefined"
+   "message": "'undef' is undefined",
+   "line": 1
   }
  },
  "b5_0102": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undef' is undefined"
+   "message": "'undef' is undefined",
+   "line": 1
   }
  },
  "b5_0103": {
@@ -6465,7 +6606,8 @@
  "b5_0104": {
   "error": {
    "type": "UndefinedError",
-   "message": "'None' has no attribute 'strip'"
+   "message": "'None' has no attribute 'strip'",
+   "line": 1
   }
  },
  "b5_0105": {
@@ -6474,13 +6616,15 @@
  "b5_0106": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not callable"
+   "message": "'NoneType' object is not callable",
+   "line": 1
   }
  },
  "b5_0107": {
   "error": {
    "type": "UndefinedError",
-   "message": "'str object' has no attribute 'nope'"
+   "message": "'str object' has no attribute 'nope'",
+   "line": 1
   }
  },
  "b5_0108": {
@@ -6489,67 +6633,78 @@
  "b5_0109": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'append' of 'list' object is unsafe."
+   "message": "access to attribute 'append' of 'list' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0110": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'update' of 'dict' object is unsafe."
+   "message": "access to attribute 'update' of 'dict' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0111": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'pop' of 'dict' object is unsafe."
+   "message": "access to attribute 'pop' of 'dict' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0112": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'pop' of 'list' object is unsafe."
+   "message": "access to attribute 'pop' of 'list' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0113": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'sort' of 'list' object is unsafe."
+   "message": "access to attribute 'sort' of 'list' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0114": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'setdefault' of 'dict' object is unsafe."
+   "message": "access to attribute 'setdefault' of 'dict' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0115": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'clear' of 'dict' object is unsafe."
+   "message": "access to attribute 'clear' of 'dict' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0116": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'insert' of 'list' object is unsafe."
+   "message": "access to attribute 'insert' of 'list' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0117": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'extend' of 'list' object is unsafe."
+   "message": "access to attribute 'extend' of 'list' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0118": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'remove' of 'list' object is unsafe."
+   "message": "access to attribute 'remove' of 'list' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0119": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute 'reverse' of 'list' object is unsafe."
+   "message": "access to attribute 'reverse' of 'list' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0120": {
@@ -6564,55 +6719,64 @@
  "b5_0123": {
   "error": {
    "type": "ValueError",
-   "message": "'zz' is not in list"
+   "message": "'zz' is not in list",
+   "line": 1
   }
  },
  "b5_0124": {
   "error": {
    "type": "TypeError",
-   "message": "get expected at least 1 argument, got 0"
+   "message": "get expected at least 1 argument, got 0",
+   "line": 1
   }
  },
  "b5_0125": {
   "error": {
    "type": "TypeError",
-   "message": "get expected at most 2 arguments, got 3"
+   "message": "get expected at most 2 arguments, got 3",
+   "line": 1
   }
  },
  "b5_0126": {
   "error": {
    "type": "TypeError",
-   "message": "strip arg must be None or str"
+   "message": "strip arg must be None or str",
+   "line": 1
   }
  },
  "b5_0127": {
   "error": {
    "type": "TypeError",
-   "message": "'str' object cannot be interpreted as an integer"
+   "message": "'str' object cannot be interpreted as an integer",
+   "line": 1
   }
  },
  "b5_0128": {
   "error": {
    "type": "TypeError",
-   "message": "startswith first arg must be str or a tuple of str, not int"
+   "message": "startswith first arg must be str or a tuple of str, not int",
+   "line": 1
   }
  },
  "b5_0129": {
   "error": {
    "type": "TypeError",
-   "message": "sequence item 0: expected str instance, int found"
+   "message": "sequence item 0: expected str instance, int found",
+   "line": 1
   }
  },
  "b5_0130": {
   "error": {
    "type": "TypeError",
-   "message": "replace expected at least 2 arguments, got 1"
+   "message": "replace expected at least 2 arguments, got 1",
+   "line": 1
   }
  },
  "b5_0131": {
   "error": {
    "type": "TypeError",
-   "message": "str.upper() takes no arguments (1 given)"
+   "message": "str.upper() takes no arguments (1 given)",
+   "line": 1
   }
  },
  "b5_0132": {
@@ -6621,13 +6785,15 @@
  "b5_0133": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute '__len__' of 'list' object is unsafe."
+   "message": "access to attribute '__len__' of 'list' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0134": {
   "error": {
    "type": "SecurityError",
-   "message": "access to attribute '__class__' of 'str' object is unsafe."
+   "message": "access to attribute '__class__' of 'str' object is unsafe.",
+   "line": 1
   }
  },
  "b5_0135": {
@@ -6651,7 +6817,8 @@
  "b5_0141": {
   "error": {
    "type": "TypeError",
-   "message": "'NoneType' object is not iterable"
+   "message": "'NoneType' object is not iterable",
+   "line": 1
   }
  },
  "b5_0142": {
@@ -6663,13 +6830,15 @@
  "b5_0144": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"dict\") to str"
+   "message": "can only concatenate str (not \"dict\") to str",
+   "line": 1
   }
  },
  "b5_0145": {
   "error": {
    "type": "UndefinedError",
-   "message": "list object has no element 5"
+   "message": "list object has no element 5",
+   "line": 1
   }
  },
  "b5_0146": {
@@ -6690,13 +6859,15 @@
  "b5_0151": {
   "error": {
    "type": "ValueError",
-   "message": "range() arg 3 must not be zero"
+   "message": "range() arg 3 must not be zero",
+   "line": 1
   }
  },
  "b5_0152": {
   "error": {
    "type": "OverflowError",
-   "message": "Range too big. The sandbox blocks ranges larger than MAX_RANGE (100000)."
+   "message": "Range too big. The sandbox blocks ranges larger than MAX_RANGE (100000).",
+   "line": 1
   }
  },
  "b5_0153": {
@@ -6944,13 +7115,15 @@
  "b5_0203": {
   "error": {
    "type": "UndefinedError",
-   "message": "'x' is undefined"
+   "message": "'x' is undefined",
+   "line": 1
   }
  },
  "b5_0204": {
   "error": {
    "type": "UndefinedError",
-   "message": "'x' is undefined"
+   "message": "'x' is undefined",
+   "line": 1
   }
  },
  "b5_0205": {
@@ -7106,7 +7279,8 @@
  "b5_0231": {
   "error": {
    "type": "UndefinedError",
-   "message": "'x' is undefined"
+   "message": "'x' is undefined",
+   "line": 1
   }
  },
  "b5_0232": {
@@ -7235,7 +7409,8 @@
  "b6_0006": {
   "error": {
    "type": "TypeError",
-   "message": "not enough arguments for format string"
+   "message": "not enough arguments for format string",
+   "line": 1
   }
  },
  "b6_0007": {
@@ -7244,13 +7419,15 @@
  "b6_0008": {
   "error": {
    "type": "TypeError",
-   "message": "not all arguments converted during string formatting"
+   "message": "not all arguments converted during string formatting",
+   "line": 1
   }
  },
  "b6_0009": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for %: 'int' and 'str'"
+   "message": "unsupported operand type(s) for %: 'int' and 'str'",
+   "line": 1
   }
  },
  "b6_0010": {
@@ -7280,13 +7457,15 @@
  "b6_0018": {
   "error": {
    "type": "TypeError",
-   "message": "unhashable type: 'dict'"
+   "message": "unhashable type: 'dict'",
+   "line": 1
   }
  },
  "b6_0019": {
   "error": {
    "type": "TypeError",
-   "message": "unhashable type: 'list'"
+   "message": "unhashable type: 'list'",
+   "line": 1
   }
  },
  "b6_0020": {
@@ -7301,13 +7480,15 @@
  "b6_0023": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for +: 'int' and 'str'"
+   "message": "unsupported operand type(s) for +: 'int' and 'str'",
+   "line": 1
   }
  },
  "b6_0024": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for +: 'int' and 'list'"
+   "message": "unsupported operand type(s) for +: 'int' and 'list'",
+   "line": 1
   }
  },
  "b6_0025": {
@@ -7331,13 +7512,15 @@
  "b6_0033": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "0.0 cannot be raised to a negative power"
+   "message": "0.0 cannot be raised to a negative power",
+   "line": 1
   }
  },
  "b6_0034": {
   "error": {
    "type": "ZeroDivisionError",
-   "message": "0.0 cannot be raised to a negative power"
+   "message": "0.0 cannot be raised to a negative power",
+   "line": 1
   }
  },
  "b6_0035": {
@@ -7442,13 +7625,15 @@
  "b6_0068": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"int\") to str"
+   "message": "can only concatenate str (not \"int\") to str",
+   "line": 1
   }
  },
  "b6_0069": {
   "error": {
    "type": "TypeError",
-   "message": "unsupported operand type(s) for +: 'int' and 'str'"
+   "message": "unsupported operand type(s) for +: 'int' and 'str'",
+   "line": 1
   }
  },
  "b6_0070": {
@@ -7466,7 +7651,8 @@
  "b6_0074": {
   "error": {
    "type": "TypeError",
-   "message": "bad operand type for unary +: 'str'"
+   "message": "bad operand type for unary +: 'str'",
+   "line": 1
   }
  },
  "b6_0075": {
@@ -7632,7 +7818,8 @@
  "b6_0128": {
   "error": {
    "type": "TypeError",
-   "message": "'generator' object is not reversible"
+   "message": "'generator' object is not reversible",
+   "line": 1
   }
  },
  "b6_0129": {
@@ -7641,13 +7828,15 @@
  "b6_0130": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'generator' has no len()"
+   "message": "object of type 'generator' has no len()",
+   "line": 1
   }
  },
  "b6_0131": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'generator' has no len()"
+   "message": "object of type 'generator' has no len()",
+   "line": 1
   }
  },
  "b6_0132": {
@@ -7662,7 +7851,8 @@
  "b6_0135": {
   "error": {
    "type": "ValueError",
-   "message": "empty separator"
+   "message": "empty separator",
+   "line": 1
   }
  },
  "b6_0136": {
@@ -7722,7 +7912,8 @@
  "b6_0154": {
   "error": {
    "type": "TypeError",
-   "message": "startswith first arg must be str or a tuple of str, not list"
+   "message": "startswith first arg must be str or a tuple of str, not list",
+   "line": 1
   }
  },
  "b6_0155": {
@@ -7752,7 +7943,8 @@
  "b6_0163": {
   "error": {
    "type": "ValueError",
-   "message": "substring not found"
+   "message": "substring not found",
+   "line": 1
   }
  },
  "b6_0164": {
@@ -7764,13 +7956,15 @@
  "b6_0166": {
   "error": {
    "type": "IndexError",
-   "message": "tuple index out of range"
+   "message": "tuple index out of range",
+   "line": 1
   }
  },
  "b6_0167": {
   "error": {
    "type": "KeyError",
-   "message": "'a'"
+   "message": "'a'",
+   "line": 1
   }
  },
  "b6_0168": {
@@ -7956,7 +8150,8 @@
  "b7_0036": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'int' has no len()"
+   "message": "object of type 'int' has no len()",
+   "line": 1
   }
  },
  "b7_0037": {
@@ -8100,7 +8295,8 @@
  "b7_0083": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'int' has no len()"
+   "message": "object of type 'int' has no len()",
+   "line": 1
   }
  },
  "b7_0084": {
@@ -8244,7 +8440,8 @@
  "b7_0130": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'int' has no len()"
+   "message": "object of type 'int' has no len()",
+   "line": 1
   }
  },
  "b7_0131": {
@@ -8388,7 +8585,8 @@
  "b7_0177": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'int' has no len()"
+   "message": "object of type 'int' has no len()",
+   "line": 1
   }
  },
  "b7_0178": {
@@ -8532,7 +8730,8 @@
  "b7_0224": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'int' has no len()"
+   "message": "object of type 'int' has no len()",
+   "line": 1
   }
  },
  "b7_0225": {
@@ -8676,7 +8875,8 @@
  "b7_0271": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'int' has no len()"
+   "message": "object of type 'int' has no len()",
+   "line": 1
   }
  },
  "b7_0272": {
@@ -8820,7 +9020,8 @@
  "b7_0318": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'int' has no len()"
+   "message": "object of type 'int' has no len()",
+   "line": 1
   }
  },
  "b7_0319": {
@@ -8964,7 +9165,8 @@
  "b7_0365": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'int' has no len()"
+   "message": "object of type 'int' has no len()",
+   "line": 1
   }
  },
  "b7_0366": {
@@ -9108,7 +9310,8 @@
  "b7_0412": {
   "error": {
    "type": "TypeError",
-   "message": "object of type 'int' has no len()"
+   "message": "object of type 'int' has no len()",
+   "line": 1
   }
  },
  "b7_0413": {
@@ -9207,25 +9410,29 @@
  "b7_0441": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0442": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0443": {
   "error": {
    "type": "UndefinedError",
-   "message": "'list object' has no attribute 'missing'"
+   "message": "'list object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0444": {
   "error": {
    "type": "UndefinedError",
-   "message": "'str object' has no attribute 'missing'"
+   "message": "'str object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0445": {
@@ -9234,49 +9441,57 @@
  "b7_0446": {
   "error": {
    "type": "UndefinedError",
-   "message": "'int object' has no attribute 'missing'"
+   "message": "'int object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0447": {
   "error": {
    "type": "UndefinedError",
-   "message": "'float object' has no attribute 'missing'"
+   "message": "'float object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0448": {
   "error": {
    "type": "UndefinedError",
-   "message": "'bool object' has no attribute 'missing'"
+   "message": "'bool object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0449": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undef' is undefined"
+   "message": "'undef' is undefined",
+   "line": 1
   }
  },
  "b7_0450": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undef' is undefined"
+   "message": "'undef' is undefined",
+   "line": 1
   }
  },
  "b7_0451": {
   "error": {
    "type": "UndefinedError",
-   "message": "'int object' has no attribute 'x'"
+   "message": "'int object' has no attribute 'x'",
+   "line": 1
   }
  },
  "b7_0452": {
   "error": {
    "type": "UndefinedError",
-   "message": "list object has no element 5"
+   "message": "list object has no element 5",
+   "line": 1
   }
  },
  "b7_0453": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0454": {
@@ -9288,19 +9503,22 @@
  "b7_0456": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0457": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0458": {
   "error": {
    "type": "UndefinedError",
-   "message": "'missing_fn' is undefined"
+   "message": "'missing_fn' is undefined",
+   "line": 1
   }
  },
  "b7_0459": {
@@ -9309,25 +9527,29 @@
  "b7_0460": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0461": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0462": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0463": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0464": {
@@ -9348,13 +9570,15 @@
  "b7_0469": {
   "error": {
    "type": "TypeError",
-   "message": "Object of type Undefined is not JSON serializable"
+   "message": "Object of type Undefined is not JSON serializable",
+   "line": 1
   }
  },
  "b7_0470": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0471": {
@@ -9375,7 +9599,8 @@
  "b7_0476": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0477": {
@@ -9390,7 +9615,8 @@
  "b7_0480": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0481": {
@@ -9408,13 +9634,15 @@
  "b7_0485": {
   "error": {
    "type": "TypeError",
-   "message": "bad operand type for abs(): 'Undefined'"
+   "message": "bad operand type for abs(): 'Undefined'",
+   "line": 1
   }
  },
  "b7_0486": {
   "error": {
    "type": "TypeError",
-   "message": "type Undefined doesn't define __round__ method"
+   "message": "type Undefined doesn't define __round__ method",
+   "line": 1
   }
  },
  "b7_0487": {
@@ -9423,7 +9651,8 @@
  "b7_0488": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0489": {
@@ -9438,13 +9667,15 @@
  "b7_0492": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0493": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0494": {
@@ -9501,13 +9732,15 @@
  "b7_0512": {
   "error": {
    "type": "UndefinedError",
-   "message": "'dict object' has no attribute 'missing'"
+   "message": "'dict object' has no attribute 'missing'",
+   "line": 1
   }
  },
  "b7_0513": {
   "error": {
    "type": "UndefinedError",
-   "message": "'undef' is undefined"
+   "message": "'undef' is undefined",
+   "line": 1
   }
  },
  "b7_0514": {
@@ -9522,7 +9755,8 @@
  "b7_0517": {
   "error": {
    "type": "TypeError",
-   "message": "Object of type dict_keys is not JSON serializable"
+   "message": "Object of type dict_keys is not JSON serializable",
+   "line": 1
   }
  },
  "b7_0518": {
@@ -9636,7 +9870,8 @@
  "b8_0035": {
   "error": {
    "type": "TypeError",
-   "message": "%x format: an integer is required, not float"
+   "message": "%x format: an integer is required, not float",
+   "line": 1
   }
  },
  "b8_0036": {
@@ -9645,31 +9880,36 @@
  "b8_0037": {
   "error": {
    "type": "TypeError",
-   "message": "%d format: a real number is required, not str"
+   "message": "%d format: a real number is required, not str",
+   "line": 1
   }
  },
  "b8_0038": {
   "error": {
    "type": "KeyError",
-   "message": "'b'"
+   "message": "'b'",
+   "line": 1
   }
  },
  "b8_0039": {
   "error": {
    "type": "TypeError",
-   "message": "not enough arguments for format string"
+   "message": "not enough arguments for format string",
+   "line": 1
   }
  },
  "b8_0040": {
   "error": {
    "type": "TypeError",
-   "message": "not all arguments converted during string formatting"
+   "message": "not all arguments converted during string formatting",
+   "line": 1
   }
  },
  "b8_0041": {
   "error": {
    "type": "TypeError",
-   "message": "%c requires int or char"
+   "message": "%c requires int or char",
+   "line": 1
   }
  },
  "b8_0042": {
@@ -9711,19 +9951,22 @@
  "b8_0054": {
   "error": {
    "type": "ValueError",
-   "message": "unsupported format character 'z' (0x7a) at index 1"
+   "message": "unsupported format character 'z' (0x7a) at index 1",
+   "line": 1
   }
  },
  "b8_0055": {
   "error": {
    "type": "ValueError",
-   "message": "incomplete format"
+   "message": "incomplete format",
+   "line": 1
   }
  },
  "b8_0056": {
   "error": {
    "type": "TypeError",
-   "message": "not enough arguments for format string"
+   "message": "not enough arguments for format string",
+   "line": 1
   }
  },
  "b8_0057": {
@@ -9741,7 +9984,8 @@
  "b8_0061": {
   "error": {
    "type": "TypeError",
-   "message": "not all arguments converted during string formatting"
+   "message": "not all arguments converted during string formatting",
+   "line": 1
   }
  },
  "b8_0062": {
@@ -9897,13 +10141,15 @@
  "b8_0112": {
   "error": {
    "type": "FilterArgumentError",
-   "message": "method must be common, ceil or floor"
+   "message": "method must be common, ceil or floor",
+   "line": 1
   }
  },
  "b8_0113": {
   "error": {
    "type": "TypeError",
-   "message": "type str doesn't define __round__ method"
+   "message": "type str doesn't define __round__ method",
+   "line": 1
   }
  },
  "b8_0114": {

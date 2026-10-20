@@ -20,7 +20,8 @@
  "tool_call_string_arguments": {
   "error": {
    "type": "TypeError",
-   "message": "Can only get item pairs from a mapping."
+   "message": "Can only get item pairs from a mapping.",
+   "line": 55
   }
  },
  "continue_final_message": {

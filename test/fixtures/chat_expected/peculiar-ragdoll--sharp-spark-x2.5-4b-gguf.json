@@ -20,7 +20,8 @@
  "tool_call_string_arguments": {
   "error": {
    "type": "TemplateError",
-   "message": "tool_call.function.arguments must be a dictionary; normalize JSON strings before apply_chat_template"
+   "message": "tool_call.function.arguments must be a dictionary; normalize JSON strings before apply_chat_template",
+   "line": 134
   }
  },
  "continue_final_message": {
@@ -41,7 +42,8 @@
  "content_parts": {
   "error": {
    "type": "TemplateError",
-   "message": "Unsupported user content block type: image"
+   "message": "Unsupported user content block type: image",
+   "line": 24
   }
  },
  "roles_not_alternating": {

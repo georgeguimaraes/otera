@@ -21,8 +21,11 @@ scripts/pyproject.toml and scripts/uv.lock pin the versions of Python, Jinja2 an
 import datetime as dt
 import json
 import os
+import sys
 
 import jinja2
+import jinja2.debug
+import jinja2.utils
 from jinja2.ext import loopcontrols
 from jinja2.sandbox import ImmutableSandboxedEnvironment
 from transformers.utils import chat_template_utils
@@ -34,6 +37,39 @@ class FixedDatetime(dt.datetime):
     @classmethod
     def now(cls, tz=None):
         return FIXED_NOW
+
+def record_position(rewrite):
+    """Wrap jinja2.debug.rewrite_traceback_stack to keep the template name and line of a runtime error.
+
+    Jinja2 calls the wrapped function when a render fails, before it replaces the frames of the compiled
+    templates. The innermost frame of a template gives the position, like the template traceback.
+    """
+
+    def wrapper(source=None):
+        _, error, tb = sys.exc_info()
+        while tb is not None:
+            template = tb.tb_frame.f_globals.get("__jinja_template__")
+            # Like the traceback of Jinja2, skip the internal functions, such as the stub of a missing test.
+            if template is not None and tb.tb_frame.f_code not in jinja2.utils.internal_code:
+                error.template_position = (template.name, template.get_corresponding_lineno(tb.tb_lineno))
+            tb = tb.tb_next
+        return rewrite(source)
+
+    return wrapper
+
+
+def describe_error(error):
+    if isinstance(error, jinja2.TemplateSyntaxError):
+        name, line = error.name, error.lineno
+    else:
+        name, line = getattr(error, "template_position", (None, None))
+    described = {"type": type(error).__name__, "message": error.message if isinstance(error, jinja2.TemplateSyntaxError) else str(error)}
+    if line is not None:
+        described["line"] = line
+    if name is not None:
+        described["name"] = name
+    return described
+
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CASES = os.path.join(ROOT, "test", "fixtures", "semantics")
@@ -55,14 +91,13 @@ def render(source, variables, settings):
         else:
             template = ImmutableSandboxedEnvironment(extensions=[loopcontrols], **settings).from_string(source)
         return {"output": template.render(**variables)}
-    except jinja2.TemplateSyntaxError as error:
-        return {"error": {"type": type(error).__name__, "message": error.message, "line": error.lineno}}
     except Exception as error:
-        return {"error": {"type": type(error).__name__, "message": str(error)}}
+        return {"error": describe_error(error)}
 
 
 def main():
     chat_template_utils.datetime = FixedDatetime
+    jinja2.debug.rewrite_traceback_stack = record_position(jinja2.debug.rewrite_traceback_stack)
     expected = {}
     for directory in sorted(os.listdir(CASES)):
         if os.path.isdir(os.path.join(CASES, directory)):

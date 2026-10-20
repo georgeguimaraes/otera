@@ -17,13 +17,15 @@
  "tool_call_roundtrip": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"dict\") to str"
+   "message": "can only concatenate str (not \"dict\") to str",
+   "line": 9
   }
  },
  "tool_call_string_arguments": {
   "error": {
    "type": "TypeError",
-   "message": "argument of type 'NoneType' is not iterable"
+   "message": "argument of type 'NoneType' is not iterable",
+   "line": 3
   }
  },
  "continue_final_message": {
@@ -44,7 +46,8 @@
  "content_parts": {
   "error": {
    "type": "TypeError",
-   "message": "can only concatenate str (not \"list\") to str"
+   "message": "can only concatenate str (not \"list\") to str",
+   "line": 3
   }
  },
  "roles_not_alternating": {
