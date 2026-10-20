@@ -18,6 +18,8 @@ defmodule Otera do
     * `:filters` - a map of names to Elixir functions, called with the value and the filter arguments.
     * `:tests` - a map of names to Elixir functions, called with the value and the test arguments.
     * `:autoescape` - escapes the HTML characters in the output of each `{{ ... }}`, except an `Otera.Markup`. A boolean, or a function that gets the name of the template and gives a boolean, like `select_autoescape` of Jinja2. A template from a string has the name `nil`. The default is `false`.
+    * `:loader` - the templates that `{% extends %}`, `{% include %}`, `{% import %}` and `load/2` can load by name. See `Otera.Loader`.
+    * `:name` - the name of the template for `parse/2`, which errors and autoescape use. `load/2` gives each template its name.
 
   A plain Elixir function gets the positional arguments of the call. For keyword arguments and defaults, give an `Otera.Function`, which has a Python signature. Values that a function returns become template values, like variables.
 
@@ -43,9 +45,40 @@ defmodule Otera do
       |> Parser.parse(filters: names.(:filters), tests: names.(:tests))
 
     {ast, scope} = Otera.Scope.annotate(ast)
-    {:ok, %Template{source: source, ast: ast, scope: scope, options: opts}}
+
+    blocks =
+      for {:block, name, _, _, _, _, _} = block <- Parser.blocks(ast),
+          into: %{},
+          do: {name, block}
+
+    {:ok,
+     %Template{
+       name: opts[:name],
+       source: source,
+       ast: ast,
+       scope: scope,
+       blocks: blocks,
+       extends?: Parser.extends?(ast),
+       options: opts
+     }}
   rescue
-    error in Otera.SyntaxError -> {:error, error}
+    error in Otera.SyntaxError -> {:error, %{error | name: opts[:name]}}
+  end
+
+  @doc """
+  Loads the template `name` with the `:loader` option, like `get_template` of Jinja2.
+
+  Returns `{:ok, template}`, `{:error, %Otera.Error{kind: :template_not_found}}` when the loader has no template with that name, or `{:error, %Otera.SyntaxError{}}`. The other options are the options of `parse/2`.
+
+      iex> {:ok, template} = Otera.load("hello.txt", loader: %{"hello.txt" => "Hello {{ name }}!"})
+      iex> Otera.render(template, %{name: "World"})
+      {:ok, "Hello World!"}
+  """
+  @spec load(String.t(), keyword) :: {:ok, Template.t()} | {:error, error}
+  def load(name, opts) do
+    {:ok, Template.load(name, opts)}
+  rescue
+    error in [Otera.SyntaxError, Otera.Error] -> {:error, error}
   end
 
   @doc """
@@ -65,7 +98,7 @@ defmodule Otera do
 
     {:ok, Evaluator.render(template, variables, opts)}
   rescue
-    error in Otera.Error -> {:error, error}
+    error in [Otera.Error, Otera.SyntaxError] -> {:error, error}
   end
 
   def render(source, variables, opts) when is_binary(source) do

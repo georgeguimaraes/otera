@@ -13,7 +13,6 @@ The script leaves out the cases that Otera does not match on purpose:
 
 - Python prints the memory address of a function or an iterator, which changes on each run.
 - The random filter and lipsum give random output.
-- The tags extends, block, include and import come in milestone 2.
 - Python raises its own SyntaxError, with a line of the compiled Python code, for break and continue outside a loop.
 - The cases in EXCEPTIONS differ by design, for the reason next to each one.
 
@@ -56,7 +55,6 @@ EXCEPTIONS = {
 
 LEFT_OUT = [
     re.compile(r"\|\s*random\b|lipsum\("),
-    re.compile(r"\{%-?\s*(extends|block|include|import|from)\b"),
 ]
 
 

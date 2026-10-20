@@ -1,0 +1,4 @@
+{"$settings": {"templates": {"a.txt": "A"}}}
+---
+{% for i in [1] %}
+{% extends "a.txt" %}{% endfor %}

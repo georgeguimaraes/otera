@@ -50,6 +50,36 @@ Otera.render("{{ comment }} {{ link|safe }}", %{comment: "<script>", link: "<a h
 
 `autoescape` can also be a function that gets the name of the template, for example to escape only the templates that end with `.html`. The tag `{% autoescape false %}` turns the escaping off in a part of a template.
 
+## Inheritance, includes and imports
+
+Give a loader to use the tags `extends`, `include`, `import` and `from`. A loader is a map from names to sources, a function, or `Otera.Loader.file_system/1`, which reads the templates from directories:
+
+```elixir
+loader = %{
+  "base.html" => "<title>{% block title %}Site{% endblock %}</title>{% block body %}{% endblock %}",
+  "macros.html" => "{% macro link(url, text) %}<a href=\"{{ url }}\">{{ text }}</a>{% endmacro %}"
+}
+
+page = """
+{% extends "base.html" %}
+{% from "macros.html" import link %}
+{% block title %}Docs | {{ super() }}{% endblock %}
+{% block body %}{{ link("/docs", "Read the docs") }}{% endblock %}
+"""
+
+Otera.render(page, %{}, loader: loader)
+#=> {:ok, "<title>Docs | Site</title><a href=\"/docs\">Read the docs</a>"}
+```
+
+`Otera.load/2` loads a template by name, like `get_template` of Jinja2:
+
+```elixir
+{:ok, template} = Otera.load("page.html", loader: Otera.Loader.file_system("templates"), autoescape: true)
+Otera.render(template, %{user: user})
+```
+
+Blocks support `super()`, `self.name()`, `scoped` and `required`. An include can take a list of names, `ignore missing`, and `with context` or `without context`. An import is without context by default, like in Jinja2. During a render, Otera loads and parses each template once. To parse the templates once for many renders, give the loader templates that `Otera.parse/2` made.
+
 ## Chat templates
 
 `Otera.ChatTemplate` renders a chat template with the environment of transformers: `trim_blocks`, `lstrip_blocks`, the functions `raise_exception` and `strftime_now`, and the `tojson` filter of transformers.
@@ -83,9 +113,9 @@ To get the same prompt as transformers for messages and tool definitions that co
 
 ## Compatibility
 
-Otera follows Python Jinja2 3.1: the lexer and its whitespace control, the operators and their precedence, scoping, macros and call blocks, loops with `loop` and `break` and `continue`, namespaces, the builtin filters and tests, and the Python methods of strings, lists and dicts. Values print like Python values, for example `True`, `None` and `['a', 1.5]`. Like transformers, Otera renders in the immutable sandbox of Jinja2, so `list.append` and `dict.update` raise a security error.
+Otera follows Python Jinja2 3.1: the lexer and its whitespace control, the operators and their precedence, scoping, macros and call blocks, loops with `loop` and `break` and `continue`, namespaces, template inheritance, includes and imports, autoescape and the `Markup` of markupsafe, the builtin filters and tests, and the Python methods of strings, lists and dicts. Values print like Python values, for example `True`, `None`, `['a', 1.5]` and `range(0, 3)`. Like transformers, Otera renders in the immutable sandbox of Jinja2, so `list.append` and `dict.update` raise a security error.
 
-The tags `extends`, `block`, `include` and `import` are not in Otera yet.
+Scoping follows the compiler of Jinja2. A macro reads the variables around its definition as they are when it runs, like a Python closure. A generator, such as the result of `map` or `select`, makes a single pass. A loop that reads a variable before a later top-level `{% set %}` of that variable sees it as undefined, like in Jinja2.
 
 Known differences from Python:
 
@@ -93,7 +123,8 @@ Known differences from Python:
 * An Elixir string cannot hold a lone surrogate such as `\ud800`, and Otera has no table of Unicode character names for `\N{...}` escapes.
 * Otera values have no identity, so `x is sameas y` compares two equal lists or dicts as the same object.
 * `break` outside a loop raises an `Otera.SyntaxError` instead of a Python `SyntaxError`.
-* Python prints functions and generators with their memory address, and Otera prints them without one.
+* Python prints functions, generators and some other objects with their memory address, and Otera prints them without one.
+* A template that recurses without end raises an `Otera.Error` with the kind `:recursion_error` and the message `maximum recursion depth exceeded`. Python adds words to the message that depend on the frame where it stops. Otera counts a macro call as five Python frames and a template as one, so it stops at about the same depth as Python, which allows about 200 nested macro calls.
 * The character properties come from the pinned Python, but upper and lower case mappings come from Elixir and Erlang/OTP, whose Unicode version can be newer.
 
 ## Tests
@@ -102,7 +133,7 @@ The tests compare Otera with Python Jinja2. The scripts in `scripts/` make the e
 
 * `fetch_chat_templates.py` fetches the chat templates of the most downloaded text-generation models of the Hugging Face Hub into `test/fixtures/chat_templates`.
 * `generate_chat_expected.py` renders each template with each conversation of `test/fixtures/conversations.json` with transformers, and writes `test/fixtures/chat_expected`.
-* `generate_semantics_expected.py` renders the cases of `test/fixtures/semantics` with Python Jinja2. Some cases come from the tests of [minijinja](https://github.com/mitsuhiko/minijinja). It also renders the 2990 random templates of `test/fixtures/differential`, which `import_differential_cases.py` took from a differential check of Otera against Jinja2.
+* `generate_semantics_expected.py` renders the cases of `test/fixtures/semantics` with Python Jinja2. Some cases come from the tests of [minijinja](https://github.com/mitsuhiko/minijinja). A case can give other templates for `extends`, `include` and `import` in its settings, or use the templates of `test/fixtures/templates` with a `FileSystemLoader`. The script also renders the 2995 random templates of `test/fixtures/differential`, which `import_differential_cases.py` took from a differential check of Otera against Jinja2.
 * `generate_html_entities.py` writes the HTML5 character references of Python to `priv/html_entities.json`, for the `striptags` filter.
 * `generate_unicode_properties.py` writes the character properties of Python `str` methods, such as `isprintable` and `isdigit`, to `priv/unicode_properties.json` as code point ranges.
 

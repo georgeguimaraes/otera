@@ -1,0 +1,5 @@
+{"name": "N", "$settings": {"templates": {"macros.txt": "{% macro hello(name) %}Hello {{ name }}{{ suffix }}!{% endmacro %}\n{% macro wrap() %}[{{ caller() }}]{% endmacro %}\n{% macro _hidden() %}hidden{% endmacro %}\n{% macro uses_other() %}{{ hello(\"other\") }}{% endmacro %}\n{% set suffix = \"?\" %}{% set _private = 1 %}{% set public = \"pub\" %}\n{% import \"helpers.txt\" as helpers %}body {{ public }}", "helpers.txt": "{% macro twice(x) %}{{ x }}{{ x }}{% endmacro %}", "ctx.txt": "{% macro show() %}{{ name }}{% endmacro %}{% set seen = name %}"}}}
+---
+{% import "ctx.txt" as plain %}{% import "ctx.txt" as with_ctx with context %}{% from "ctx.txt" import seen with context %}
+[{{ plain.show() }}] [{{ plain.seen }}] [{{ with_ctx.show() }}] [{{ with_ctx.seen }}] [{{ seen }}]
+{% for name in ["loop"] %}{% import "ctx.txt" as inner with context %}{{ inner.seen }}{% endfor %}

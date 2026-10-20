@@ -1,0 +1,3 @@
+{"$settings": {"templates": {"parent.txt": "{% set parent_top = 'parent top' %}{{ shared }}|{% block a %}{% endblock %}|{% set late = 'late' %}{% block b %}{{ late }}{% endblock %}"}}}
+---
+{% extends "parent.txt" %}{% set shared = "from child" %}{% block a %}{{ shared }}|{{ parent_top }}|{{ late }}{% endblock %}

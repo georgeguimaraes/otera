@@ -1,0 +1,11 @@
+{"name": "outer", "$settings": {"templates": {"show.txt": "[{{ name }}|{{ item }}|{{ top }}]", "set.txt": "{% set leaked = 'no' %}{% set name = 'inner' %}{{ name }}", "nested.txt": "<{% include 'show.txt' %}>", "child.txt": "{% extends 'layout.txt' %}{% block b %}inc-child {{ name }}{% endblock %}", "layout.txt": "L({% block b %}{% endblock %})"}}}
+---
+{% set top = "T" %}{% include "show.txt" %}
+{% for item in [1, 2] %}{% include "show.txt" %}{% endfor %}
+{% include "show.txt" without context %}
+{% include "show.txt" with context %}
+{% with name = "with" %}{% include "show.txt" %}{% endwith %}
+{% include "set.txt" %}{{ name }}{{ leaked }}
+{% include "nested.txt" %}
+{% include "child.txt" %}
+{% macro m(item) %}{% include "show.txt" %}{% endmacro %}{{ m("macro arg") }}

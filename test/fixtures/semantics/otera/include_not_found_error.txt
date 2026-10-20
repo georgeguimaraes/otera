@@ -1,0 +1,4 @@
+{"$settings": {"templates": {"show.txt": "[{{ name }}|{{ item }}|{{ top }}]", "set.txt": "{% set leaked = 'no' %}{% set name = 'inner' %}{{ name }}", "nested.txt": "<{% include 'show.txt' %}>", "child.txt": "{% extends 'layout.txt' %}{% block b %}inc-child {{ name }}{% endblock %}", "layout.txt": "L({% block b %}{% endblock %})"}}}
+---
+line
+{% include "nope.txt" %}

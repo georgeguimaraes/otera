@@ -1,0 +1,5 @@
+{"$settings": {"templates": {"a.txt": "A", "b.txt": "B"}}}
+---
+{% extends "a.txt" %}
+{% set x = 1 %}
+{% extends "b.txt" %}

@@ -91,4 +91,45 @@ defmodule OteraTest do
     [first, second] = String.split(text, "\n\n")
     for paragraph <- [first, second], do: assert(length(String.split(paragraph)) in 3..5)
   end
+
+  test "a loader can be a map or a function, and a render loads each template once" do
+    parent = self()
+
+    loader = fn name ->
+      send(parent, {:loaded, name})
+      if name == "item.txt", do: {:ok, "<{{ i }}>"}, else: :error
+    end
+
+    template = "{% for i in [1, 2, 3] %}{% include 'item.txt' %}{% endfor %}"
+    assert Otera.render(template, %{}, loader: loader) == {:ok, "<1><2><3>"}
+    assert_received {:loaded, "item.txt"}
+    refute_received {:loaded, "item.txt"}
+
+    {:ok, parsed} = Otera.parse("[{{ x }}]")
+    assert Otera.render("{% include 'p' %}", %{x: 1}, loader: %{"p" => parsed}) == {:ok, "[1]"}
+
+    assert Otera.load("nope", loader: loader) ==
+             {:error, %Otera.Error{kind: :template_not_found, message: "nope"}}
+  end
+
+  test "the file system loader tries its directories in order and stays inside them" do
+    root = Path.expand("fixtures/templates", __DIR__)
+    loader = Otera.Loader.file_system([Path.join(root, "partials"), root])
+
+    assert loader.("item.html") == {:ok, "item {{ name }}\n"}
+    assert loader.("layout.html") == File.read(Path.join(root, "layout.html"))
+    assert loader.("../templates/layout.html") == :error
+    assert loader.("/etc/passwd") == :error
+  end
+
+  # Python raises a RecursionError, whose message depends on the frame where CPython stops.
+  test "a template that includes or extends itself raises a recursion error" do
+    loader = %{"self.txt" => "{% include 'self.txt' %}", "ext.txt" => "\n{% extends 'ext.txt' %}"}
+
+    assert {:error, %Otera.Error{kind: :recursion_error, line: 1, name: "self.txt"}} =
+             Otera.render("{% include 'self.txt' %}", %{}, loader: loader)
+
+    assert {:error, %Otera.Error{kind: :recursion_error, line: 2, name: "ext.txt"}} =
+             Otera.render("{% extends 'ext.txt' %}", %{}, loader: loader)
+  end
 end

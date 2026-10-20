@@ -1,0 +1,7 @@
+{"year": 2024, "$settings": {"templates": {"base.txt": "<title>{% block title %}Base title{% endblock %}</title>\n{% block body %}Base body {{ who }}{% endblock %}\n{% block footer %}(c) {{ year }}{% endblock %}"}}}
+---
+{% extends "base.txt" %}
+ignored text {{ ignored }}
+{% set who = "child" %}
+{% block title %}[{{ super() }}] {{ self.footer() }}{% endblock %}
+{% block body %}{{ super()|upper }} and {{ self.title() }}{% endblock %}

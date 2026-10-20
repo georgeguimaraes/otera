@@ -39,7 +39,11 @@ defmodule Otera.Value do
     Otera.Joiner,
     Otera.GroupTuple,
     Markup,
-    Otera.Range
+    Otera.Range,
+    Otera.Template,
+    Otera.TemplateModule,
+    Otera.TemplateReference,
+    Otera.BlockReference
   ]
 
   @doc """
@@ -101,6 +105,10 @@ defmodule Otera.Value do
   def type_name(%Otera.Bytes{}), do: "bytes"
   def type_name(%Markup{}), do: "Markup"
   def type_name(%Otera.Range{}), do: "range"
+  def type_name(%Otera.Template{}), do: "Template"
+  def type_name(%Otera.TemplateModule{}), do: "TemplateModule"
+  def type_name(%Otera.TemplateReference{}), do: "TemplateReference"
+  def type_name(%Otera.BlockReference{}), do: "BlockReference"
   def type_name(%Iterable{type: type}), do: type
   def type_name(%Undefined{}), do: "Undefined"
   def type_name(%Namespace{}), do: "Namespace"
@@ -122,6 +130,12 @@ defmodule Otera.Value do
   def object_type_repr(%Undefined{}), do: "jinja2.runtime.Undefined object"
   def object_type_repr(%Macro{}), do: "jinja2.runtime.Macro object"
   def object_type_repr(%Loop{}), do: "jinja2.runtime.LoopContext object"
+  def object_type_repr(%Otera.TemplateModule{}), do: "jinja2.environment.TemplateModule object"
+  def object_type_repr(%Otera.Template{}), do: "jinja2.environment.Template object"
+
+  def object_type_repr(%module{} = value)
+      when module in [Otera.TemplateReference, Otera.BlockReference],
+      do: "jinja2.runtime.#{type_name(value)} object"
 
   def object_type_repr(%module{} = value) when module in [Otera.Cycler, Otera.Joiner],
     do: "jinja2.utils.#{type_name(value)} object"
@@ -136,6 +150,7 @@ defmodule Otera.Value do
   @spec to_str(term) :: String.t()
   def to_str(value) when is_binary(value), do: value
   def to_str(%Markup{text: text}), do: text
+  def to_str(%Otera.TemplateModule{body: body}), do: body
   def to_str(%Undefined{}), do: ""
   def to_str(value), do: repr(value)
 
@@ -158,6 +173,14 @@ defmodule Otera.Value do
   def repr(value) when is_binary(value), do: repr_string(value)
   def repr(%Markup{text: text}), do: "Markup(" <> repr_string(text) <> ")"
   def repr(%Otera.Range{} = range), do: Otera.Range.repr(range)
+
+  # Python prints the memory address of a module or a template without a name, which Otera leaves out.
+  def repr(%Otera.TemplateModule{name: nil}), do: "<TemplateModule memory>"
+  def repr(%Otera.TemplateModule{name: name}), do: "<TemplateModule #{repr(name)}>"
+  def repr(%Otera.Template{name: nil}), do: "<Template memory>"
+  def repr(%Otera.Template{name: name}), do: "<Template #{repr(name)}>"
+  def repr(%Otera.TemplateReference{name: name}), do: "<TemplateReference #{repr(name)}>"
+  def repr(%Otera.BlockReference{}), do: "<jinja2.runtime.BlockReference object>"
   def repr(value) when is_list(value), do: "[" <> Enum.map_join(value, ", ", &repr/1) <> "]"
   def repr({item}), do: "(" <> repr(item) <> ",)"
 
@@ -718,6 +741,25 @@ defmodule Otera.Value do
   def getattr(%Namespace{} = namespace, name), do: Namespace.get(namespace, name)
   def getattr(%Loop{} = loop, name), do: Loop.get(loop, name)
   def getattr(%Macro{} = macro, name), do: Macro.get(macro, name)
+  def getattr(%Otera.TemplateModule{} = module, name), do: Otera.TemplateModule.get(module, name)
+
+  def getattr(%Otera.TemplateReference{context: context} = reference, name) do
+    blocks = Otera.State.get({:blocks, context})
+
+    if is_map_key(blocks, name),
+      do: %Otera.BlockReference{context: context, name: name, depth: 0},
+      else: %Undefined{obj: reference, name: name}
+  end
+
+  def getattr(%Otera.BlockReference{} = block, "name"), do: block.name
+
+  def getattr(%Otera.BlockReference{context: context, name: name, depth: depth} = block, "super") do
+    if depth + 1 < Kernel.length(Otera.State.get({:blocks, context})[name]),
+      do: %{block | depth: depth + 1},
+      else: %Undefined{hint: "there is no parent block called #{repr(name)}.", name: "super"}
+  end
+
+  def getattr(%Otera.BlockReference{} = block, name), do: %Undefined{obj: block, name: name}
   def getattr(%Otera.Cycler{} = cycler, name), do: Otera.Cycler.get(cycler, name)
   def getattr(%Otera.Joiner{} = joiner, name), do: Otera.Joiner.get(joiner, name)
   def getattr(%Otera.GroupTuple{grouper: grouper}, "grouper"), do: grouper

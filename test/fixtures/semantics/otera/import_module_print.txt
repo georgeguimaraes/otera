@@ -1,0 +1,3 @@
+{"$settings": {"autoescape": true, "templates": {"body.txt": "<p>{{ 1 }}</p>"}}}
+---
+{% import "body.txt" as b %}{{ b }}|{{ b is escaped }}

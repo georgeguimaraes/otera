@@ -1,0 +1,3 @@
+{"text": "<b>", "$settings": {"autoescape": ["html"], "name": "page.txt", "templates": {"base.html": "{% block body %}{{ text }}{% endblock %}|{{ text }}"}}}
+---
+{% extends "base.html" %}{% block body %}{{ text }}|{{ super() }}{% endblock %}

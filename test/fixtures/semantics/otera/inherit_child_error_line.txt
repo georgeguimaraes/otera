@@ -1,0 +1,5 @@
+{"$settings": {"templates": {"p.txt": "x\n{% block a %}{% endblock %}"}}}
+---
+{% extends "p.txt" %}
+{% block a %}
+{{ missing.attr }}{% endblock %}

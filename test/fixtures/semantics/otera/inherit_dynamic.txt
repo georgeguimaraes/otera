@@ -1,0 +1,3 @@
+{"fancy": true, "layout": "fancy.txt", "$settings": {"templates": {"fancy.txt": "<fancy>{% block content %}{% endblock %}</fancy>"}}}
+---
+{% if fancy %}{% extends layout %}{% endif %}{% block content %}content{% endblock %}

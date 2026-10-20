@@ -31,6 +31,8 @@ defmodule Otera.Markup do
   """
   @spec escape(term) :: t
   def escape(%__MODULE__{} = markup), do: markup
+  # A module has __html__ in Jinja2, which gives its output as Markup.
+  def escape(%Otera.TemplateModule{body: body}), do: new(body)
   def escape(value), do: %__MODULE__{text: value |> Value.to_str() |> HTML.escape()}
 
   @doc """

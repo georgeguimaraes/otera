@@ -4,6 +4,7 @@ defmodule Otera.SemanticsTest do
   alias Otera.{Dict, Differential, JSON}
 
   @cases Path.expand("../fixtures/semantics", __DIR__)
+  @templates Path.expand("../fixtures/templates", __DIR__)
   @differential Path.expand("../fixtures/differential", __DIR__)
 
   test "renders the core semantics cases like Python Jinja2" do
@@ -58,12 +59,45 @@ defmodule Otera.SemanticsTest do
   defp render(source, variables, %Dict{pairs: [{"transformers", true}]}),
     do: Otera.render(source, variables, transformers_options())
 
+  # A case with the setting "name" renders the template of that name, which the loader gives.
   defp render(source, variables, %Dict{pairs: settings}) do
+    {name, settings} = take(settings, "name", nil)
+    {templates, settings} = take(settings, "templates", %Dict{})
+    {kind, settings} = take(settings, "loader", nil)
+    templates = Map.merge(Map.new(templates.pairs), if(name, do: %{name => source}, else: %{}))
+
     options =
       Enum.map(settings, fn {key, value} -> option(String.to_existing_atom(key), value) end)
 
-    Otera.render(source, variables, options)
+    options =
+      case loader(templates, kind) do
+        nil -> options
+        loader -> [{:loader, loader} | options]
+      end
+
+    case name do
+      nil ->
+        Otera.render(source, variables, options)
+
+      name ->
+        with {:ok, template} <- Otera.load(name, options), do: Otera.render(template, variables)
+    end
   end
+
+  defp take(settings, key, default) do
+    case List.keytake(settings, key, 0) do
+      {{^key, value}, settings} -> {value, settings}
+      nil -> {default, settings}
+    end
+  end
+
+  defp loader(templates, "filesystem") do
+    file_system = Otera.Loader.file_system(@templates)
+    fn name -> with :error <- Map.fetch(templates, name), do: file_system.(name) end
+  end
+
+  defp loader(templates, nil) when templates == %{}, do: nil
+  defp loader(templates, nil), do: templates
 
   # A list of extensions stands for select_autoescape of Jinja2, which escapes templates from strings.
   defp option(:autoescape, extensions) when is_list(extensions) do

@@ -1,0 +1,3 @@
+{"$settings": {"name": "main.txt", "templates": {"p.txt": "{% block a %}{% endblock %}{{ self }}"}}}
+---
+{% extends "p.txt" %}{% block a %}child {{ self }}{% endblock %}

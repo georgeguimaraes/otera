@@ -1,0 +1,8 @@
+{"$settings": {"templates": {"macros.txt": "{% macro hello(name) %}Hello {{ name }}{{ suffix }}!{% endmacro %}\n{% macro wrap() %}[{{ caller() }}]{% endmacro %}\n{% macro _hidden() %}hidden{% endmacro %}\n{% macro uses_other() %}{{ hello(\"other\") }}{% endmacro %}\n{% set suffix = \"?\" %}{% set _private = 1 %}{% set public = \"pub\" %}\n{% import \"helpers.txt\" as helpers %}body {{ public }}", "helpers.txt": "{% macro twice(x) %}{{ x }}{{ x }}{% endmacro %}", "ctx.txt": "{% macro show() %}{{ name }}{% endmacro %}{% set seen = name %}"}}}
+---
+{% import "macros.txt" as m %}{{ m.hello("World") }}
+{{ m.uses_other() }}
+{% call m.wrap() %}called{% endcall %}
+[{{ m.public }}] [{{ m._private }}] [{{ m.helpers }}] [{{ m.nope }}] [{{ m._hidden }}]
+{{ m }}|{{ m|string|length }}
+{{ m is defined }} {{ m.hello is defined }} {{ m["public"] }}

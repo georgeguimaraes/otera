@@ -1,0 +1,3 @@
+{"$settings": {"name": "child.txt", "templates": {"p.txt": "x\n{% block a %}{% endblock %}\n{{ 1 + none }}"}}}
+---
+{% extends "p.txt" %}{% block a %}ok{% endblock %}

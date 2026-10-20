@@ -1,0 +1,11 @@
+{"$settings": {"templates": {"parent.txt": "parent sees {{ x }} and {{ m() }}|{% block in_loop %}P{% endblock %}|{% block in_if %}PI{% endblock %}", "inc.txt": "included"}}}
+---
+before {{ 1 }}
+{% extends "parent.txt" %}after {{ 2 }}
+{% set x = "set in child" %}
+{% macro m() %}M{% if caller is defined %}({{ caller() }}){% endif %}{% endmacro %}
+{% for i in [1, 2] %}loop {{ i }}{% block in_loop %}B{{ i }}{% endblock %}{% endfor %}
+{% call m() %}call body{% endcall %}
+{% filter upper %}filter body{% endfilter %}
+{% if true %}if body{% block in_if %}I{% endblock %}{% endif %}
+{% include "inc.txt" %}

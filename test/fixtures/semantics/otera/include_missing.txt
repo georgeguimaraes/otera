@@ -1,0 +1,8 @@
+{"name": "N", "names": ["missing.txt", "show.txt"], "$settings": {"templates": {"show.txt": "[{{ name }}|{{ item }}|{{ top }}]", "set.txt": "{% set leaked = 'no' %}{% set name = 'inner' %}{{ name }}", "nested.txt": "<{% include 'show.txt' %}>", "child.txt": "{% extends 'layout.txt' %}{% block b %}inc-child {{ name }}{% endblock %}", "layout.txt": "L({% block b %}{% endblock %})"}}}
+---
+[{% include "nope.txt" ignore missing %}]
+[{% include ["nope.txt", "show.txt"] %}]
+[{% include ["nope.txt", "nope2.txt"] ignore missing %}]
+[{% include "nope.txt" ignore missing with context %}]
+[{% include ("nope.txt", "show.txt") without context %}]
+[{% include names %}]

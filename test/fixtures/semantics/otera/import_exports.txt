@@ -1,0 +1,3 @@
+{"$settings": {"templates": {"ex.txt": "{% set a = 1 %}{% if true %}{% set b = 2 %}{% endif %}{% set c %}block{% endset %}{% for x in [1] %}{% set loopvar = x %}{% endfor %}{% set ns = namespace(x=5) %}{% set a, d = 3, 4 %}{% macro m() %}M{{ a }}{% endmacro %}{% import 'h.txt' as imp %}{% from 'h.txt' import from_name %}", "h.txt": "{% set from_name = 'f' %}"}}}
+---
+{% import "ex.txt" as e %}{{ e.a }}|{{ e.b }}|{{ e.c }}|{{ e.d }}|{{ e.ns.x }}|{{ e.m() }}|[{{ e.loopvar }}]|[{{ e.imp }}]|[{{ e.from_name }}]

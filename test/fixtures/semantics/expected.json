@@ -533,6 +533,14 @@
    "line": 1
   }
  },
+ "otera/cond_undefined_named_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "the inline if-expression on line 1 in 'page.txt' evaluated to false and no else section was defined.",
+   "line": 1,
+   "name": "page.txt"
+  }
+ },
  "otera/conditional_expressions.txt": {
   "output": "x y q\n0 1 fallback {} both\na12.5NoneTrue\n33 xxy 64\nTrue 2 4"
  },
@@ -608,6 +616,19 @@
    "line": 1
   }
  },
+ "otera/filesystem_loader.txt": {
+  "output": "<html>item &lt;fs&gt;|<b>bold</b></html>"
+ },
+ "otera/filesystem_loader_dot.txt": {
+  "output": "|item x"
+ },
+ "otera/filesystem_loader_parent_error.txt": {
+  "error": {
+   "type": "TemplateNotFound",
+   "message": "../semantics/expected.json",
+   "line": 1
+  }
+ },
  "otera/filters_sequences.txt": {
   "output": "first/last:  dave a c True b\nlist: ['a', 'b'] ['b', 'A', 'c'] [1, 2] []\njoin: bAcaB b, A, c, a, B bob, Alice, carol, dave 1-None-True Paris/Berlin/Rome\nsort: ['A', 'a', 'b', 'B', 'c'] ['A', 'B', 'a', 'b', 'c'] ['c', 'b', 'B', 'A', 'a'] Alice,dave,bob,carol Alice,dave,bob,carol carol,bob,Alice,dave\nunique: ['b', 'A', 'c'] ['b', 'A', 'c', 'a', 'B'] ['bob', 'Alice', 'carol']\nminmax: A c {'name': 'Alice', 'age': 25, 'role': 'user', 'info': {'city': 'Berlin'}}  True\nreverse: ['B', 'a', 'c', 'A', 'b'] cba ['c', 'A', 'b']\nmap: ['B', 'A', 'C', 'A', 'B'] ['bob', 'Alice', 'carol', 'dave'] ['Paris', 'Berlin', 'Rome', '?'] ['1', '2'] ['z', 'b']\nselect: [1, 3] [2, 4] [1, 'x'] [5, 7] [2, 3]\nselectattr: ['Alice', 'carol'] ['bob', 'dave'] ['bob', 'Alice', 'carol'] 3\ndictsort: [('A', 1), ('b', 2), ('c', 3)] [('A', 1), ('b', 2), ('c', 3)] [('A', 1), ('b', 2), ('c', 3)] [('c', 3), ('b', 2), ('A', 1)]\nitems: [('b', 2), ('A', 1), ('c', 3)] b=2;A=1;c=3; []\nbatch: [[1, 2], [3, 4], [5]] [[1, 2], [3, 'x']]\nslice: [[1, 2, 3], [4, 5]] [[1, 2], [3, 4], [5, 0]]\nsum: 115"
  },
@@ -644,10 +665,158 @@
  "otera/identity_and_keys.txt": {
   "output": "False False True True True\n{1: 'c'} {0: 'f'} x y\n<class 'jinja2.utils.Namespace'> <class 'dict'>"
  },
+ "otera/import_autoescape.txt": {
+  "output": "<&lt;b&gt;> True|<<b>> True"
+ },
+ "otera/import_autoescape_txt.txt": {
+  "output": "<&lt;b&gt;> False"
+ },
+ "otera/import_basic.txt": {
+  "output": "Hello World?!\nHello other?!\n[called]\n[pub] [] [] [] []\n\n\n\n\n\nbody pub|13\nTrue True pub"
+ },
+ "otera/import_context.txt": {
+  "output": "\n[] [] [N] [N] [N]\nloop"
+ },
+ "otera/import_exports.txt": {
+  "output": "3|2|block|4|5|M3|[]|[]|[]"
+ },
+ "otera/import_from.txt": {
+  "output": "Hello from?!\n[x] pub\n[False]\naa"
+ },
+ "otera/import_from_missing_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "the template 'macros.txt' (imported on line 1) does not export the requested name 'nope'",
+   "line": 2
+  }
+ },
+ "otera/import_from_missing_named_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "the template 'macros.txt' (imported on line 1 in 'page.txt') does not export the requested name 'nope'",
+   "line": 2,
+   "name": "page.txt"
+  }
+ },
+ "otera/import_in_loop.txt": {
+  "output": "1122[]"
+ },
+ "otera/import_module_print.txt": {
+  "output": "<p>1</p>|True"
+ },
+ "otera/import_not_found_error.txt": {
+  "error": {
+   "type": "TemplateNotFound",
+   "message": "nope.txt",
+   "line": 1
+  }
+ },
+ "otera/import_private_error.txt": {
+  "error": {
+   "type": "TemplateAssertionError",
+   "message": "names starting with an underline can not be imported",
+   "line": 1
+  }
+ },
+ "otera/import_reads_own_globals.txt": {
+  "output": "Hello x?!"
+ },
  "otera/in_dict_unhashable_error.txt": {
   "error": {
    "type": "TypeError",
    "message": "unhashable type: 'list'",
+   "line": 1
+  }
+ },
+ "otera/include_context.txt": {
+  "output": "[outer||T]\n[outer|1|T][outer|2|T]\n[||]\n[outer||T]\n[with||T]\ninnerouter\n<[outer||T]>\nL(inc-child outer)\n[outer|macro arg|T]"
+ },
+ "otera/include_dynamic.txt": {
+  "output": "Aa.txtBA"
+ },
+ "otera/include_empty_list_error.txt": {
+  "error": {
+   "type": "TemplatesNotFound",
+   "message": "Tried to select from an empty list of templates.",
+   "line": 1
+  }
+ },
+ "otera/include_int_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'int' object is not iterable",
+   "line": 1
+  }
+ },
+ "otera/include_list_not_found_error.txt": {
+  "error": {
+   "type": "TemplatesNotFound",
+   "message": "none of the templates given were found: nope.txt, None",
+   "line": 1
+  }
+ },
+ "otera/include_loop_variable.txt": {
+  "output": "[False 1]|1[True 1]"
+ },
+ "otera/include_missing.txt": {
+  "output": "[]\n[[N||]]\n[]\n[]\n[[||]]\n[[N||]]"
+ },
+ "otera/include_no_loader_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "no loader for this environment specified",
+   "line": 1
+  }
+ },
+ "otera/include_none_error.txt": {
+  "error": {
+   "type": "TemplatesNotFound",
+   "message": "Tried to select from an empty list of templates.",
+   "line": 1
+  }
+ },
+ "otera/include_not_found_error.txt": {
+  "error": {
+   "type": "TemplateNotFound",
+   "message": "nope.txt",
+   "line": 2
+  }
+ },
+ "otera/include_runtime_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'x' is undefined",
+   "line": 2,
+   "name": "bad.txt"
+  }
+ },
+ "otera/include_runtime_error_named.txt": {
+  "error": {
+   "type": "ZeroDivisionError",
+   "message": "division by zero",
+   "line": 3,
+   "name": "bad.txt"
+  }
+ },
+ "otera/include_syntax_error.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "unexpected end of template, expected 'end of print statement'.",
+   "line": 2,
+   "name": "bad.txt"
+  }
+ },
+ "otera/include_undefined_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'missing' is undefined",
+   "line": 1
+  }
+ },
+ "otera/include_undefined_in_list_error.txt": {
+  "error": {
+   "type": "TemplatesNotFound",
+   "message": "none of the templates given were found: nope.txt, 'missing' is undefined",
    "line": 1
   }
  },
@@ -664,6 +833,163 @@
    "message": "'dict object' has no attribute 'missing'",
    "line": 1
   }
+ },
+ "otera/inherit_autoescape.txt": {
+  "output": "<b>|&lt;b&gt;|&lt;b&gt;"
+ },
+ "otera/inherit_autoescape_super.txt": {
+  "output": "True True"
+ },
+ "otera/inherit_basic.txt": {
+  "output": "<title>[Base title] (c) 2024</title>\nBASE BODY CHILD and [Base title] (c) 2024\n(c) 2024"
+ },
+ "otera/inherit_block_hyphen_error.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "Block names in Jinja have to be valid Python identifiers and may not contain hyphens, use an underscore instead.",
+   "line": 1
+  }
+ },
+ "otera/inherit_block_in_macro.txt": {
+  "output": "<default>"
+ },
+ "otera/inherit_block_in_macro_child.txt": {
+  "output": "<override><override>"
+ },
+ "otera/inherit_block_twice_error.txt": {
+  "error": {
+   "type": "TemplateAssertionError",
+   "message": "block 'a' defined twice",
+   "line": 2
+  }
+ },
+ "otera/inherit_child_error_line.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'missing' is undefined",
+   "line": 3
+  }
+ },
+ "otera/inherit_dynamic.txt": {
+  "output": "<fancy>content</fancy>"
+ },
+ "otera/inherit_dynamic_off.txt": {
+  "output": "text content"
+ },
+ "otera/inherit_endblock_name.txt": {
+  "output": "AB"
+ },
+ "otera/inherit_endblock_name_error.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "expected token 'end of statement block', got 'b'",
+   "line": 1
+  }
+ },
+ "otera/inherit_in_loop_error.txt": {
+  "error": {
+   "type": "TemplateAssertionError",
+   "message": "cannot use extend from a non top-level scope",
+   "line": 2
+  }
+ },
+ "otera/inherit_levels.txt": {
+  "output": "child-a(mid-a(top-a))|mid-b(top-b)|child-c top-c"
+ },
+ "otera/inherit_macros.txt": {
+  "output": "parent macro child macro|child macro"
+ },
+ "otera/inherit_missing_error.txt": {
+  "error": {
+   "type": "TemplateNotFound",
+   "message": "nope.txt",
+   "line": 1
+  }
+ },
+ "otera/inherit_nested_blocks.txt": {
+  "output": "outer[child inner/parent inner]"
+ },
+ "otera/inherit_no_loader_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "no loader for this environment specified",
+   "line": 1
+  }
+ },
+ "otera/inherit_output_rules.txt": {
+  "output": "before 1\nBBM(call body)includedparent sees set in child and M|B|I"
+ },
+ "otera/inherit_parent_error_line.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "unsupported operand type(s) for +: 'int' and 'NoneType'",
+   "line": 3,
+   "name": "p.txt"
+  }
+ },
+ "otera/inherit_required.txt": {
+  "output": "given!"
+ },
+ "otera/inherit_required_content_error.txt": {
+  "error": {
+   "type": "TemplateSyntaxError",
+   "message": "Required blocks can only contain comments or whitespace",
+   "line": 2
+  }
+ },
+ "otera/inherit_required_middle.txt": {
+  "output": "child"
+ },
+ "otera/inherit_required_missing_error.txt": {
+  "error": {
+   "type": "TemplateRuntimeError",
+   "message": "Required block 'needed' not found",
+   "line": 2,
+   "name": "layout.txt"
+  }
+ },
+ "otera/inherit_scoped.txt": {
+  "output": "[a|1]()[b|2]()"
+ },
+ "otera/inherit_self.txt": {
+  "output": "A|A|<TemplateReference None>|[]|a"
+ },
+ "otera/inherit_self_named.txt": {
+  "output": "child <TemplateReference 'main.txt'><TemplateReference 'main.txt'>"
+ },
+ "otera/inherit_super_missing_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "there is no parent block called 'a'.",
+   "line": 1
+  }
+ },
+ "otera/inherit_super_super_error.txt": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "there is no parent block called 'a'.",
+   "line": 1
+  }
+ },
+ "otera/inherit_super_undefined.txt": {
+  "output": "[]False[]"
+ },
+ "otera/inherit_twice_dynamic_error.txt": {
+  "error": {
+   "type": "TemplateRuntimeError",
+   "message": "extended multiple times",
+   "line": 3
+  }
+ },
+ "otera/inherit_twice_error.txt": {
+  "error": {
+   "type": "TemplateRuntimeError",
+   "message": "extended multiple times",
+   "line": 2
+  }
+ },
+ "otera/inherit_variables.txt": {
+  "output": "from child|from child|parent top||late"
  },
  "otera/int_to_float_overflow_error.txt": {
   "error": {
@@ -701,6 +1027,13 @@
  },
  "otera/macro_closures.txt": {
   "output": "same iteration: 1/10;2/20;\nlater iteration: 1;2;3;\nafter loop: [missing]\nloop names: [missing|||True|missing]\nwith: [missing|]\nset block: []\nmacro scope: [7]\nrecursive: [1]"
+ },
+ "otera/macro_recursion_error.txt": {
+  "error": {
+   "type": "RecursionError",
+   "message": "maximum recursion depth exceeded",
+   "line": 1
+  }
  },
  "otera/macros.txt": {
   "output": "\nHello, A!!!!!|Hi, B!!|Hello, C!|Hello, !!!!!\n1:(2, 3):{'x': 4}\n<p>inside call</p>\n[1:x][2:y]\n321\n<Macro 'greet'> greet ('name', 'greeting', 'punct')\nHELLO, FILTERED!!!!!"

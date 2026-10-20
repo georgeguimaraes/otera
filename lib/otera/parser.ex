@@ -13,6 +13,8 @@ defmodule Otera.Parser do
     * `{:macro, name, params, body, special_names, line, scope}` and `{:call_block, call, params, body, special_names, line, scope}`
     * `{:filter_block, filter, body, line, scope}`, `{:with, [{target, expr}], body, line, scope}` and `{:generation, body, scope}`
     * `{:autoescape, expr, body, line, scope}`
+    * `{:extends, expr, line, check_line}` and `{:block, name, scoped?, required?, body, line, scope}`
+    * `{:include, expr, ignore_missing?, with_context?, line}`, `{:import, expr, target, with_context?, line}` and `{:from_import, expr, [{name, alias}], with_context?, line}`
     * `{:break, line}` and `{:continue, line}`
 
   Expressions:
@@ -24,12 +26,13 @@ defmodule Otera.Parser do
     * `{:binop, op, left, right, line}` with op `:add`, `:sub`, `:mul`, `:div`, `:floordiv`, `:mod` or `:pow`
     * `{:concat, exprs}`, `{:compare, expr, [{op, expr}], line}` and `{:cond, test, then, else, line}`
     * `{:ns_ref, name, attr}` as an assignment target
+    * `{:cond_undefined, line}`, the undefined value of an inline `if` without `else`
 
   A node that opens a scope has `nil` as its scope, which `Otera.Scope.annotate/1` fills in. A loop has the scopes of its body and of its else block.
 
-  The lines are the lines that Jinja2 gives to its nodes. The evaluator gives them to the runtime errors, like the template traceback of Jinja2. The line of a statement is the line of its tag, and the line of an output is the line of the outermost node of its expression. The `check_line` of a set and the `line` of a with block and of an autoescape block are the line of the code before them, because Jinja2 compiles the namespace check and the assignments without a line of their own.
+  The lines are the lines that Jinja2 gives to its nodes. The evaluator gives them to the runtime errors, like the template traceback of Jinja2. The line of a statement is the line of its tag, and the line of an output is the line of the outermost node of its expression. The `check_line` of a set and of an extends tag, and the `line` of a with block and of an autoescape block are the line of the code before them, because Jinja2 compiles the namespace check and the assignments without a line of their own.
 
-  A filter of a filter block or a set block has `nil` as its innermost expression. An inline `if` without `else` gets an undefined value as its `else`. `params` of a macro is a list of `{name, default_or_nil}`, and `special_names` lists which of `caller`, `varargs` and `kwargs` the body uses.
+  A filter of a filter block or a set block has `nil` as its innermost expression. An inline `if` without `else` gets `{:cond_undefined, line}` as its `else`. `params` of a macro is a list of `{name, default_or_nil}`, and `special_names` lists which of `caller`, `varargs` and `kwargs` the body uses.
 
   As in Jinja2, an unknown filter or test is a syntax error, except inside an `if` block or an inline `if`, where it fails only when the template uses it.
   """
@@ -40,7 +43,8 @@ defmodule Otera.Parser do
   @math1_ops %{"+" => :add, "-" => :sub}
   @math2_ops %{"*" => :mul, "/" => :div, "//" => :floordiv, "%" => :mod}
   @special_names ["caller", "varargs", "kwargs"]
-  @unsupported_tags ~w(block extends include import from)
+  # The frame of the code inside a loop, a macro, a block and the other tags that open a scope.
+  @inner %{soft: false, toplevel: false}
 
   @doc """
   Returns the syntax tree of `tokens`. Raises `Otera.SyntaxError`.
@@ -50,10 +54,47 @@ defmodule Otera.Parser do
   @spec parse([Otera.Lexer.token()], keyword) :: [tuple | atom]
   def parse(tokens, opts \\ []) do
     {body, _eof} = subparse(tokens, nil, %{tags: [], ends: [], loop: false})
+    check_blocks(body)
     known = %{filter: Keyword.get(opts, :filters, []), test: Keyword.get(opts, :tests, [])}
-    check_names(body, known, false)
+    check_names(body, known, %{soft: false, toplevel: true})
+    # Jinja2 compiles the blocks after the root of the template, each as a function.
+    for {:block, _, _, _, block_body, _, _} <- blocks(body),
+        do: check_names(block_body, known, @inner)
+
     {body, _last} = fill_lines(body, 1)
     body
+  end
+
+  @doc """
+  Returns true if `ast` has an extends tag.
+  """
+  @spec extends?(list) :: boolean
+  def extends?({:extends, _expr, _line, _check_line}), do: true
+  def extends?(node) when is_tuple(node), do: extends?(Tuple.to_list(node))
+  def extends?(nodes) when is_list(nodes), do: Enum.any?(nodes, &extends?/1)
+  def extends?(_leaf), do: false
+
+  @doc """
+  Returns the blocks of `ast`, also the blocks inside other blocks, in the order of the template.
+  """
+  @spec blocks(list) :: [tuple]
+  def blocks(ast), do: ast |> collect_blocks([]) |> Enum.reverse()
+
+  defp collect_blocks({:block, _name, _scoped, _required, body, _line, _scope} = block, acc),
+    do: collect_blocks(body, [block | acc])
+
+  defp collect_blocks(nodes, acc) when is_list(nodes),
+    do: Enum.reduce(nodes, acc, &collect_blocks/2)
+
+  defp collect_blocks(node, acc) when is_tuple(node), do: collect_blocks(Tuple.to_list(node), acc)
+  defp collect_blocks(_leaf, acc), do: acc
+
+  # Like the compiler of Jinja2, which finds the blocks before it compiles the template.
+  defp check_blocks(body) do
+    Enum.reduce(blocks(body), MapSet.new(), fn {:block, name, _, _, _, line, _}, seen ->
+      if MapSet.member?(seen, name), do: fail("block #{repr(name)} defined twice", line)
+      MapSet.put(seen, name)
+    end)
   end
 
   # Jinja2 maps each line of the compiled Python code to the template line of the last node that
@@ -124,69 +165,93 @@ defmodule Otera.Parser do
     {{:generation, body, nil}, last}
   end
 
+  defp fill_line({:extends, expr, line, nil}, last), do: {{:extends, expr, line, last}, line}
+
+  # A block is a function of its own, and the code that renders it has the line of the block.
+  defp fill_line({:block, name, scoped?, required?, body, line, nil}, _last) do
+    {body, _last} = fill_lines(body, line)
+    {{:block, name, scoped?, required?, body, line, nil}, line}
+  end
+
+  defp fill_line({tag, _expr, _a, _b, line} = node, _last)
+       when tag in [:include, :import, :from_import],
+       do: {node, line}
+
   defp fill_line(node, last), do: {node, last}
 
-  # Jinja2 resolves filters and tests at compile time, but not in the soft frames of if blocks and inline ifs.
-  defp check_names({:if, branches, else_body}, known, _soft) do
-    check_names(branches, known, true)
-    check_names(else_body, known, true)
+  # Jinja2 resolves filters and tests at compile time, but not in the soft frames of if blocks and
+  # inline ifs. `frame` also tells if the code is at the top level, where an extends tag can be: the
+  # root of the template and its if blocks.
+
+  defp check_names({:if, branches, else_body}, known, frame) do
+    check_names(branches, known, %{frame | soft: true})
+    check_names(else_body, known, %{frame | soft: true})
   end
 
   defp check_names(
          {:for, _target, iter, test, body, else_body, _recursive, _line, _scope},
          known,
-         soft
+         frame
        ) do
-    check_names(iter, known, soft)
-    check_names([test, body, else_body], known, false)
+    check_names(iter, known, frame)
+    check_names([test, body, else_body], known, @inner)
   end
 
-  defp check_names({:macro, _name, params, body, _special, _line, _scope}, known, _soft),
-    do: check_names([params, body], known, false)
+  defp check_names({:macro, _name, params, body, _special, _line, _scope}, known, _frame),
+    do: check_names([params, body], known, @inner)
 
-  defp check_names({:call_block, call, params, body, _special, _line, _scope}, known, soft) do
-    check_names(call, known, soft)
-    check_names([params, body], known, false)
+  defp check_names({:call_block, call, params, body, _special, _line, _scope}, known, frame) do
+    check_names(call, known, frame)
+    check_names([params, body], known, @inner)
   end
 
-  defp check_names({:with, assignments, body, _line, _scope}, known, soft) do
-    check_names(assignments, known, soft)
-    check_names(body, known, false)
+  defp check_names({:with, assignments, body, _line, _scope}, known, frame) do
+    check_names(assignments, known, frame)
+    check_names(body, known, @inner)
   end
 
-  defp check_names({:set_block, _target, filter, body, _line, _scope}, known, _soft),
-    do: check_names([filter, body], known, false)
+  defp check_names({:set_block, _target, filter, body, _line, _scope}, known, _frame),
+    do: check_names([filter, body], known, @inner)
 
-  defp check_names({:filter_block, filter, body, _line, _scope}, known, _soft),
-    do: check_names([filter, body], known, false)
+  defp check_names({:filter_block, filter, body, _line, _scope}, known, _frame),
+    do: check_names([filter, body], known, @inner)
 
-  defp check_names({:generation, body, _scope}, known, _soft), do: check_names(body, known, false)
+  defp check_names({:generation, body, _scope}, known, _frame),
+    do: check_names(body, known, @inner)
 
-  defp check_names({:autoescape, expr, body, _line, _scope}, known, _soft),
-    do: check_names([expr, body], known, false)
+  defp check_names({:autoescape, expr, body, _line, _scope}, known, _frame),
+    do: check_names([expr, body], known, @inner)
 
-  defp check_names({:cond, test, then_expr, else_expr, _line}, known, _soft),
-    do: check_names([test, then_expr, else_expr], known, true)
+  defp check_names({:block, _name, _scoped, _required, _body, _line, _scope}, _known, _frame),
+    do: :ok
 
-  defp check_names({type, name, expr, args, kwargs, line}, known, soft)
+  defp check_names({:extends, expr, line, _check_line}, known, frame) do
+    unless frame.toplevel, do: fail("cannot use extend from a non top-level scope", line)
+    check_names(expr, known, frame)
+  end
+
+  defp check_names({:cond, test, then_expr, else_expr, _line}, known, frame),
+    do: check_names([test, then_expr, else_expr], known, %{frame | soft: true})
+
+  defp check_names({type, name, expr, args, kwargs, line}, known, frame)
        when type in [:filter, :test] do
     builtin? =
       if type == :filter, do: Otera.Filters.builtin?(name), else: Otera.Tests.builtin?(name)
 
-    unless soft or builtin? or name in known[type] do
+    unless frame.soft or builtin? or name in known[type] do
       fail("No #{type} named #{repr(name)}.", line)
     end
 
-    check_names([expr, args, kwargs], known, soft)
+    check_names([expr, args, kwargs], known, frame)
   end
 
-  defp check_names(node, known, soft) when is_tuple(node),
-    do: check_names(Tuple.to_list(node), known, soft)
+  defp check_names(node, known, frame) when is_tuple(node),
+    do: check_names(Tuple.to_list(node), known, frame)
 
-  defp check_names(nodes, known, soft) when is_list(nodes),
-    do: Enum.each(nodes, &check_names(&1, known, soft))
+  defp check_names(nodes, known, frame) when is_list(nodes),
+    do: Enum.each(nodes, &check_names(&1, known, frame))
 
-  defp check_names(_leaf, _known, _soft), do: :ok
+  defp check_names(_leaf, _known, _frame), do: :ok
 
   ## Statements
 
@@ -242,8 +307,40 @@ defmodule Otera.Parser do
   defp parse_tag(control, rest, ctx, line) when control in ["break", "continue"],
     do: loop_control(control, rest, ctx, line)
 
-  defp parse_tag(tag, _rest, _ctx, line) when tag in @unsupported_tags,
-    do: fail("Otera does not support the '#{tag}' tag yet", line)
+  defp parse_tag("extends", rest, _ctx, line) do
+    {expr, rest} = parse_expression(rest)
+    {{:extends, expr, line, nil}, rest}
+  end
+
+  defp parse_tag("block", rest, ctx, line), do: parse_block(rest, ctx, line)
+
+  defp parse_tag("include", rest, _ctx, line) do
+    {expr, rest} = parse_expression(rest)
+
+    {ignore_missing?, rest} =
+      case rest do
+        [{:name, "ignore", _}, {:name, "missing", _} | rest] -> {true, rest}
+        rest -> {false, rest}
+      end
+
+    {with_context?, rest} = parse_import_context(rest, true)
+    {{:include, expr, ignore_missing?, with_context?, line}, rest}
+  end
+
+  defp parse_tag("import", rest, _ctx, line) do
+    {expr, rest} = parse_expression(rest)
+    rest = expect(rest, :name, "as")
+    {{:name, target}, rest} = parse_assign_target(rest, name_only: true)
+    {with_context?, rest} = parse_import_context(rest, false)
+    {{:import, expr, target, with_context?, line}, rest}
+  end
+
+  defp parse_tag("from", rest, _ctx, line) do
+    {expr, rest} = parse_expression(rest)
+    rest = expect(rest, :name, "import")
+    {names, with_context?, rest} = parse_import_names(rest, [])
+    {{:from_import, expr, names, with_context?, line}, rest}
+  end
 
   defp parse_tag(tag, _rest, ctx, line),
     do: fail_unexpected_tag(tag, %{ctx | tags: tl(ctx.tags)}, line)
@@ -255,6 +352,87 @@ defmodule Otera.Parser do
 
   defp loop_control("continue", _rest, _ctx, line),
     do: fail("'continue' not properly in loop", line)
+
+  defp parse_block(tokens, ctx, line) do
+    {name, rest} =
+      case tokens do
+        [{:name, name, _} | rest] -> {name, rest}
+        tokens -> expect(tokens, :name)
+      end
+
+    {scoped?, rest} = skip_name(rest, "scoped")
+    {required?, rest} = skip_name(rest, "required")
+
+    if match?([{:operator, "-", _} | _], rest),
+      do:
+        fail(
+          "Block names in Jinja have to be valid Python identifiers and may not contain hyphens, use an underscore instead.",
+          line(hd(rest))
+        )
+
+    {body, [token | _] = rest} = parse_statements(rest, ["endblock"], %{ctx | loop: false}, true)
+
+    blank? =
+      Enum.all?(body, &match?({:text, _}, &1)) and Enum.all?(body, &whitespace?(elem(&1, 1)))
+
+    if required? and not blank?,
+      do: fail("Required blocks can only contain comments or whitespace", line(token))
+
+    {_skipped, rest} = skip_name(rest, name)
+    {{:block, name, scoped?, required?, body, line, nil}, rest}
+  end
+
+  defp whitespace?(text), do: text != "" and Otera.Value.strip(text, nil, :both) == ""
+
+  defp skip_name([{:name, name, _} | rest], name), do: {true, rest}
+  defp skip_name(rest, _name), do: {false, rest}
+
+  defp parse_import_context([{:name, word, _}, {:name, "context", _} | rest], _default)
+       when word in ["with", "without"],
+       do: {word == "with", rest}
+
+  defp parse_import_context(rest, default), do: {default, rest}
+
+  # The names of a from import, like parse_from of Jinja2: `a`, `a as b`, and a context at the end.
+  defp parse_import_names(tokens, names) do
+    tokens = if names == [], do: tokens, else: expect(tokens, :operator, ",")
+
+    case tokens do
+      [{:name, word, _}, {:name, "context", _} | _] when word in ["with", "without"] ->
+        {with_context?, rest} = parse_import_context(tokens, false)
+        {Enum.reverse(names), with_context?, rest}
+
+      [{:name, _, line} | _] ->
+        {{:name, name}, rest} = parse_assign_target(tokens, name_only: true)
+
+        if String.starts_with?(name, "_"),
+          do: fail("names starting with an underline can not be imported", line)
+
+        {alias_name, rest} =
+          case rest do
+            [{:name, "as", _} | rest] ->
+              {{:name, alias_name}, rest} = parse_assign_target(rest, name_only: true)
+              {alias_name, rest}
+
+            rest ->
+              {name, rest}
+          end
+
+        names = [{name, alias_name} | names]
+
+        case rest do
+          [{:operator, ",", _} | _] ->
+            parse_import_names(rest, names)
+
+          rest ->
+            {with_context?, rest} = parse_import_context(rest, false)
+            {Enum.reverse(names), with_context?, rest}
+        end
+
+      tokens ->
+        expect(tokens, :name)
+    end
+  end
 
   defp parse_statements(tokens, ends, ctx, drop_needle? \\ false) do
     tokens = skip_if(tokens, :operator, ":")
@@ -509,10 +687,7 @@ defmodule Otera.Parser do
           parse_condexpr(rest)
 
         rest ->
-          hint =
-            "the inline if-expression on line #{line} evaluated to false and no else section was defined."
-
-          {{:const, %Otera.Undefined{hint: hint}}, rest}
+          {{:cond_undefined, line}, rest}
       end
 
     parse_condexpr_tail({:cond, test, expr, else_expr, line}, rest, line(next))

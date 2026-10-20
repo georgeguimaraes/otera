@@ -8,7 +8,10 @@ Each case is a text file: a JSON object with the variables, a line with `---`, a
 optional `$settings` key of the JSON object sets `trim_blocks`, `lstrip_blocks`,
 `keep_trailing_newline` and `autoescape`, a boolean or a list of file extensions for
 select_autoescape, or `transformers: true` for the chat template environment of transformers,
-with its tojson filter and its raise_exception and strftime_now functions. The cases in `minijinja/`
+with its tojson filter and its raise_exception and strftime_now functions. For extends, include
+and import, `templates` gives the other templates of the case to a DictLoader, `loader:
+"filesystem"` adds the FileSystemLoader of test/fixtures/templates, and `name` renders the case
+as the template of that name instead of a template from a string. The cases in `minijinja/`
 come from the snapshot tests of minijinja (https://github.com/mitsuhiko/minijinja,
 minijinja/tests/inputs, Apache-2.0). The cases in `otera/` are new. The expected results never come
 from minijinja: this script renders every case with an ImmutableSandboxedEnvironment with the
@@ -74,6 +77,7 @@ def describe_error(error):
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CASES = os.path.join(ROOT, "test", "fixtures", "semantics")
+TEMPLATES = os.path.join(ROOT, "test", "fixtures", "templates")
 DIFFERENTIAL = os.path.join(ROOT, "test", "fixtures", "differential")
 
 
@@ -92,10 +96,22 @@ def render(source, variables, settings):
         else:
             if isinstance(settings.get("autoescape"), list):
                 settings["autoescape"] = jinja2.select_autoescape(settings["autoescape"])
-            template = ImmutableSandboxedEnvironment(extensions=[loopcontrols], **settings).from_string(source)
+            name = settings.pop("name", None)
+            loader = make_loader(source, name, settings.pop("templates", {}), settings.pop("loader", None))
+            environment = ImmutableSandboxedEnvironment(extensions=[loopcontrols], loader=loader, **settings)
+            template = environment.get_template(name) if name else environment.from_string(source)
         return {"output": template.render(**variables)}
     except Exception as error:
         return {"error": describe_error(error)}
+
+
+def make_loader(source, name, templates, kind):
+    """The loader of a case: a DictLoader with `templates` and the template `name`, and the
+    FileSystemLoader of test/fixtures/templates when `kind` is "filesystem"."""
+    mapping = {**templates, **({name: source} if name else {})}
+    if kind == "filesystem":
+        return jinja2.ChoiceLoader([jinja2.DictLoader(mapping), jinja2.FileSystemLoader(TEMPLATES)])
+    return jinja2.DictLoader(mapping) if mapping else None
 
 
 def main():

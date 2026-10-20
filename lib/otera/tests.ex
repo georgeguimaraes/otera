@@ -89,9 +89,11 @@ defmodule Otera.Tests do
       is_function(value) or is_struct(value, Otera.Function) or is_struct(value, Otera.Joiner) or
         is_struct(value, Macro) or
         is_struct(value, Method) or
-        is_struct(value, Loop) or is_struct(value, Undefined)
+        is_struct(value, Loop) or is_struct(value, Undefined) or
+        is_struct(value, Otera.BlockReference)
 
-  defp test("escaped", value, [], _env), do: is_struct(value, Otera.Markup)
+  defp test("escaped", value, [], _env),
+    do: is_struct(value, Otera.Markup) or is_struct(value, Otera.TemplateModule)
 
   defp test("lower", value, [], _env),
     do: Methods.call(Value.to_str(value), "islower", [], %Dict{})

@@ -2,7 +2,7 @@ defmodule Otera.Differential do
   @moduledoc """
   Compares Otera results with the results of Python Jinja2 that the scripts in `scripts/` recorded.
 
-  An expected result is `%{"output" => string}`, or `%{"error" => %{"type" => python_class, "message" => message}}`.
+  An expected result is `%{"output" => string}`, or `%{"error" => %{"type" => python_class, "message" => message, "line" => line, "name" => template}}`, where the line and the name of the template are optional.
   """
 
   @doc """
@@ -33,12 +33,16 @@ defmodule Otera.Differential do
   end
 
   defp describe(error),
-    do: "#{error_kind(error)} at line #{Map.get(error, :line)}: #{error.message}"
+    do: "#{error_kind(error)} at #{position(error.line, error.name)}: #{error.message}"
 
   defp describe_python(wanted) do
     wanted = Map.new(wanted.pairs)
-    "#{python_kind(wanted["type"])} at line #{wanted["line"]}: #{wanted["message"]}"
+
+    "#{python_kind(wanted["type"])} at #{position(wanted["line"], wanted["name"])}: #{wanted["message"]}"
   end
+
+  defp position(line, nil), do: "line #{line}"
+  defp position(line, name), do: "line #{line} of #{name}"
 
   # Otera raises Otera.SyntaxError for both compile-time errors of Jinja2.
   defp python_kind("TemplateAssertionError"), do: "template_syntax_error"

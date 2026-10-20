@@ -1,0 +1,3 @@
+{}
+---
+{% block a %}A{% endblock %}|{{ self.a() }}|{{ self }}|[{{ self.missing }}]|{{ self.a.name }}

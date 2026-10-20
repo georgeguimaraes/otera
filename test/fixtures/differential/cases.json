@@ -16952,6 +16952,38 @@
   }
  },
  {
+  "name": "b5_0213",
+  "template": "{% block b %}{% endblock %}",
+  "variables": "{}",
+  "settings": {
+   "transformers": true
+  }
+ },
+ {
+  "name": "b5_0214",
+  "template": "{% include 'x' %}",
+  "variables": "{}",
+  "settings": {
+   "transformers": true
+  }
+ },
+ {
+  "name": "b5_0215",
+  "template": "{% extends 'x' %}",
+  "variables": "{}",
+  "settings": {
+   "transformers": true
+  }
+ },
+ {
+  "name": "b5_0216",
+  "template": "{% import 'x' as y %}",
+  "variables": "{}",
+  "settings": {
+   "transformers": true
+  }
+ },
+ {
   "name": "b5_0217",
   "template": "{{ x }}}",
   "variables": "{}",

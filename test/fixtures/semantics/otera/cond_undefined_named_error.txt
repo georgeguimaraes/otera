@@ -1,0 +1,3 @@
+{"$settings": {"name": "page.txt", "templates": {}}}
+---
+{{ (1 if false).x }}

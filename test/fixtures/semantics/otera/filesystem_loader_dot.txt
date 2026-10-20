@@ -1,0 +1,3 @@
+{"name": "x", "$settings": {"loader": "filesystem"}}
+---
+{% include "./partials/../partials/item.html" ignore missing %}|{% include "./partials//item.html" %}

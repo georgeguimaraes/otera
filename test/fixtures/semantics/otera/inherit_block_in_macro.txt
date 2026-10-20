@@ -1,0 +1,3 @@
+{}
+---
+{% macro m() %}<{% block inner %}default{% endblock %}>{% endmacro %}{{ m() }}

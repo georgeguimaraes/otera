@@ -6,10 +6,13 @@ defmodule Otera.Evaluator do
 
   Each scope is a map in `Otera.State`, so a macro reads the variables of the scopes around its definition as they are when it runs, like a Python closure. Namespaces are the one way to change state across scopes.
 
+  A template that extends another renders its root first, which adds its blocks to the chains of blocks of the context, and then the root of the parent with the same context. After the extends tag, the root renders no text and no top-level block, like Jinja2. A block renders the first block of its chain, and `super()` renders the next one. An include renders a template in a new context, and an import renders it as an `Otera.TemplateModule`.
+
   `break` and `continue` stop the rest of a loop body. As in Jinja2, the `else` block of a loop runs when no iteration reached the end of the body.
   """
 
   alias Otera.{
+    BlockReference,
     Dict,
     Filters,
     Loop,
@@ -19,6 +22,9 @@ defmodule Otera.Evaluator do
     Methods,
     Namespace,
     State,
+    Template,
+    TemplateModule,
+    TemplateReference,
     Tests,
     Undefined,
     Value
@@ -28,6 +34,10 @@ defmodule Otera.Evaluator do
   # compile-time autoescape of Jinja2. `autoescape` is the autoescape of the eval context at runtime,
   # which decides if macros, set blocks and some filters give Markup. They differ only in a macro
   # that a template calls where the autoescape differs from where it defined the macro.
+  #
+  # `output_check` is true in the root of a template with an extends tag, whose output stops when
+  # `parent` holds the template that it extends and the line of the extends tag. `depth` counts the nested renders and calls, like
+  # the Python stack. `options` are the options of the render, for the templates that it loads.
   defstruct frames: [],
             root: nil,
             filters: %{},
@@ -35,23 +45,29 @@ defmodule Otera.Evaluator do
             globals: %{},
             name: nil,
             escape: false,
-            autoescape: false
+            autoescape: false,
+            output_check: false,
+            parent: nil,
+            depth: 0,
+            options: []
 
   @builtins ["range", "dict", "namespace", "cycler", "joiner", "lipsum"]
   @max_range 100_000
+
+  # The recursion limit of Python is 1000 frames. A macro call or a recursive loop takes about five
+  # frames, and a template that renders another takes about one.
+  @max_depth 1000
+  @call_depth 5
 
   @doc """
   Renders `template` with `variables`, a map with string keys. Raises `Otera.Error`.
 
   Options: `:filters`, `:tests` and `:globals`, maps from names to Elixir functions or values, and `:autoescape`, a boolean or a function of the template name.
   """
-  @spec render(Otera.Template.t(), map, keyword) :: String.t()
+  @spec render(Template.t(), map, keyword) :: String.t()
   def render(template, variables, opts) do
-    autoescape = autoescape?(Keyword.get(opts, :autoescape, false), nil)
-
     ctx = %__MODULE__{
-      escape: autoescape,
-      autoescape: autoescape,
+      options: opts,
       filters: names(Keyword.get(opts, :filters, %{})),
       tests: names(Keyword.get(opts, :tests, %{})),
       globals:
@@ -61,15 +77,226 @@ defmodule Otera.Evaluator do
     }
 
     State.run(fn ->
-      context = make_ref()
-      State.put(context, variables)
-      ctx = open(%{ctx | frames: [context]}, template.scope, %{})
-      {output, _ctx, _signal} = exec_body(template.ast, %{ctx | root: hd(ctx.frames)})
-      IO.iodata_to_binary(output)
+      template |> render_template(new_context(variables), ctx) |> IO.iodata_to_binary()
     end)
   end
 
+  ## Templates
+
+  # A context is a map in Otera.State with the variables of a render and the top-level assignments,
+  # and the chains of blocks and the exported names of that render.
+  defp new_context(variables) do
+    context = make_ref()
+    State.put(context, variables)
+    State.put({:exported, context}, MapSet.new())
+    context
+  end
+
+  # Renders `template` in a new context, and the templates that it extends. The context gets the
+  # blocks of the template, and the autoescape of the template name, like an EvalContext of Jinja2.
+  defp render_template(template, context, ctx) do
+    State.put({:name, context}, template.name)
+
+    State.put(
+      {:blocks, context},
+      Map.new(template.blocks, fn {name, block} -> {name, [{template, block}]} end)
+    )
+
+    render_root(template, %{ctx | frames: [context], autoescape: escape?(ctx, template)})
+  end
+
+  defp render_root(template, ctx) do
+    ctx = %{
+      deeper(ctx, 1)
+      | name: template.name,
+        escape: escape?(ctx, template),
+        output_check: template.extends?,
+        parent: nil
+    }
+
+    ctx = open(ctx, template.scope, references(template.scope, context(ctx), nil))
+    {output, ctx, _signal} = exec_body(template.ast, %{ctx | root: hd(ctx.frames)})
+
+    # The extends tag gives its line to an error before the root of the parent runs, such as the
+    # recursion of a template that extends itself.
+    case ctx.parent do
+      nil ->
+        output
+
+      {parent, line} ->
+        [output | at(line, ctx, fn -> render_root(parent, %{ctx | frames: [context(ctx)]}) end)]
+    end
+  end
+
+  defp context(ctx), do: List.last(ctx.frames)
+
+  # The variables `self` and `super`, which the root of a template and a block set when they read them.
+  defp references(scope, context, block) do
+    self =
+      if scope.self,
+        do: %{"self" => %TemplateReference{context: context, name: template_name(context)}},
+        else: %{}
+
+    case block do
+      {name, depth} when scope.super ->
+        Map.put(self, "super", block_reference(context, name, depth + 1))
+
+      _ ->
+        self
+    end
+  end
+
+  defp template_name(context), do: State.get({:name, context})
+
+  defp block_reference(context, name, depth) do
+    if depth < length(State.get({:blocks, context})[name]),
+      do: %BlockReference{context: context, name: name, depth: depth},
+      else: %Undefined{
+        hint: "there is no parent block called #{Value.repr(name)}.",
+        name: "super"
+      }
+  end
+
+  # Renders the block at `depth` in the chain of blocks `name`, as a function with the context.
+  defp render_block(context, name, depth, ctx) do
+    {template, {:block, ^name, _scoped, _required, body, _line, scope}} =
+      Enum.at(State.get({:blocks, context})[name], depth)
+
+    ctx = %{
+      ctx
+      | frames: [context],
+        name: template.name,
+        escape: escape?(ctx, template),
+        output_check: false,
+        root: nil,
+        parent: nil
+    }
+
+    {output, _ctx, _signal} =
+      exec_body(body, open(ctx, scope, references(scope, context, {name, depth})))
+
+    IO.iodata_to_binary(output)
+  end
+
+  # get_template of Jinja2 for extends and imports.
+  defp get_template(%Template{} = template, _ctx), do: template
+  defp get_template(%Undefined{} = undefined, _ctx), do: Undefined.fail(undefined)
+  defp get_template(%Markup{text: name}, ctx), do: get_template(name, ctx)
+
+  defp get_template(name, ctx) when is_binary(name) do
+    key = {:template, name}
+
+    case State.get(key) do
+      nil ->
+        template = Template.load(name, ctx.options)
+        State.put(key, template)
+        template
+
+      template ->
+        template
+    end
+  end
+
+  defp get_template(name, _ctx) do
+    Value.hashable!(name)
+    raise Otera.Error, kind: :template_not_found, message: Value.to_str(name)
+  end
+
+  # get_or_select_template of Jinja2 for includes: a list of names gives the first template that loads.
+  defp select_template(name, ctx)
+       when is_binary(name) or is_struct(name, Undefined) or is_struct(name, Markup) or
+              is_struct(name, Template),
+       do: get_template(name, ctx)
+
+  defp select_template(names, ctx) do
+    unless Value.truthy?(names) do
+      raise Otera.Error,
+        kind: :templates_not_found,
+        message: "Tried to select from an empty list of templates."
+    end
+
+    names = Value.to_list(names)
+
+    Enum.find_value(names, fn name ->
+      try do
+        get_template(name, ctx)
+      rescue
+        error in Otera.Error ->
+          if error.kind in [:template_not_found, :undefined_error],
+            do: nil,
+            else: reraise(error, __STACKTRACE__)
+      end
+    end) || templates_not_found(names)
+  end
+
+  defp templates_not_found(names) do
+    names =
+      Enum.map_join(names, ", ", fn
+        %Undefined{} = undefined -> Undefined.message(undefined)
+        name -> Value.to_str(name)
+      end)
+
+    raise Otera.Error,
+      kind: :templates_not_found,
+      message: "none of the templates given were found: #{names}"
+  end
+
+  # The variables of the scopes of a template, without the context, for an include or a scoped
+  # block, like dump_local_context of Jinja2.
+  defp locals(ctx) do
+    ctx.frames
+    |> Enum.drop(-1)
+    |> Enum.reverse()
+    |> Enum.reduce(%{}, fn frame, locals ->
+      frame = if is_map(frame), do: frame, else: State.get(frame)
+      Map.merge(locals, Map.reject(frame, fn {_name, value} -> value in [:unset, :missing] end))
+    end)
+  end
+
+  # An include or an import with context gets a new context with the variables of the render and
+  # the local variables, like new_context(context.get_all(), True, locals) of Jinja2.
+  defp included_context(ctx), do: new_context(Map.merge(State.get(context(ctx)), locals(ctx)))
+
+  # A scoped block gets such a context with the blocks of the render, like Context.derived.
+  defp derived_context(ctx) do
+    context = included_context(ctx)
+    State.put({:blocks, context}, State.get({:blocks, context(ctx)}))
+    State.put({:name, context}, template_name(context(ctx)))
+    context
+  end
+
+  # Renders `template` as a module: with the variables of the render, or only with the globals,
+  # which Jinja2 renders once for each template.
+  defp make_module(template, true, ctx), do: render_module(template, included_context(ctx), ctx)
+
+  defp make_module(template, false, ctx) do
+    key = {:module, template.name || template}
+
+    with nil <- State.get(key) do
+      module = render_module(template, new_context(%{}), ctx)
+      State.put(key, module)
+      module
+    end
+  end
+
+  defp render_module(template, context, ctx) do
+    body = template |> render_template(context, ctx) |> IO.iodata_to_binary()
+    variables = State.get(context)
+    exports = Map.new(State.get({:exported, context}), &{&1, variables[&1]})
+    %TemplateModule{name: template.name, body: body, exports: exports}
+  end
+
+  defp deeper(ctx, cost) do
+    if ctx.depth + cost > @max_depth,
+      do: raise(Otera.Error, kind: :recursion_error, message: "maximum recursion depth exceeded")
+
+    %{ctx | depth: ctx.depth + cost}
+  end
+
   defp names(map), do: Map.new(map, fn {name, value} -> {to_string(name), value} end)
+
+  defp escape?(ctx, template),
+    do: autoescape?(Keyword.get(ctx.options, :autoescape, false), template.name)
 
   defp autoescape?(autoescape, name) when is_function(autoescape, 1),
     do: Value.truthy?(autoescape.(name))
@@ -89,10 +316,105 @@ defmodule Otera.Evaluator do
     end
   end
 
+  # In a template that extends another, the root renders nothing after the extends tag.
+  defp exec(node, %{output_check: true, parent: {%Template{}, _line}} = ctx)
+       when elem(node, 0) in [:text, :output],
+       do: {[], ctx, :ok}
+
   defp exec({:text, text}, ctx), do: {text, ctx, :ok}
 
   defp exec({:output, expr, line}, ctx),
     do: {at(line, ctx, fn -> output(eval(expr, ctx), ctx) end), ctx, :ok}
+
+  defp exec({:extends, expr, line, check_line}, ctx) do
+    if ctx.parent do
+      at(check_line, ctx, fn ->
+        raise Otera.Error, kind: :template_runtime_error, message: "extended multiple times"
+      end)
+    end
+
+    parent = at(line, ctx, fn -> get_template(eval(expr, ctx), ctx) end)
+    blocks = State.get({:blocks, context(ctx)})
+
+    blocks =
+      Enum.reduce(parent.blocks, blocks, fn {name, block}, blocks ->
+        Map.update(blocks, name, [{parent, block}], &(&1 ++ [{parent, block}]))
+      end)
+
+    State.put({:blocks, context(ctx)}, blocks)
+    {[], %{ctx | parent: {parent, line}}, :ok}
+  end
+
+  # A block at the top level renders only when the template extends no other template.
+  defp exec({:block, _name, _scoped?, _required?, _body, _line, _scope}, %{parent: {_, _}} = ctx)
+       when hd(ctx.frames) == ctx.root,
+       do: {[], ctx, :ok}
+
+  defp exec({:block, name, scoped?, required?, _body, line, _scope}, ctx) do
+    output =
+      at(line, ctx, fn ->
+        if required? and length(State.get({:blocks, context(ctx)})[name]) <= 1 do
+          raise Otera.Error,
+            kind: :template_runtime_error,
+            message: "Required block #{Value.repr(name)} not found"
+        end
+
+        context = if scoped?, do: derived_context(ctx), else: context(ctx)
+        render_block(context, name, 0, ctx)
+      end)
+
+    {output, ctx, :ok}
+  end
+
+  defp exec({:include, expr, ignore_missing?, with_context?, line}, ctx) do
+    output =
+      at(line, ctx, fn ->
+        case load_include(eval(expr, ctx), ignore_missing?, ctx) do
+          nil -> []
+          template when with_context? -> render_template(template, included_context(ctx), ctx)
+          template -> make_module(template, false, ctx).body
+        end
+      end)
+
+    {output, ctx, :ok}
+  end
+
+  defp exec({:import, expr, target, with_context?, line}, ctx) do
+    module =
+      at(line, ctx, fn -> make_module(get_template(eval(expr, ctx), ctx), with_context?, ctx) end)
+
+    ctx = put_var(ctx, target, module)
+    unexport(ctx, [target])
+    {[], ctx, :ok}
+  end
+
+  defp exec({:from_import, expr, names, with_context?, line}, ctx) do
+    module =
+      at(line, ctx, fn -> make_module(get_template(eval(expr, ctx), ctx), with_context?, ctx) end)
+
+    position = if ctx.name, do: "line #{line} in #{Value.repr(ctx.name)}", else: "line #{line}"
+
+    ctx =
+      Enum.reduce(names, ctx, fn {name, alias_name}, ctx ->
+        value =
+          case module.exports do
+            %{^name => value} ->
+              value
+
+            _ ->
+              %Undefined{
+                hint:
+                  "the template #{Value.repr(module.name)} (imported on #{position}) does not export the requested name #{Value.repr(name)}",
+                name: name
+              }
+          end
+
+        put_var(ctx, alias_name, value)
+      end)
+
+    unexport(ctx, Enum.map(names, &elem(&1, 1)))
+    {[], ctx, :ok}
+  end
 
   defp exec({control, _line}, ctx) when control in [:break, :continue], do: {[], ctx, control}
 
@@ -135,7 +457,8 @@ defmodule Otera.Evaluator do
       frames: ctx.frames,
       scope: scope,
       line: line,
-      escape: ctx.escape
+      escape: ctx.escape,
+      template: ctx.name
     }
 
     {[], put_var(ctx, name, macro), :ok}
@@ -154,7 +477,8 @@ defmodule Otera.Evaluator do
       frames: ctx.frames,
       scope: scope,
       line: line,
-      escape: ctx.escape
+      escape: ctx.escape,
+      template: ctx.name
     }
 
     at(line, ctx, fn ->
@@ -209,6 +533,16 @@ defmodule Otera.Evaluator do
     error in Otera.Error ->
       error = if error.line, do: error, else: %{error | line: line, name: ctx.name}
       reraise error, __STACKTRACE__
+  end
+
+  # Includes catch only a missing template, and their template can be a list of names.
+  defp load_include(value, ignore_missing?, ctx) do
+    select_template(value, ctx)
+  rescue
+    error in Otera.Error ->
+      if ignore_missing? and error.kind in [:template_not_found, :templates_not_found],
+        do: nil,
+        else: reraise(error, __STACKTRACE__)
   end
 
   defp capture(body, scope, ctx) do
@@ -266,8 +600,10 @@ defmodule Otera.Evaluator do
                                                                            {acc, completed?, _} ->
         loop = %Loop{ref: ref, items: items, index0: index, depth0: depth0, recurse: recurse}
 
+        frame = at(line, ctx, fn -> bind(target, elem(items, index)) end)
+        # Like Jinja2, the scope has the loop variable only when the body reads it.
         frame =
-          at(line, ctx, fn -> target |> bind(elem(items, index)) |> Map.put("loop", loop) end)
+          if body_scope.exit["loop"] == :missing, do: Map.put(frame, "loop", loop), else: frame
 
         restart(inner, body_scope, frame)
         {output, _inner, signal} = exec_body(body, inner)
@@ -395,11 +731,20 @@ defmodule Otera.Evaluator do
     State.put(ref, Map.put(State.get(ref), name, value))
 
     if ref == ctx.root do
-      context = List.last(ctx.frames)
+      context = context(ctx)
       State.put(context, Map.put(State.get(context), name, value))
+
+      unless String.starts_with?(name, "_"),
+        do: State.put({:exported, context}, MapSet.put(State.get({:exported, context}), name))
     end
 
     ctx
+  end
+
+  # Imported names are not exported, like Jinja2.
+  defp unexport(ctx, names) do
+    key = {:exported, context(ctx)}
+    State.put(key, MapSet.difference(State.get(key), MapSet.new(names)))
   end
 
   defp lookup(ctx, name) do
@@ -430,6 +775,16 @@ defmodule Otera.Evaluator do
   ## Expressions
 
   defp eval({:const, value}, _ctx), do: value
+
+  defp eval({:cond_undefined, line}, ctx) do
+    position = if ctx.name, do: "line #{line} in #{Value.repr(ctx.name)}", else: "line #{line}"
+
+    %Undefined{
+      hint:
+        "the inline if-expression on #{position} evaluated to false and no else section was defined."
+    }
+  end
+
   defp eval({:name, name}, ctx), do: lookup(ctx, name)
   defp eval({:list, items}, ctx), do: Enum.map(items, &eval(&1, ctx))
   defp eval({:tuple, items}, ctx), do: items |> Enum.map(&eval(&1, ctx)) |> List.to_tuple()
@@ -593,9 +948,15 @@ defmodule Otera.Evaluator do
   defp call_value(%Method{receiver: receiver, name: name}, args, kwargs, _ctx),
     do: Methods.call(receiver, name, args, kwargs)
 
-  defp call_value(%Loop{recurse: {node, loop_ctx}, depth0: depth0}, [iterable], _kwargs, _ctx) do
+  defp call_value(%Loop{recurse: {node, loop_ctx}, depth0: depth0}, [iterable], _kwargs, ctx) do
+    loop_ctx = %{loop_ctx | depth: deeper(ctx, @call_depth).depth}
     {output, _ctx, _signal} = loop(node, iterable, loop_ctx, depth0 + 1)
     safe(IO.iodata_to_binary(output), loop_ctx.escape)
+  end
+
+  defp call_value(%BlockReference{} = block, args, kwargs, ctx) do
+    Methods.bind(args, kwargs, [], "BlockReference.__call__")
+    safe(render_block(block.context, block.name, block.depth, ctx), ctx.autoescape)
   end
 
   defp call_value(%Loop{}, _args, _kwargs, _ctx),
@@ -654,7 +1015,20 @@ defmodule Otera.Evaluator do
   # place that calls it has autoescape, like Macro.__call__ of Jinja2.
   defp call_macro(macro, args, kwargs, ctx) do
     {positional, extra} = Enum.split(args, length(macro.params))
-    macro_ctx = open(%{ctx | frames: macro.frames, escape: macro.escape}, macro.scope, %{})
+    ctx = deeper(ctx, @call_depth)
+
+    macro_ctx =
+      open(
+        %{
+          ctx
+          | frames: macro.frames,
+            escape: macro.escape,
+            name: macro.template,
+            output_check: false
+        },
+        macro.scope,
+        %{}
+      )
 
     {macro_ctx, kwargs} =
       at(macro.line, macro_ctx, fn -> bind_params(macro_ctx, macro.params, positional, kwargs) end)

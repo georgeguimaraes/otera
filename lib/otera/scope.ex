@@ -9,8 +9,15 @@ defmodule Otera.Scope do
 
   @typedoc """
   `unset` lists the names that are missing at the start of the scope. `exit` gives the value of each name of the scope after the scope ends: `:missing` for a parameter, such as the target of a loop, which prints as `missing`, and `:unset` for the others, which are undefined.
+
+  `self` is true when the root of a template or a block reads `self`, and `super` when a block reads `super`, which Jinja2 then sets at the start of the scope.
   """
-  @type t :: %{unset: [String.t()], exit: %{String.t() => :missing | :unset}}
+  @type t :: %{
+          unset: [String.t()],
+          exit: %{String.t() => :missing | :unset},
+          self: boolean,
+          super: boolean
+        }
 
   defstruct refs: %{}, stores: MapSet.new(), parent: nil
 
@@ -19,14 +26,23 @@ defmodule Otera.Scope do
   """
   @spec annotate(list) :: {list, t}
   def annotate(body) do
-    symbols = visit(%__MODULE__{}, body)
+    symbols = function_body(body, ["self"])
     {annotate_nodes(body, symbols), scope(symbols)}
+  end
+
+  # The root of a template and a block are functions without outer scopes, which declare the
+  # references `self` and `super` that their body reads, like the compiler of Jinja2.
+  defp function_body(body, references) do
+    references = Enum.filter(references, &loads?(body, &1))
+    %__MODULE__{} |> declare(references) |> visit(body)
   end
 
   defp scope(symbols) do
     %{
       unset: for({name, :undefined} <- symbols.refs, do: name),
-      exit: Map.new(symbols.refs, fn {name, kind} -> {name, exit_value(kind)} end)
+      exit: Map.new(symbols.refs, fn {name, kind} -> {name, exit_value(kind)} end),
+      self: symbols.refs["self"] == :param,
+      super: symbols.refs["super"] == :param
     }
   end
 
@@ -43,8 +59,16 @@ defmodule Otera.Scope do
     {:if, branches, annotate_nodes(else_body, parent)}
   end
 
+  defp annotate_node({:block, name, scoped?, required?, body, line, nil}, _parent) do
+    symbols = function_body(body, ["self", "super"])
+    {:block, name, scoped?, required?, annotate_nodes(body, symbols), line, scope(symbols)}
+  end
+
   defp annotate_node({:for, target, iter, test, body, else_body, recursive?, line, nil}, parent) do
-    params = if recursive? or loads?(body, "loop"), do: ["loop"], else: []
+    # The loop variable is a parameter of the scope when the body reads it or has a scoped block.
+    params =
+      if recursive? or loads?(body, "loop") or scoped_block?(body), do: ["loop"], else: []
+
     body_symbols = %__MODULE__{parent: parent} |> declare([target | params]) |> visit(body)
     else_symbols = visit(%__MODULE__{parent: parent}, else_body)
 
@@ -145,6 +169,18 @@ defmodule Otera.Scope do
   defp visit(symbols, {:with, assignments, _body, _line, _scope}),
     do: visit_expr(symbols, Enum.map(assignments, &elem(&1, 1)))
 
+  defp visit(symbols, {:extends, expr, _line, _check_line}), do: visit_expr(symbols, expr)
+  defp visit(symbols, {:include, expr, _missing, _context, _line}), do: visit_expr(symbols, expr)
+
+  defp visit(symbols, {:import, expr, target, _context, _line}),
+    do: symbols |> visit_expr(expr) |> store(target)
+
+  defp visit(symbols, {:from_import, expr, names, _context, _line}),
+    do:
+      Enum.reduce(names, visit_expr(symbols, expr), fn {_name, alias_name}, symbols ->
+        store(symbols, alias_name)
+      end)
+
   defp visit(symbols, _node), do: symbols
 
   # Jinja2 visits the branches in copies of the symbols, and all the elif branches in one copy,
@@ -217,6 +253,15 @@ defmodule Otera.Scope do
     end)
   end
 
+  defp scoped_block?({:block, _name, scoped?, _required, body, _line, _scope}),
+    do: scoped? or scoped_block?(body)
+
+  defp scoped_block?(node) when is_tuple(node), do: scoped_block?(Tuple.to_list(node))
+  defp scoped_block?(nodes) when is_list(nodes), do: Enum.any?(nodes, &scoped_block?/1)
+  defp scoped_block?(_leaf), do: false
+
+  # Like find_undeclared of Jinja2, which does not look into blocks.
+  defp loads?({:block, _name, _scoped, _required, _body, _line, _scope}, _name_), do: false
   defp loads?({:name, name}, name), do: true
   defp loads?(node, name) when is_tuple(node), do: loads?(Tuple.to_list(node), name)
   defp loads?(nodes, name) when is_list(nodes), do: Enum.any?(nodes, &loads?(&1, name))

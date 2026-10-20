@@ -1,0 +1,3 @@
+{"$settings": {"templates": {"top.txt": "{% block a %}top-a{% endblock %}|{% block b %}top-b{% endblock %}|{% block c %}top-c{% endblock %}", "middle.txt": "{% extends 'top.txt' %}{% block a %}mid-a({{ super() }}){% endblock %}{% block b %}mid-b({{ super() }}){% endblock %}{% block c %}mid-c{% endblock %}"}}}
+---
+{% extends "middle.txt" %}{% block a %}child-a({{ super() }}){% endblock %}{% block c %}child-c {{ super.super() }}{% endblock %}

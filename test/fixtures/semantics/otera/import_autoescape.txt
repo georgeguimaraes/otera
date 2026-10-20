@@ -1,0 +1,3 @@
+{"text": "<b>", "$settings": {"autoescape": ["html"], "name": "page.html", "templates": {"m.html": "{% macro box(x) %}<{{ x }}>{% endmacro %}", "m.txt": "{% macro box(x) %}<{{ x }}>{% endmacro %}"}}}
+---
+{% import "m.html" as m %}{{ m.box(text) }} {{ m.box(text) is escaped }}|{% import "m.txt" as t %}{{ t.box(text) }} {{ t.box(text) is escaped }}

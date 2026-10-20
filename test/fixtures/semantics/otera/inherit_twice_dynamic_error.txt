@@ -1,0 +1,5 @@
+{"$settings": {"templates": {"a.txt": "A", "b.txt": "B"}}}
+---
+{% if true %}{% extends "a.txt" %}{% endif %}
+{{ "x" }}
+{% if true %}{% extends "b.txt" %}{% endif %}

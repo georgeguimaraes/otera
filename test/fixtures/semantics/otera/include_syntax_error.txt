@@ -1,0 +1,4 @@
+{"$settings": {"templates": {"bad.txt": "line one\n{{ x"}}}
+---
+ok
+{% include "bad.txt" %}

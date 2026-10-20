@@ -1,0 +1,4 @@
+{}
+---
+{% block a %}{% endblock %}
+{% block b %}{% block a %}{% endblock %}{% endblock %}
