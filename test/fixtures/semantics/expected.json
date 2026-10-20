@@ -1401,6 +1401,23 @@
    "line": 1
   }
  },
+ "otera/str_maketrans.txt": {
+  "output": "xyc {97: 'b', 99: None} {97: 120, 98: 121, 99: None} z"
+ },
+ "otera/str_maketrans_dict_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "if you give only one argument to maketrans it must be a dict",
+   "line": 1
+  }
+ },
+ "otera/str_maketrans_length_error.txt": {
+  "error": {
+   "type": "ValueError",
+   "message": "the first two maketrans arguments must have equal length",
+   "line": 1
+  }
+ },
  "otera/str_translate.txt": {
   "output": "xA abc YZ <&>\nbatch: [[1, 2, 3]] [[1, 2], [3, 'x']] [[1], [2], [3]] []\nslice: [] [[1, 2], [3]] [[1], [2], [3], ['f'], ['f']]\nreprs: <class 'jinja2.utils.Joiner'> <class 'jinja2.utils.Namespace'> <class 'dict'> <class 'jinja2.utils.Cycler'>"
  },

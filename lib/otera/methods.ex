@@ -368,6 +368,9 @@ defmodule Otera.Methods do
       "splitlines" ->
         {:keywords, [{"keepends", false}]}
 
+      "maketrans" ->
+        {:clinic, ["x", {"y", :none}, {"z", :none}]}
+
       "expandtabs" ->
         {:keywords, [{"tabsize", 8}]}
 
@@ -628,6 +631,50 @@ defmodule Otera.Methods do
     do: all_chars?(string, &(Unicode.alpha?(&1) or Unicode.numeric?(&1)))
 
   defp str_method(string, "isascii", []), do: string =~ ~r/\A[\x00-\x7F]*\z/
+  # str.maketrans makes a table for translate: from a dict, or from two strings of equal length,
+  # and a third string of characters to delete.
+  defp str_method(_string, "maketrans", [%Dict{pairs: pairs}, :none, :none]) do
+    pairs
+    |> Enum.map(fn
+      {<<char::utf8>>, value} ->
+        {char, value}
+
+      {key, value} when is_integer(key) ->
+        {key, value}
+
+      {key, _} when is_binary(key) ->
+        type_error("string keys in translate table must be of length 1")
+
+      {key, _} ->
+        type_error(
+          "keys in translate table must be strings or integers, not #{Value.type_name(key)}"
+        )
+    end)
+    |> Dict.new()
+  end
+
+  defp str_method(_string, "maketrans", [_x, :none, :none]),
+    do: type_error("if you give only one argument to maketrans it must be a dict")
+
+  defp str_method(_string, "maketrans", [x, y, z]) when is_binary(x) and is_binary(y) do
+    if Value.str_length(x) != Value.str_length(y),
+      do:
+        raise(Otera.Error,
+          kind: :value_error,
+          message: "the first two maketrans arguments must have equal length"
+        )
+
+    deleted =
+      if z == :none,
+        do: [],
+        else: Enum.map(String.to_charlist(string_arg(z, "maketrans")), &{&1, nil})
+
+    Dict.new(Enum.zip(String.to_charlist(x), String.to_charlist(y)) ++ deleted)
+  end
+
+  defp str_method(_string, "maketrans", [x, _y, _z]),
+    do: type_error("maketrans() argument 1 must be str, not #{Value.type_name(x)}")
+
   # str.translate looks up each code point in the table: a string, a code point or None.
   defp str_method(string, "translate", [table]) do
     for <<char::utf8 <- string>>, into: "" do
