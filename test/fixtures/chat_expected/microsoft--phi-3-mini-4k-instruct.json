@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<|user|>\nHello! What can you do?<|end|>\n<|assistant|>\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|user|>\nHello! What can you do?<|end|>\n<|endoftext|>"
+ },
+ "system_multiturn": {
+  "output": "<|system|>\nYou are a helpful assistant.<|end|>\n<|user|>\nWhat is 2+2?<|end|>\n<|assistant|>\n2+2 equals 4.<|end|>\n<|user|>\nAnd 3+3?<|end|>\n<|assistant|>\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|user|>\nName a color.<|end|>\n<|assistant|>\nBlue.<|end|>\n<|user|>\nAnother one, please.<|end|>\n<|assistant|>\nGreen.<|end|>\n<|endoftext|>"
+ },
+ "tools_defined": {
+  "output": "<|user|>\nWhat is the weather in Paris?<|end|>\n<|assistant|>\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|system|>\nYou can call tools.<|end|>\n<|user|>\nWhat is the weather in São Paulo?<|end|>\n<|assistant|>\n<|end|>\n<|assistant|>\n"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"NoneType\") to str"
+  }
+ },
+ "continue_final_message": {
+  "output": "<|user|>\nFinish the sentence.<|end|>\n<|assistant|>\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<|system|>\nVocê é um assistente útil. 🙂<|end|>\n<|user|>\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|end|>\n<|assistant|>\n"
+ },
+ "thinking_disabled": {
+  "output": "<|user|>\nGive me a short answer: what is the speed of light?<|end|>\n<|assistant|>\n"
+ },
+ "reasoning_history": {
+  "output": "<|user|>\nHi there.<|end|>\n<|assistant|>\n<think>\nThe user greets me.\n</think>\n\nHello! How can I help?<|end|>\n<|user|>\nWhat is 7 * 6?<|end|>\n<|assistant|>\nIt is 42.<|end|>\n<|user|>\nAnd 6 * 9?<|end|>\n<|assistant|>\n"
+ },
+ "date_string": {
+  "output": "<|system|>\nAnswer briefly.<|end|>\n<|user|>\nWhat day is it?<|end|>\n<|assistant|>\n"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<|user|>\nFirst question.<|end|>\n<|user|>\nSecond question.<|end|>\n<|assistant|>\n"
+ },
+ "documents": {
+  "output": "<|user|>\nWhat is the capital of France?<|end|>\n<|assistant|>\n"
+ },
+ "reasoning_effort": {
+  "output": "<|system|>\nYou are terse.<|end|>\n<|user|>\nExplain recursion in one line.<|end|>\n<|assistant|>\n"
+ }
+}

@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Hello! What can you do?<｜Assistant｜></think>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Hello! What can you do?"
+ },
+ "system_multiturn": {
+  "output": "<｜begin▁of▁sentence｜>You are a helpful assistant.<｜User｜>What is 2+2?<｜Assistant｜></think>2+2 equals 4.<｜end▁of▁sentence｜><｜User｜>And 3+3?<｜Assistant｜></think>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Name a color.<｜Assistant｜></think>Blue.<｜end▁of▁sentence｜><｜User｜>Another one, please.<｜Assistant｜></think>Green.<｜end▁of▁sentence｜>"
+ },
+ "tools_defined": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>What is the weather in Paris?<｜Assistant｜></think>"
+ },
+ "tool_call_roundtrip": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"dict\") to str"
+  }
+ },
+ "tool_call_string_arguments": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Define 'serendipity'.<｜Assistant｜></think><｜tool▁calls▁begin｜><｜tool▁call▁begin｜>lookup<｜tool▁sep｜>{\"word\": \"serendipity\"}<｜tool▁call▁end｜><｜tool▁calls▁end｜><｜end▁of▁sentence｜><｜tool▁output▁begin｜>The occurrence of events by chance in a happy way.<｜tool▁output▁end｜>Serendipity means a happy accident.<｜end▁of▁sentence｜><｜User｜>Thanks!<｜Assistant｜></think>"
+ },
+ "continue_final_message": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Finish the sentence.<｜Assistant｜></think>The capital of France is"
+ },
+ "unicode": {
+  "output": "<｜begin▁of▁sentence｜>Você é um assistente útil. 🙂<｜User｜>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <｜Assistant｜></think>"
+ },
+ "thinking_disabled": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Give me a short answer: what is the speed of light?<｜Assistant｜></think>"
+ },
+ "reasoning_history": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Hi there.<｜Assistant｜></think>\n\nHello! How can I help?<｜end▁of▁sentence｜><｜User｜>What is 7 * 6?<｜Assistant｜></think>It is 42.<｜end▁of▁sentence｜><｜User｜>And 6 * 9?<｜Assistant｜></think>"
+ },
+ "date_string": {
+  "output": "<｜begin▁of▁sentence｜>Answer briefly.<｜User｜>What day is it?<｜Assistant｜></think>"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>First question.<｜User｜>Second question.<｜Assistant｜></think>"
+ },
+ "documents": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>What is the capital of France?<｜Assistant｜></think>"
+ },
+ "reasoning_effort": {
+  "output": "<｜begin▁of▁sentence｜>You are terse.<｜User｜>Explain recursion in one line.<｜Assistant｜></think>"
+ }
+}

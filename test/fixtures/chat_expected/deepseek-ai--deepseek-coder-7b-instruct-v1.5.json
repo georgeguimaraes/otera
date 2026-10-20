@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<｜begin▁of▁sentence｜>You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\nHello! What can you do?\n### Response:\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<｜begin▁of▁sentence｜>You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\nHello! What can you do?\n"
+ },
+ "system_multiturn": {
+  "output": "<｜begin▁of▁sentence｜>You are a helpful assistant.### Instruction:\nWhat is 2+2?\n### Response:\n2+2 equals 4.\n<|EOT|>\n### Instruction:\nAnd 3+3?\n### Response:\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<｜begin▁of▁sentence｜>You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\nName a color.\n### Response:\nBlue.\n<|EOT|>\n### Instruction:\nAnother one, please.\n### Response:\nGreen.\n<|EOT|>\n"
+ },
+ "tools_defined": {
+  "output": "<｜begin▁of▁sentence｜>You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\nWhat is the weather in Paris?\n### Response:\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<｜begin▁of▁sentence｜>You can call tools.### Instruction:\nWhat is the weather in São Paulo?\n### Response:\n\n<|EOT|>\n### Response:\n{\"temperature\": 22.5, \"condition\": \"sunny\"}\n<|EOT|>\n### Response:\n"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"NoneType\") to str"
+  }
+ },
+ "continue_final_message": {
+  "output": "<｜begin▁of▁sentence｜>You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\nFinish the sentence.\n### Response:\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<｜begin▁of▁sentence｜>Você é um assistente útil. 🙂### Instruction:\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  \n### Response:\n"
+ },
+ "thinking_disabled": {
+  "output": "<｜begin▁of▁sentence｜>You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\nGive me a short answer: what is the speed of light?\n### Response:\n"
+ },
+ "reasoning_history": {
+  "output": "<｜begin▁of▁sentence｜>You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\nHi there.\n### Response:\n<think>\nThe user greets me.\n</think>\n\nHello! How can I help?\n<|EOT|>\n### Instruction:\nWhat is 7 * 6?\n### Response:\nIt is 42.\n<|EOT|>\n### Instruction:\nAnd 6 * 9?\n### Response:\n"
+ },
+ "date_string": {
+  "output": "<｜begin▁of▁sentence｜>Answer briefly.### Instruction:\nWhat day is it?\n### Response:\n"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<｜begin▁of▁sentence｜>You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\nFirst question.\n### Instruction:\nSecond question.\n### Response:\n"
+ },
+ "documents": {
+  "output": "<｜begin▁of▁sentence｜>You are an AI programming assistant, utilizing the Deepseek Coder model, developed by Deepseek Company, and you only answer questions related to computer science. For politically sensitive questions, security and privacy issues, and other non-computer science questions, you will refuse to answer\n### Instruction:\nWhat is the capital of France?\n### Response:\n"
+ },
+ "reasoning_effort": {
+  "output": "<｜begin▁of▁sentence｜>You are terse.### Instruction:\nExplain recursion in one line.\n### Response:\n"
+ }
+}

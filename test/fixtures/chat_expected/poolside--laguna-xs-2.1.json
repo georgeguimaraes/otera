@@ -1,0 +1,53 @@
+{
+ "user": {
+  "output": "〈|EOS|〉<system>You are a helpful, conversationally-fluent assistant made by Poolside. You are here to be helpful to users through natural language conversations.</system>\n<user>Hello! What can you do?</user>\n<assistant></think>"
+ },
+ "user_without_generation_prompt": {
+  "output": "〈|EOS|〉<system>You are a helpful, conversationally-fluent assistant made by Poolside. You are here to be helpful to users through natural language conversations.</system>\n<user>Hello! What can you do?</user>\n"
+ },
+ "system_multiturn": {
+  "output": "〈|EOS|〉<system>You are a helpful assistant.</system>\n<user>What is 2+2?</user>\n<assistant></think>2+2 equals 4.</assistant>\n<user>And 3+3?</user>\n<assistant></think>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "〈|EOS|〉<system>You are a helpful, conversationally-fluent assistant made by Poolside. You are here to be helpful to users through natural language conversations.</system>\n<user>Name a color.</user>\n<assistant></think>Blue.</assistant>\n<user>Another one, please.</user>\n<assistant></think>Green.</assistant>\n"
+ },
+ "tools_defined": {
+  "output": "〈|EOS|〉<system>You are a helpful, conversationally-fluent assistant made by Poolside. You are here to be helpful to users through natural language conversations.\n\n### Tools\n\nYou may call functions to assist with the user query.\nAll available function signatures are listed below:\n<available_tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}}\n{\"type\": \"function\", \"function\": {\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}}\n</available_tools></system>\n<user>What is the weather in Paris?</user>\n<assistant></think>"
+ },
+ "tool_call_roundtrip": {
+  "output": "〈|EOS|〉<system>You can call tools.\n\n### Tools\n\nYou may call functions to assist with the user query.\nAll available function signatures are listed below:\n<available_tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}}\n</available_tools></system>\n<user>What is the weather in São Paulo?</user>\n<assistant></think><tool_call>get_weather<arg_key>location</arg_key><arg_value>São Paulo</arg_value><arg_key>unit</arg_key><arg_value>celsius</arg_value><arg_key>days</arg_key><arg_value>2</arg_value></tool_call></assistant>\n<tool_response>{\"temperature\": 22.5, \"condition\": \"sunny\"}</tool_response>\n<assistant></think>"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'str object' has no attribute 'items'"
+  }
+ },
+ "continue_final_message": {
+  "output": "〈|EOS|〉<system>You are a helpful, conversationally-fluent assistant made by Poolside. You are here to be helpful to users through natural language conversations.</system>\n<user>Finish the sentence.</user>\n<assistant></think>The capital of France is"
+ },
+ "unicode": {
+  "output": "〈|EOS|〉<system>Você é um assistente útil. 🙂</system>\n<user>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  </user>\n<assistant></think>"
+ },
+ "thinking_disabled": {
+  "output": "〈|EOS|〉<system>You are a helpful, conversationally-fluent assistant made by Poolside. You are here to be helpful to users through natural language conversations.</system>\n<user>Give me a short answer: what is the speed of light?</user>\n<assistant></think>"
+ },
+ "reasoning_history": {
+  "output": "〈|EOS|〉<system>You are a helpful, conversationally-fluent assistant made by Poolside. You are here to be helpful to users through natural language conversations.</system>\n<user>Hi there.</user>\n<assistant></think><think>\nThe user greets me.\n</think>\n\nHello! How can I help?</assistant>\n<user>What is 7 * 6?</user>\n<assistant></think>It is 42.</assistant>\n<user>And 6 * 9?</user>\n<assistant></think>"
+ },
+ "date_string": {
+  "output": "〈|EOS|〉<system>Answer briefly.</system>\n<user>What day is it?</user>\n<assistant></think>"
+ },
+ "content_parts": {
+  "output": "〈|EOS|〉<system>You are a helpful, conversationally-fluent assistant made by Poolside. You are here to be helpful to users through natural language conversations.</system>\n<user></user>\n<assistant></think>"
+ },
+ "roles_not_alternating": {
+  "output": "〈|EOS|〉<system>You are a helpful, conversationally-fluent assistant made by Poolside. You are here to be helpful to users through natural language conversations.</system>\n<user>First question.</user>\n<user>Second question.</user>\n<assistant></think>"
+ },
+ "documents": {
+  "output": "〈|EOS|〉<system>You are a helpful, conversationally-fluent assistant made by Poolside. You are here to be helpful to users through natural language conversations.</system>\n<user>What is the capital of France?</user>\n<assistant></think>"
+ },
+ "reasoning_effort": {
+  "output": "〈|EOS|〉<system>You are terse.</system>\n<user>Explain recursion in one line.</user>\n<assistant></think>"
+ }
+}

@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<|endoftext|><|user|>\nHello! What can you do?\n<|assistant|>\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|endoftext|><|user|>\nHello! What can you do?\n"
+ },
+ "system_multiturn": {
+  "output": "<|endoftext|><|system|>\nYou are a helpful assistant.\n<|user|>\nWhat is 2+2?\n<|assistant|>\n2+2 equals 4.<|endoftext|>\n<|user|>\nAnd 3+3?\n<|assistant|>\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|endoftext|><|user|>\nName a color.\n<|assistant|>\nBlue.<|endoftext|>\n<|user|>\nAnother one, please.\n<|assistant|>\nGreen.<|endoftext|>"
+ },
+ "tools_defined": {
+  "output": "<|endoftext|><|user|>\nWhat is the weather in Paris?\n<|assistant|>\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|endoftext|><|system|>\nYou can call tools.\n<|user|>\nWhat is the weather in São Paulo?\n<|assistant|>\n<|endoftext|>\n<|assistant|>\n"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"NoneType\") to str"
+  }
+ },
+ "continue_final_message": {
+  "output": "<|endoftext|><|user|>\nFinish the sentence.\n<|assistant|>\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<|endoftext|><|system|>\nVocê é um assistente útil. 🙂\n<|user|>\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  \n<|assistant|>\n"
+ },
+ "thinking_disabled": {
+  "output": "<|endoftext|><|user|>\nGive me a short answer: what is the speed of light?\n<|assistant|>\n"
+ },
+ "reasoning_history": {
+  "output": "<|endoftext|><|user|>\nHi there.\n<|assistant|>\n<think>\nThe user greets me.\n</think>\n\nHello! How can I help?<|endoftext|>\n<|user|>\nWhat is 7 * 6?\n<|assistant|>\nIt is 42.<|endoftext|>\n<|user|>\nAnd 6 * 9?\n<|assistant|>\n"
+ },
+ "date_string": {
+  "output": "<|endoftext|><|system|>\nAnswer briefly.\n<|user|>\nWhat day is it?\n<|assistant|>\n"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<|endoftext|><|user|>\nFirst question.\n<|user|>\nSecond question.\n<|assistant|>\n"
+ },
+ "documents": {
+  "output": "<|endoftext|><|user|>\nWhat is the capital of France?\n<|assistant|>\n"
+ },
+ "reasoning_effort": {
+  "output": "<|endoftext|><|system|>\nYou are terse.\n<|user|>\nExplain recursion in one line.\n<|assistant|>\n"
+ }
+}

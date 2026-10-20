@@ -1,0 +1,53 @@
+{
+ "user": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nHello! What can you do?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nHello! What can you do?<|im_end|>\n"
+ },
+ "system_multiturn": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n2+2 equals 4.<|im_end|>\n<|im_start|>user\nAnd 3+3?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nName a color.<|im_end|>\n<|im_start|>assistant\nBlue.<|im_end|>\n<|im_start|>user\nAnother one, please.<|im_end|>\n<|im_start|>assistant\nGreen.<|im_end|>\n"
+ },
+ "tools_defined": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nWhat is the weather in Paris?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|im_start|>system\nYou can call tools.<|im_end|>\n<|im_start|>user\nWhat is the weather in São Paulo?<|im_end|>\n<|im_start|>assistant\n<|im_end|>\n<|im_start|>tool\n{\"temperature\": 22.5, \"condition\": \"sunny\"}<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "continue_final_message": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nFinish the sentence.<|im_end|>\n<|im_start|>assistant\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<|im_start|>system\nVocê é um assistente útil. 🙂<|im_end|>\n<|im_start|>user\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|im_end|>\n<|im_start|>assistant\n"
+ },
+ "thinking_disabled": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nGive me a short answer: what is the speed of light?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "reasoning_history": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nHi there.<|im_end|>\n<|im_start|>assistant\n<think>\nThe user greets me.\n</think>\n\nHello! How can I help?<|im_end|>\n<|im_start|>user\nWhat is 7 * 6?<|im_end|>\n<|im_start|>assistant\nIt is 42.<|im_end|>\n<|im_start|>user\nAnd 6 * 9?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "date_string": {
+  "output": "<|im_start|>system\nAnswer briefly.<|im_end|>\n<|im_start|>user\nWhat day is it?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "content_parts": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nWhat is in this image?<|vision_start|><|image_pad|><|vision_end|><|im_end|>\n<|im_start|>assistant\n"
+ },
+ "roles_not_alternating": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nFirst question.<|im_end|>\n<|im_start|>user\nSecond question.<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "documents": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nWhat is the capital of France?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "reasoning_effort": {
+  "output": "<|im_start|>system\nYou are terse.<|im_end|>\n<|im_start|>user\nExplain recursion in one line.<|im_end|>\n<|im_start|>assistant\n"
+ }
+}

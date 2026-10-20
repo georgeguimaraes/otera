@@ -1,0 +1,53 @@
+{
+ "user": {
+  "output": "<s><|im_start|>user\nHello! What can you do?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<s><|im_start|>user\nHello! What can you do?<|im_end|>\n"
+ },
+ "system_multiturn": {
+  "output": "<s><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n2+2 equals 4.<|im_end|>\n<|im_start|>user\nAnd 3+3?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<s><|im_start|>user\nName a color.<|im_end|>\n<|im_start|>assistant\nBlue.<|im_end|>\n<|im_start|>user\nAnother one, please.<|im_end|>\n<|im_start|>assistant\nGreen.<|im_end|>\n"
+ },
+ "tools_defined": {
+  "output": "<s><|im_start|>system\n# Tools\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}}\n{\"type\": \"function\", \"function\": {\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}}\n</tools>\n\nTool usage guidelines:\n- You may call zero or more functions. If no function calls are needed, just answer normally and do not include any <function ... </function>.\n- When calling a function, return an XML object within <function ... </function> using:\n<function name=\"function-name\"><param name=\"param-name\">param-value</param></function>\n- param-value may be multi-line. If it contains <, & or newline characters, wrap it in a CDATA block: <param name=\"param-name\"><![CDATA[...multi-line value...]]></param><|im_end|>\n<|im_start|>user\nWhat is the weather in Paris?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<s><|im_start|>system\nYou can call tools.\n\n# Tools\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}}\n</tools>\n\nTool usage guidelines:\n- You may call zero or more functions. If no function calls are needed, just answer normally and do not include any <function ... </function>.\n- When calling a function, return an XML object within <function ... </function> using:\n<function name=\"function-name\"><param name=\"param-name\">param-value</param></function>\n- param-value may be multi-line. If it contains <, & or newline characters, wrap it in a CDATA block: <param name=\"param-name\"><![CDATA[...multi-line value...]]></param><|im_end|>\n<|im_start|>user\nWhat is the weather in São Paulo?<|im_end|>\n<|im_start|>assistant\n<function name=\"get_weather\"><param name=\"location\">São Paulo</param><param name=\"unit\">celsius</param><param name=\"days\">2</param></function><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"temperature\": 22.5, \"condition\": \"sunny\"}\n</tool_response><|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'str object' has no attribute 'items'"
+  }
+ },
+ "continue_final_message": {
+  "output": "<s><|im_start|>user\nFinish the sentence.<|im_end|>\n<|im_start|>assistant\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<s><|im_start|>system\nVocê é um assistente útil. 🙂<|im_end|>\n<|im_start|>user\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|im_end|>\n<|im_start|>assistant\n"
+ },
+ "thinking_disabled": {
+  "output": "<s><|im_start|>user\nGive me a short answer: what is the speed of light?<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+ },
+ "reasoning_history": {
+  "output": "<s><|im_start|>user\nHi there.<|im_end|>\n<|im_start|>assistant\nHello! How can I help?<|im_end|>\n<|im_start|>user\nWhat is 7 * 6?<|im_end|>\n<|im_start|>assistant\nIt is 42.<|im_end|>\n<|im_start|>user\nAnd 6 * 9?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "date_string": {
+  "output": "<s><|im_start|>system\nAnswer briefly.<|im_end|>\n<|im_start|>user\nWhat day is it?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "content_parts": {
+  "output": "<s><|im_start|>user\n<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "roles_not_alternating": {
+  "output": "<s><|im_start|>user\nFirst question.<|im_end|>\n<|im_start|>user\nSecond question.<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "documents": {
+  "output": "<s><|im_start|>user\nWhat is the capital of France?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "reasoning_effort": {
+  "output": "<s><|im_start|>system\nYou are terse.<|im_end|>\n<|im_start|>user\nExplain recursion in one line.<|im_end|>\n<|im_start|>assistant\n"
+ }
+}

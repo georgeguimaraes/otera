@@ -1,0 +1,53 @@
+{
+ "user": {
+  "output": "[gMASK]<sop><|user|>Hello! What can you do?<|assistant|><think>"
+ },
+ "user_without_generation_prompt": {
+  "output": "[gMASK]<sop><|user|>Hello! What can you do?"
+ },
+ "system_multiturn": {
+  "output": "[gMASK]<sop><|system|>You are a helpful assistant.<|user|>What is 2+2?<|assistant|></think>2+2 equals 4.<|user|>And 3+3?<|assistant|><think>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "[gMASK]<sop><|user|>Name a color.<|assistant|></think>Blue.<|user|>Another one, please.<|assistant|><think></think>Green."
+ },
+ "tools_defined": {
+  "output": "[gMASK]<sop><|system|>\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}\n{\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}\n</tools>\n\nFor each function call, output the function name and arguments within the following XML format:\n<tool_call>{function-name}<arg_key>{arg-key-1}</arg_key><arg_value>{arg-value-1}</arg_value><arg_key>{arg-key-2}</arg_key><arg_value>{arg-value-2}</arg_value>...</tool_call><|user|>What is the weather in Paris?<|assistant|><think>"
+ },
+ "tool_call_roundtrip": {
+  "output": "[gMASK]<sop><|system|>\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}\n</tools>\n\nFor each function call, output the function name and arguments within the following XML format:\n<tool_call>{function-name}<arg_key>{arg-key-1}</arg_key><arg_value>{arg-value-1}</arg_value><arg_key>{arg-key-2}</arg_key><arg_value>{arg-value-2}</arg_value>...</tool_call><|system|>You can call tools.<|user|>What is the weather in São Paulo?<|assistant|><think></think><tool_call>get_weather<arg_key>location</arg_key><arg_value>São Paulo</arg_value><arg_key>unit</arg_key><arg_value>celsius</arg_value><arg_key>days</arg_key><arg_value>2</arg_value></tool_call><|observation|><tool_response>{\"temperature\": 22.5, \"condition\": \"sunny\"}</tool_response><|assistant|><think>"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'str object' has no attribute 'items'"
+  }
+ },
+ "continue_final_message": {
+  "output": "[gMASK]<sop><|user|>Finish the sentence.<|assistant|><think></think>The capital of France is"
+ },
+ "unicode": {
+  "output": "[gMASK]<sop><|system|>Você é um assistente útil. 🙂<|user|>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|assistant|><think>"
+ },
+ "thinking_disabled": {
+  "output": "[gMASK]<sop><|user|>Give me a short answer: what is the speed of light?<|assistant|></think>"
+ },
+ "reasoning_history": {
+  "output": "[gMASK]<sop><|user|>Hi there.<|assistant|></think>Hello! How can I help?<|user|>What is 7 * 6?<|assistant|></think>It is 42.<|user|>And 6 * 9?<|assistant|><think>"
+ },
+ "date_string": {
+  "output": "[gMASK]<sop><|system|>Answer briefly.<|user|>What day is it?<|assistant|><think>"
+ },
+ "content_parts": {
+  "output": "[gMASK]<sop><|user|>What is in this image?<|assistant|><think>"
+ },
+ "roles_not_alternating": {
+  "output": "[gMASK]<sop><|user|>First question.<|user|>Second question.<|assistant|><think>"
+ },
+ "documents": {
+  "output": "[gMASK]<sop><|user|>What is the capital of France?<|assistant|><think>"
+ },
+ "reasoning_effort": {
+  "output": "[gMASK]<sop><|system|>You are terse.<|user|>Explain recursion in one line.<|assistant|><think>"
+ }
+}

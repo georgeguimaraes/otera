@@ -1,0 +1,50 @@
+{
+ "user": {
+  "output": "<|im_start|>user\nHello! What can you do?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|im_start|>user\nHello! What can you do?<|im_end|>\n"
+ },
+ "system_multiturn": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n2+2 equals 4.<|im_end|>\n<|im_start|>user\nAnd 3+3?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|im_start|>user\nName a color.<|im_end|>\n<|im_start|>assistant\nBlue.<|im_end|>\n<|im_start|>user\nAnother one, please.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nGreen.<|im_end|>\n"
+ },
+ "tools_defined": {
+  "output": "<|im_start|>system\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}}\n{\"type\": \"function\", \"function\": {\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}}\n</tools>\n\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-json-object>}\n</tool_call><|im_end|>\n<|im_start|>user\nWhat is the weather in Paris?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|im_start|>system\nYou can call tools.\n\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}}\n</tools>\n\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-json-object>}\n</tool_call><|im_end|>\n<|im_start|>user\nWhat is the weather in São Paulo?<|im_end|>\n<|im_start|>assistant\n<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"São Paulo\", \"unit\": \"celsius\", \"days\": 2}}\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"temperature\": 22.5, \"condition\": \"sunny\"}\n</tool_response><|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_string_arguments": {
+  "output": "<|im_start|>system\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"lookup\", \"description\": \"Look up a word.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"word\": {\"type\": \"string\"}}, \"required\": [\"word\"]}}}\n</tools>\n\nFor each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-json-object>}\n</tool_call><|im_end|>\n<|im_start|>user\nDefine 'serendipity'.<|im_end|>\n<|im_start|>assistant\n<tool_call>\n{\"name\": \"lookup\", \"arguments\": {\"word\": \"serendipity\"}}\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\nThe occurrence of events by chance in a happy way.\n</tool_response><|im_end|>\n<|im_start|>assistant\nSerendipity means a happy accident.<|im_end|>\n<|im_start|>user\nThanks!<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "continue_final_message": {
+  "output": "<|im_start|>user\nFinish the sentence.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<|im_start|>system\nVocê é um assistente útil. 🙂<|im_end|>\n<|im_start|>user\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|im_end|>\n<|im_start|>assistant\n"
+ },
+ "thinking_disabled": {
+  "output": "<|im_start|>user\nGive me a short answer: what is the speed of light?<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
+ },
+ "reasoning_history": {
+  "output": "<|im_start|>user\nHi there.<|im_end|>\n<|im_start|>assistant\nHello! How can I help?<|im_end|>\n<|im_start|>user\nWhat is 7 * 6?<|im_end|>\n<|im_start|>assistant\nIt is 42.<|im_end|>\n<|im_start|>user\nAnd 6 * 9?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "date_string": {
+  "output": "<|im_start|>system\nAnswer briefly.<|im_end|>\n<|im_start|>user\nWhat day is it?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "content_parts": {
+  "output": "<|im_start|>user\n<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "roles_not_alternating": {
+  "output": "<|im_start|>user\nFirst question.<|im_end|>\n<|im_start|>user\nSecond question.<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "documents": {
+  "output": "<|im_start|>user\nWhat is the capital of France?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "reasoning_effort": {
+  "output": "<|im_start|>system\nYou are terse.<|im_end|>\n<|im_start|>user\nExplain recursion in one line.<|im_end|>\n<|im_start|>assistant\n"
+ }
+}

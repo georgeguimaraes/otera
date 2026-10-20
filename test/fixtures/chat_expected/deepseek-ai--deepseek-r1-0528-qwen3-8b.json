@@ -1,0 +1,59 @@
+{
+ "user": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Hello! What can you do?<｜Assistant｜>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Hello! What can you do?<｜Assistant｜>"
+ },
+ "system_multiturn": {
+  "output": "<｜begin▁of▁sentence｜>You are a helpful assistant.<｜User｜>What is 2+2?<｜Assistant｜>2+2 equals 4.<｜end▁of▁sentence｜><｜User｜>And 3+3?<｜Assistant｜>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Name a color.<｜Assistant｜>Blue.<｜end▁of▁sentence｜><｜User｜>Another one, please.<｜Assistant｜>Green.<｜end▁of▁sentence｜>"
+ },
+ "tools_defined": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>What is the weather in Paris?<｜Assistant｜>"
+ },
+ "tool_call_roundtrip": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"dict\") to str"
+  }
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "argument of type 'NoneType' is not iterable"
+  }
+ },
+ "continue_final_message": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Finish the sentence.<｜Assistant｜>The capital of France is"
+ },
+ "unicode": {
+  "output": "<｜begin▁of▁sentence｜>Você é um assistente útil. 🙂<｜User｜>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <｜Assistant｜>"
+ },
+ "thinking_disabled": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Give me a short answer: what is the speed of light?<｜Assistant｜>"
+ },
+ "reasoning_history": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Hi there.<｜Assistant｜>\n\nHello! How can I help?<｜end▁of▁sentence｜><｜User｜>What is 7 * 6?<｜Assistant｜>It is 42.<｜end▁of▁sentence｜><｜User｜>And 6 * 9?<｜Assistant｜>"
+ },
+ "date_string": {
+  "output": "<｜begin▁of▁sentence｜>Answer briefly.<｜User｜>What day is it?<｜Assistant｜>"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>First question.<｜Assistant｜><｜User｜>Second question.<｜Assistant｜>"
+ },
+ "documents": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>What is the capital of France?<｜Assistant｜>"
+ },
+ "reasoning_effort": {
+  "output": "<｜begin▁of▁sentence｜>You are terse.<｜User｜>Explain recursion in one line.<｜Assistant｜>"
+ }
+}

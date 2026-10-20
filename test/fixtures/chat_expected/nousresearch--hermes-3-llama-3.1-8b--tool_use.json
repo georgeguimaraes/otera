@@ -1,0 +1,89 @@
+{
+ "user": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "user_without_generation_prompt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "system_multiturn": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "multiturn_ending_with_assistant": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "tools_defined": {
+  "output": "<|begin_of_text|><|im_start|>system\nYou are a function calling AI model. You are provided with function signatures within <tools></tools> XML tags. You may call one or more functions to assist with the user query. Don't make assumptions about what values to plug into functions. Here are the available tools: <tools> {\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"get_weather(location: str, unit: str, days: int) - Get the current weather in a city. Use <celsius> & 'metric' units > 0.\n\n    Args:\n        location(str): The city, for example \"Paris, France\"        unit(str):         days(int): Number of days\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}\n{\"type\": \"function\", \"function\": {\"name\": \"search\", \"description\": \"search(query: str, max_results: float) - Search the web.\n\n    Args:\n        query(str):         max_results(float): \", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}} </tools>Use the following pydantic model json schema for each tool call you will make: {\"properties\": {\"name\": {\"title\": \"Name\", \"type\": \"string\"}, \"arguments\": {\"title\": \"Arguments\", \"type\": \"object\"}}, \"required\": [\"name\", \"arguments\"], \"title\": \"FunctionCall\", \"type\": \"object\"}}\nFor each function call return a json object with function name and arguments within <tool_call></tool_call> XML tags as follows:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-dict>}\n</tool_call><|im_end|>\n<|im_start|>user\nWhat is the weather in Paris?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|begin_of_text|><|im_start|>system\nYou are a function calling AI model. You are provided with function signatures within <tools></tools> XML tags. You may call one or more functions to assist with the user query. Don't make assumptions about what values to plug into functions. Here are the available tools: <tools> {\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"get_weather(location: str, unit: str) - Get the current weather in a city.\n\n    Args:\n        location(str): The city name        unit(str): \", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}} </tools>Use the following pydantic model json schema for each tool call you will make: {\"properties\": {\"name\": {\"title\": \"Name\", \"type\": \"string\"}, \"arguments\": {\"title\": \"Arguments\", \"type\": \"object\"}}, \"required\": [\"name\", \"arguments\"], \"title\": \"FunctionCall\", \"type\": \"object\"}}\nFor each function call return a json object with function name and arguments within <tool_call></tool_call> XML tags as follows:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-dict>}\n</tool_call><|im_end|>\n<|im_start|>system\nYou can call tools.<|im_end|>\n<|im_start|>user\nWhat is the weather in São Paulo?<|im_end|>\n<|im_start|>assistant\n<tool_call>\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"São Paulo\", \"unit\": \"celsius\", \"days\": 2}}\n</tool_call><|im_end|>\n<|im_start|>tool\n<tool_response>\n{\"temperature\": 22.5, \"condition\": \"sunny\"}\n</tool_response><|im_end|><|im_start|>assistant\n"
+ },
+ "tool_call_string_arguments": {
+  "output": "<|begin_of_text|><|im_start|>system\nYou are a function calling AI model. You are provided with function signatures within <tools></tools> XML tags. You may call one or more functions to assist with the user query. Don't make assumptions about what values to plug into functions. Here are the available tools: <tools> {\"type\": \"function\", \"function\": {\"name\": \"lookup\", \"description\": \"lookup(word: str) - Look up a word.\n\n    Args:\n        word(str): \", \"parameters\": {\"type\": \"object\", \"properties\": {\"word\": {\"type\": \"string\"}}, \"required\": [\"word\"]}} </tools>Use the following pydantic model json schema for each tool call you will make: {\"properties\": {\"name\": {\"title\": \"Name\", \"type\": \"string\"}, \"arguments\": {\"title\": \"Arguments\", \"type\": \"object\"}}, \"required\": [\"name\", \"arguments\"], \"title\": \"FunctionCall\", \"type\": \"object\"}}\nFor each function call return a json object with function name and arguments within <tool_call></tool_call> XML tags as follows:\n<tool_call>\n{\"name\": <function-name>, \"arguments\": <args-dict>}\n</tool_call><|im_end|>\n<|im_start|>user\nDefine 'serendipity'.<|im_end|>\n<|im_start|>assistant\n<tool_call>\n{\"name\": \"lookup\", \"arguments\": {\"word\": \"serendipity\"}}\n</tool_call><|im_end|>\n<|im_start|>tool\n<tool_response>\nThe occurrence of events by chance in a happy way.\n</tool_response>\n<|im_end|><|im_start|>assistant\nSerendipity means a happy accident.<|im_end|>\n<|im_start|>user\nThanks!<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "continue_final_message": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "unicode": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "thinking_disabled": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "reasoning_history": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "date_string": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "roles_not_alternating": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "documents": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "reasoning_effort": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ }
+}

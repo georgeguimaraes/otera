@@ -1,0 +1,62 @@
+{
+ "user": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|USER_TOKEN|>Hello! What can you do?<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|USER_TOKEN|>Hello! What can you do?<|END_OF_TURN_TOKEN|>"
+ },
+ "system_multiturn": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|SYSTEM_TOKEN|>You are a helpful assistant.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|USER_TOKEN|>What is 2+2?<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>2+2 equals 4.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|USER_TOKEN|>And 3+3?<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|USER_TOKEN|>Name a color.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>Blue.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|USER_TOKEN|>Another one, please.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>Green.<|END_OF_TURN_TOKEN|>"
+ },
+ "tools_defined": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|USER_TOKEN|>What is the weather in Paris?<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>"
+ },
+ "tool_call_roundtrip": {
+  "error": {
+   "type": "TemplateError",
+   "message": "Conversation roles must alternate user/assistant/user/assistant/..."
+  }
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'None' has no attribute 'strip'"
+  }
+ },
+ "continue_final_message": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|USER_TOKEN|>Finish the sentence.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>The capital of France is"
+ },
+ "unicode": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|SYSTEM_TOKEN|>Você é um assistente útil. 🙂<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|USER_TOKEN|>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>"
+ },
+ "thinking_disabled": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|USER_TOKEN|>Give me a short answer: what is the speed of light?<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>"
+ },
+ "reasoning_history": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|USER_TOKEN|>Hi there.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|><think>\nThe user greets me.\n</think>\n\nHello! How can I help?<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|USER_TOKEN|>What is 7 * 6?<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>It is 42.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|USER_TOKEN|>And 6 * 9?<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>"
+ },
+ "date_string": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|SYSTEM_TOKEN|>Answer briefly.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|USER_TOKEN|>What day is it?<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>"
+ },
+ "content_parts": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'list object' has no attribute 'strip'"
+  }
+ },
+ "roles_not_alternating": {
+  "error": {
+   "type": "TemplateError",
+   "message": "Conversation roles must alternate user/assistant/user/assistant/..."
+  }
+ },
+ "documents": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|USER_TOKEN|>What is the capital of France?<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>"
+ },
+ "reasoning_effort": {
+  "output": "<BOS_TOKEN><|START_OF_TURN_TOKEN|><|SYSTEM_TOKEN|>You are terse.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|USER_TOKEN|>Explain recursion in one line.<|END_OF_TURN_TOKEN|><|START_OF_TURN_TOKEN|><|CHATBOT_TOKEN|>"
+ }
+}

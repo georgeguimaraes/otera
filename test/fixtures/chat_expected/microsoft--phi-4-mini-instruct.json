@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<|user|>Hello! What can you do?<|end|><|assistant|>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|user|>Hello! What can you do?<|end|><|endoftext|>"
+ },
+ "system_multiturn": {
+  "output": "<|system|>You are a helpful assistant.<|end|><|user|>What is 2+2?<|end|><|assistant|>2+2 equals 4.<|end|><|user|>And 3+3?<|end|><|assistant|>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|user|>Name a color.<|end|><|assistant|>Blue.<|end|><|user|>Another one, please.<|end|><|assistant|>Green.<|end|><|endoftext|>"
+ },
+ "tools_defined": {
+  "output": "<|user|>What is the weather in Paris?<|end|><|assistant|>"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|system|>You can call tools.<|end|><|user|>What is the weather in São Paulo?<|end|><|assistant|><|end|><|tool|>{\"temperature\": 22.5, \"condition\": \"sunny\"}<|end|><|assistant|>"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"NoneType\") to str"
+  }
+ },
+ "continue_final_message": {
+  "output": "<|user|>Finish the sentence.<|end|><|assistant|>The capital of France is"
+ },
+ "unicode": {
+  "output": "<|system|>Você é um assistente útil. 🙂<|end|><|user|>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|end|><|assistant|>"
+ },
+ "thinking_disabled": {
+  "output": "<|user|>Give me a short answer: what is the speed of light?<|end|><|assistant|>"
+ },
+ "reasoning_history": {
+  "output": "<|user|>Hi there.<|end|><|assistant|><think>\nThe user greets me.\n</think>\n\nHello! How can I help?<|end|><|user|>What is 7 * 6?<|end|><|assistant|>It is 42.<|end|><|user|>And 6 * 9?<|end|><|assistant|>"
+ },
+ "date_string": {
+  "output": "<|system|>Answer briefly.<|end|><|user|>What day is it?<|end|><|assistant|>"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<|user|>First question.<|end|><|user|>Second question.<|end|><|assistant|>"
+ },
+ "documents": {
+  "output": "<|user|>What is the capital of France?<|end|><|assistant|>"
+ },
+ "reasoning_effort": {
+  "output": "<|system|>You are terse.<|end|><|user|>Explain recursion in one line.<|end|><|assistant|>"
+ }
+}

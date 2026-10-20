@@ -1,0 +1,50 @@
+{
+ "user": {
+  "output": "<|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>Hello! What can you do?<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>Hello! What can you do?<|im_end|>"
+ },
+ "system_multiturn": {
+  "output": "<|im_system|>system<|im_middle|>You are a helpful assistant.<|im_end|><|im_user|>user<|im_middle|>What is 2+2?<|im_end|><|im_assistant|>assistant<|im_middle|><think></think>2+2 equals 4.<|im_end|><|im_user|>user<|im_middle|>And 3+3?<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>Name a color.<|im_end|><|im_assistant|>assistant<|im_middle|><think></think>Blue.<|im_end|><|im_user|>user<|im_middle|>Another one, please.<|im_end|><|im_assistant|>assistant<|im_middle|><think></think>Green.<|im_end|>"
+ },
+ "tools_defined": {
+  "output": "<|im_system|>tool_declare<|im_middle|>[{\"type\":\"function\",\"function\":{\"name\":\"get_weather\",\"description\":\"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\",\"parameters\":{\"type\":\"object\",\"properties\":{\"location\":{\"type\":\"string\",\"description\":\"The city, for example \\\"Paris, France\\\"\"},\"unit\":{\"type\":\"string\",\"enum\":[\"celsius\",\"fahrenheit\"]},\"days\":{\"type\":\"integer\",\"description\":\"Number of days\",\"default\":1}},\"required\":[\"location\"]}}},{\"type\":\"function\",\"function\":{\"name\":\"search\",\"description\":\"Search the web.\",\"parameters\":{\"type\":\"object\",\"properties\":{\"query\":{\"type\":\"string\"},\"max_results\":{\"type\":\"number\",\"minimum\":0.5}},\"required\":[\"query\",\"max_results\"]}}}]<|im_end|><|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>What is the weather in Paris?<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|im_system|>tool_declare<|im_middle|>[{\"type\":\"function\",\"function\":{\"name\":\"get_weather\",\"description\":\"Get the current weather in a city.\",\"parameters\":{\"type\":\"object\",\"properties\":{\"location\":{\"type\":\"string\",\"description\":\"The city name\"},\"unit\":{\"type\":\"string\",\"enum\":[\"celsius\",\"fahrenheit\"]}},\"required\":[\"location\"]}}}]<|im_end|><|im_system|>system<|im_middle|>You can call tools.<|im_end|><|im_user|>user<|im_middle|>What is the weather in São Paulo?<|im_end|><|im_assistant|>assistant<|im_middle|><think></think><|tool_calls_section_begin|><|tool_call_begin|>a1B2c3D4e<|tool_call_argument_begin|>{\"location\": \"São Paulo\", \"unit\": \"celsius\", \"days\": 2}<|tool_call_end|><|tool_calls_section_end|><|im_end|><|im_system|>get_weather<|im_middle|>## Return of a1B2c3D4e\n{\"temperature\": 22.5, \"condition\": \"sunny\"}<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "tool_call_string_arguments": {
+  "output": "<|im_system|>tool_declare<|im_middle|>[{\"type\":\"function\",\"function\":{\"name\":\"lookup\",\"description\":\"Look up a word.\",\"parameters\":{\"type\":\"object\",\"properties\":{\"word\":{\"type\":\"string\"}},\"required\":[\"word\"]}}}]<|im_end|><|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>Define 'serendipity'.<|im_end|><|im_assistant|>assistant<|im_middle|><think></think><|tool_calls_section_begin|><|tool_call_begin|>Zz9Yy8Xx7<|tool_call_argument_begin|>{\"word\": \"serendipity\"}<|tool_call_end|><|tool_calls_section_end|><|im_end|><|im_system|>tool<|im_middle|>## Return of Zz9Yy8Xx7\nThe occurrence of events by chance in a happy way.<|im_end|><|im_assistant|>assistant<|im_middle|><think></think>Serendipity means a happy accident.<|im_end|><|im_user|>user<|im_middle|>Thanks!<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "continue_final_message": {
+  "output": "<|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>Finish the sentence.<|im_end|><|im_assistant|>assistant<|im_middle|><think></think>The capital of France is"
+ },
+ "unicode": {
+  "output": "<|im_system|>system<|im_middle|>Você é um assistente útil. 🙂<|im_end|><|im_user|>user<|im_middle|>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "thinking_disabled": {
+  "output": "<|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>Give me a short answer: what is the speed of light?<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "reasoning_history": {
+  "output": "<|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>Hi there.<|im_end|><|im_assistant|>assistant<|im_middle|><think></think><think>\nThe user greets me.\n</think>\n\nHello! How can I help?<|im_end|><|im_user|>user<|im_middle|>What is 7 * 6?<|im_end|><|im_assistant|>assistant<|im_middle|><think></think>It is 42.<|im_end|><|im_user|>user<|im_middle|>And 6 * 9?<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "date_string": {
+  "output": "<|im_system|>system<|im_middle|>Answer briefly.<|im_end|><|im_user|>user<|im_middle|>What day is it?<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "content_parts": {
+  "output": "<|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>What is in this image?<|media_start|>image<|media_content|><|media_pad|><|media_end|>\n<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "roles_not_alternating": {
+  "output": "<|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>First question.<|im_end|><|im_user|>user<|im_middle|>Second question.<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "documents": {
+  "output": "<|im_system|>system<|im_middle|>You are Kimi, an AI assistant created by Moonshot AI.<|im_end|><|im_user|>user<|im_middle|>What is the capital of France?<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ },
+ "reasoning_effort": {
+  "output": "<|im_system|>system<|im_middle|>You are terse.<|im_end|><|im_user|>user<|im_middle|>Explain recursion in one line.<|im_end|><|im_assistant|>assistant<|im_middle|><think>"
+ }
+}

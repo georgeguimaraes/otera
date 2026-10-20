@@ -1,0 +1,59 @@
+{
+ "user": {
+  "output": "<bos><start_of_turn>user\nHello! What can you do?<end_of_turn>\n<start_of_turn>model\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<bos><start_of_turn>user\nHello! What can you do?<end_of_turn>\n"
+ },
+ "system_multiturn": {
+  "output": "<bos><start_of_turn>user\nYou are a helpful assistant.\n\nWhat is 2+2?<end_of_turn>\n<start_of_turn>model\n2+2 equals 4.<end_of_turn>\n<start_of_turn>user\nAnd 3+3?<end_of_turn>\n<start_of_turn>model\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<bos><start_of_turn>user\nName a color.<end_of_turn>\n<start_of_turn>model\nBlue.<end_of_turn>\n<start_of_turn>user\nAnother one, please.<end_of_turn>\n<start_of_turn>model\nGreen.<end_of_turn>\n"
+ },
+ "tools_defined": {
+  "output": "<bos><start_of_turn>user\nWhat is the weather in Paris?<end_of_turn>\n<start_of_turn>model\n"
+ },
+ "tool_call_roundtrip": {
+  "error": {
+   "type": "TemplateError",
+   "message": "Conversation roles must alternate user/assistant/user/assistant/..."
+  }
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TemplateError",
+   "message": "Invalid content type"
+  }
+ },
+ "continue_final_message": {
+  "output": "<bos><start_of_turn>user\nFinish the sentence.<end_of_turn>\n<start_of_turn>model\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<bos><start_of_turn>user\nVocê é um assistente útil. 🙂\n\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.<end_of_turn>\n<start_of_turn>model\n"
+ },
+ "thinking_disabled": {
+  "output": "<bos><start_of_turn>user\nGive me a short answer: what is the speed of light?<end_of_turn>\n<start_of_turn>model\n"
+ },
+ "reasoning_history": {
+  "output": "<bos><start_of_turn>user\nHi there.<end_of_turn>\n<start_of_turn>model\n<think>\nThe user greets me.\n</think>\n\nHello! How can I help?<end_of_turn>\n<start_of_turn>user\nWhat is 7 * 6?<end_of_turn>\n<start_of_turn>model\nIt is 42.<end_of_turn>\n<start_of_turn>user\nAnd 6 * 9?<end_of_turn>\n<start_of_turn>model\n"
+ },
+ "date_string": {
+  "output": "<bos><start_of_turn>user\nAnswer briefly.\n\nWhat day is it?<end_of_turn>\n<start_of_turn>model\n"
+ },
+ "content_parts": {
+  "output": "<bos><start_of_turn>user\nWhat is in this image?<start_of_image><end_of_turn>\n<start_of_turn>model\n"
+ },
+ "roles_not_alternating": {
+  "error": {
+   "type": "TemplateError",
+   "message": "Conversation roles must alternate user/assistant/user/assistant/..."
+  }
+ },
+ "documents": {
+  "output": "<bos><start_of_turn>user\nWhat is the capital of France?<end_of_turn>\n<start_of_turn>model\n"
+ },
+ "reasoning_effort": {
+  "output": "<bos><start_of_turn>user\nYou are terse.\n\nExplain recursion in one line.<end_of_turn>\n<start_of_turn>model\n"
+ }
+}

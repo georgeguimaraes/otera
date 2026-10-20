@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<|user|>\nHello! What can you do?</s>\n<|assistant|>\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|user|>\nHello! What can you do?</s>\n"
+ },
+ "system_multiturn": {
+  "output": "<|system|>\nYou are a helpful assistant.</s>\n<|user|>\nWhat is 2+2?</s>\n<|assistant|>\n2+2 equals 4.</s>\n<|user|>\nAnd 3+3?</s>\n<|assistant|>\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|user|>\nName a color.</s>\n<|assistant|>\nBlue.</s>\n<|user|>\nAnother one, please.</s>\n<|assistant|>\nGreen.</s>\n"
+ },
+ "tools_defined": {
+  "output": "<|user|>\nWhat is the weather in Paris?</s>\n<|assistant|>\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|system|>\nYou can call tools.</s>\n<|user|>\nWhat is the weather in São Paulo?</s>\n<|assistant|>\n</s>\n<|assistant|>\n"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"NoneType\") to str"
+  }
+ },
+ "continue_final_message": {
+  "output": "<|user|>\nFinish the sentence.</s>\n<|assistant|>\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<|system|>\nVocê é um assistente útil. 🙂</s>\n<|user|>\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  </s>\n<|assistant|>\n"
+ },
+ "thinking_disabled": {
+  "output": "<|user|>\nGive me a short answer: what is the speed of light?</s>\n<|assistant|>\n"
+ },
+ "reasoning_history": {
+  "output": "<|user|>\nHi there.</s>\n<|assistant|>\n<think>\nThe user greets me.\n</think>\n\nHello! How can I help?</s>\n<|user|>\nWhat is 7 * 6?</s>\n<|assistant|>\nIt is 42.</s>\n<|user|>\nAnd 6 * 9?</s>\n<|assistant|>\n"
+ },
+ "date_string": {
+  "output": "<|system|>\nAnswer briefly.</s>\n<|user|>\nWhat day is it?</s>\n<|assistant|>\n"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<|user|>\nFirst question.</s>\n<|user|>\nSecond question.</s>\n<|assistant|>\n"
+ },
+ "documents": {
+  "output": "<|user|>\nWhat is the capital of France?</s>\n<|assistant|>\n"
+ },
+ "reasoning_effort": {
+  "output": "<|system|>\nYou are terse.</s>\n<|user|>\nExplain recursion in one line.</s>\n<|assistant|>\n"
+ }
+}

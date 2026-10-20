@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>Hello! What can you do?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>Hello! What can you do?<｜end▁of▁sentence｜>"
+ },
+ "system_multiturn": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.\n\nYou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>What is 2+2?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think>2+2 equals 4.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>And 3+3?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>Name a color.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think>Blue.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>Another one, please.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think>Green.<｜end▁of▁sentence｜>"
+ },
+ "tools_defined": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.## Tools\nYou have access to the following functions:\n<tools>\n{\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}\n{\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}\n</tools><｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>What is the weather in Paris?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+ },
+ "tool_call_roundtrip": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.## Tools\nYou have access to the following functions:\n<tools>\n{\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}\n</tools>\n\nYou can call tools.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>What is the weather in São Paulo?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think><tool_call>get_weather<arg_key>location</arg_key><arg_value>São Paulo</arg_value><arg_key>unit</arg_key><arg_value>celsius</arg_value><arg_key>days</arg_key><arg_value>2</arg_value></tool_call><｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Tool|><tool_response>{\"temperature\": 22.5, \"condition\": \"sunny\"}</tool_response><｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TemplateError",
+   "message": "tool_call.function.arguments must be a dictionary; normalize JSON strings before apply_chat_template"
+  }
+ },
+ "continue_final_message": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>Finish the sentence.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think>The capital of France is"
+ },
+ "unicode": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.\n\nVocê é um assistente útil. 🙂<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+ },
+ "thinking_disabled": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>Give me a short answer: what is the speed of light?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think>"
+ },
+ "reasoning_history": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>Hi there.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|></think><think>\nThe user greets me.\n</think>\n\nHello! How can I help?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>What is 7 * 6?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>Seven times six is forty-two.</think>It is 42.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>And 6 * 9?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+ },
+ "date_string": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.\n\nAnswer briefly.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>What day is it?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TemplateError",
+   "message": "Unsupported user content block type: image"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>First question.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>Second question.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+ },
+ "documents": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>What is the capital of France?<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+ },
+ "reasoning_effort": {
+  "output": "<｜start▁of▁sentence｜><|System|>\nyou are a helpful assistant.\n\nYou are terse.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|User|>Explain recursion in one line.<｜end▁of▁sentence｜><｜start▁of▁sentence｜><|Bot|><think>"
+ }
+}

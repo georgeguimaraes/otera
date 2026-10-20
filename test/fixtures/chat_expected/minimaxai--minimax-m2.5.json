@@ -1,0 +1,53 @@
+{
+ "user": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.5 and is built by MiniMax.[e~[\n]~b]user\nHello! What can you do?[e~[\n]~b]ai\n<think>\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.5 and is built by MiniMax.[e~[\n]~b]user\nHello! What can you do?[e~[\n"
+ },
+ "system_multiturn": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant.[e~[\n]~b]user\nWhat is 2+2?[e~[\n]~b]ai\n2+2 equals 4.[e~[\n]~b]user\nAnd 3+3?[e~[\n]~b]ai\n<think>\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.5 and is built by MiniMax.[e~[\n]~b]user\nName a color.[e~[\n]~b]ai\nBlue.[e~[\n]~b]user\nAnother one, please.[e~[\n]~b]ai\nGreen.[e~[\n"
+ },
+ "tools_defined": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.5 and is built by MiniMax.\n\n# Tools\nYou may call one or more tools to assist with the user query.\nHere are the tools available in JSONSchema format:\n\n<tools>\n<tool>{\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}</tool>\n<tool>{\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}</tool>\n</tools>\n\nWhen making tool calls, use XML format to invoke tools and pass parameters:\n\n<minimax:tool_call>\n<invoke name=\"tool-name-1\">\n<parameter name=\"param-key-1\">param-value-1</parameter>\n<parameter name=\"param-key-2\">param-value-2</parameter>\n...\n</invoke>\n</minimax:tool_call>[e~[\n]~b]user\nWhat is the weather in Paris?[e~[\n]~b]ai\n<think>\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "]~!b[]~b]system\nYou can call tools.\n\n# Tools\nYou may call one or more tools to assist with the user query.\nHere are the tools available in JSONSchema format:\n\n<tools>\n<tool>{\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}</tool>\n</tools>\n\nWhen making tool calls, use XML format to invoke tools and pass parameters:\n\n<minimax:tool_call>\n<invoke name=\"tool-name-1\">\n<parameter name=\"param-key-1\">param-value-1</parameter>\n<parameter name=\"param-key-2\">param-value-2</parameter>\n...\n</invoke>\n</minimax:tool_call>[e~[\n]~b]user\nWhat is the weather in São Paulo?[e~[\n]~b]ai\n\n<minimax:tool_call>\n<invoke name=\"get_weather\">\n<parameter name=\"location\">São Paulo</parameter>\n<parameter name=\"unit\">celsius</parameter>\n<parameter name=\"days\">2</parameter>\n</invoke>\n</minimax:tool_call>[e~[\n]~b]tool\n<response>{\"temperature\": 22.5, \"condition\": \"sunny\"}</response>[e~[\n]~b]ai\n<think>\n"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'str object' has no attribute 'items'"
+  }
+ },
+ "continue_final_message": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.5 and is built by MiniMax.[e~[\n]~b]user\nFinish the sentence.[e~[\n]~b]ai\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "]~!b[]~b]system\nVocê é um assistente útil. 🙂[e~[\n]~b]user\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  [e~[\n]~b]ai\n<think>\n"
+ },
+ "thinking_disabled": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.5 and is built by MiniMax.[e~[\n]~b]user\nGive me a short answer: what is the speed of light?[e~[\n]~b]ai\n<think>\n"
+ },
+ "reasoning_history": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.5 and is built by MiniMax.[e~[\n]~b]user\nHi there.[e~[\n]~b]ai\nHello! How can I help?[e~[\n]~b]user\nWhat is 7 * 6?[e~[\n]~b]ai\nIt is 42.[e~[\n]~b]user\nAnd 6 * 9?[e~[\n]~b]ai\n<think>\n"
+ },
+ "date_string": {
+  "output": "]~!b[]~b]system\nAnswer briefly.[e~[\n]~b]user\nWhat day is it?[e~[\n]~b]ai\n<think>\n"
+ },
+ "content_parts": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.5 and is built by MiniMax.[e~[\n]~b]user\nWhat is in this image?[e~[\n]~b]ai\n<think>\n"
+ },
+ "roles_not_alternating": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.5 and is built by MiniMax.[e~[\n]~b]user\nFirst question.[e~[\n]~b]user\nSecond question.[e~[\n]~b]ai\n<think>\n"
+ },
+ "documents": {
+  "output": "]~!b[]~b]system\nYou are a helpful assistant. Your name is MiniMax-M2.5 and is built by MiniMax.[e~[\n]~b]user\nWhat is the capital of France?[e~[\n]~b]ai\n<think>\n"
+ },
+ "reasoning_effort": {
+  "output": "]~!b[]~b]system\nYou are terse.[e~[\n]~b]user\nExplain recursion in one line.[e~[\n]~b]ai\n<think>\n"
+ }
+}

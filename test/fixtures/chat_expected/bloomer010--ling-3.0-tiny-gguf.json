@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<role>SYSTEM</role>detailed thinking on<|role_end|><role>HUMAN</role>Hello! What can you do?<|role_end|><role>ASSISTANT</role>\n<think>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<role>SYSTEM</role>detailed thinking on<|role_end|><role>HUMAN</role>Hello! What can you do?<|role_end|>"
+ },
+ "system_multiturn": {
+  "output": "<role>SYSTEM</role>You are a helpful assistant.\ndetailed thinking on<|role_end|><role>HUMAN</role>What is 2+2?<|role_end|><role>ASSISTANT</role>\n<think></think>2+2 equals 4.<|role_end|><role>HUMAN</role>And 3+3?<|role_end|><role>ASSISTANT</role>\n<think>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<role>SYSTEM</role>detailed thinking on<|role_end|><role>HUMAN</role>Name a color.<|role_end|><role>ASSISTANT</role>\n<think></think>Blue.<|role_end|><role>HUMAN</role>Another one, please.<|role_end|><role>ASSISTANT</role>\n<think></think>Green.<|role_end|>"
+ },
+ "tools_defined": {
+  "output": "<role>SYSTEM</role># Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}}\n{\"type\": \"function\", \"function\": {\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}}\n</tools>\n\nIf none of the functions can be used, point it out. If the given question lacks the parameters required by the function, also point it out.\nIf you need to use a function, for each function call, output the function name and arguments within the following XML format:\n<tool_call>{function-name}\n<arg_key>{arg-key-1}</arg_key>\n<arg_value>{arg-value-1}</arg_value>\n<arg_key>{arg-key-2}</arg_key>\n<arg_value>{arg-value-2}</arg_value>\n...\n</tool_call>\ndetailed thinking on<|role_end|><role>HUMAN</role>What is the weather in Paris?<|role_end|><role>ASSISTANT</role>\n<think>"
+ },
+ "tool_call_roundtrip": {
+  "output": "<role>SYSTEM</role>You can call tools.\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}}\n</tools>\n\nIf none of the functions can be used, point it out. If the given question lacks the parameters required by the function, also point it out.\nIf you need to use a function, for each function call, output the function name and arguments within the following XML format:\n<tool_call>{function-name}\n<arg_key>{arg-key-1}</arg_key>\n<arg_value>{arg-value-1}</arg_value>\n<arg_key>{arg-key-2}</arg_key>\n<arg_value>{arg-value-2}</arg_value>\n...\n</tool_call>\ndetailed thinking on<|role_end|><role>HUMAN</role>What is the weather in São Paulo?<|role_end|><role>ASSISTANT</role>\n<think></think><tool_call>get_weather\n<arg_key>location</arg_key>\n<arg_value>São Paulo</arg_value><arg_key>unit</arg_key>\n<arg_value>celsius</arg_value><arg_key>days</arg_key>\n<arg_value>2</arg_value>\n</tool_call><|role_end|><role>OBSERVATION</role>\n<tool_response>\n{\"temperature\": 22.5, \"condition\": \"sunny\"}\n</tool_response><|role_end|><role>ASSISTANT</role>\n<think>"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'str object' has no attribute 'items'"
+  }
+ },
+ "continue_final_message": {
+  "output": "<role>SYSTEM</role>detailed thinking on<|role_end|><role>HUMAN</role>Finish the sentence.<|role_end|><role>ASSISTANT</role>\n<think></think>The capital of France is"
+ },
+ "unicode": {
+  "output": "<role>SYSTEM</role>Você é um assistente útil. 🙂\ndetailed thinking on<|role_end|><role>HUMAN</role>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|role_end|><role>ASSISTANT</role>\n<think>"
+ },
+ "thinking_disabled": {
+  "output": "<role>SYSTEM</role>detailed thinking off<|role_end|><role>HUMAN</role>Give me a short answer: what is the speed of light?<|role_end|><role>ASSISTANT</role>\n<think></think>"
+ },
+ "reasoning_history": {
+  "output": "<role>SYSTEM</role>detailed thinking on<|role_end|><role>HUMAN</role>Hi there.<|role_end|><role>ASSISTANT</role>\n<think>The user greets me.</think>Hello! How can I help?<|role_end|><role>HUMAN</role>What is 7 * 6?<|role_end|><role>ASSISTANT</role>\n<think>Seven times six is forty-two.</think>It is 42.<|role_end|><role>HUMAN</role>And 6 * 9?<|role_end|><role>ASSISTANT</role>\n<think>"
+ },
+ "date_string": {
+  "output": "<role>SYSTEM</role>Answer briefly.\ndetailed thinking on<|role_end|><role>HUMAN</role>What day is it?<|role_end|><role>ASSISTANT</role>\n<think>"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<role>SYSTEM</role>detailed thinking on<|role_end|><role>HUMAN</role>First question.<|role_end|><role>HUMAN</role>Second question.<|role_end|><role>ASSISTANT</role>\n<think>"
+ },
+ "documents": {
+  "output": "<role>SYSTEM</role>detailed thinking on<|role_end|><role>HUMAN</role>What is the capital of France?<|role_end|><role>ASSISTANT</role>\n<think>"
+ },
+ "reasoning_effort": {
+  "output": "<role>SYSTEM</role>You are terse.\ndetailed thinking off<|role_end|><role>HUMAN</role>Explain recursion in one line.<|role_end|><role>ASSISTANT</role>\n<think></think>"
+ }
+}

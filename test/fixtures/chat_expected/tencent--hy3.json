@@ -1,0 +1,53 @@
+{
+ "user": {
+  "output": "<｜hy_begin_of_sentence:opensource｜><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>Hello! What can you do?<｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<｜hy_begin_of_sentence:opensource｜><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>Hello! What can you do?"
+ },
+ "system_multiturn": {
+  "output": "<｜hy_begin_of_sentence:opensource｜>You are a helpful assistant.<｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>What is 2+2?<｜hy_Assistant:opensource｜><think:opensource></think:opensource>2+2 equals 4.<｜hy_eos:opensource｜><｜hy_User:opensource｜>And 3+3?<｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<｜hy_begin_of_sentence:opensource｜><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>Name a color.<｜hy_Assistant:opensource｜><think:opensource></think:opensource>Blue.<｜hy_eos:opensource｜><｜hy_User:opensource｜>Another one, please.<｜hy_Assistant:opensource｜><think:opensource></think:opensource>Green."
+ },
+ "tools_defined": {
+  "output": "<｜hy_begin_of_sentence:opensource｜># Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}}\n{\"type\": \"function\", \"function\": {\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}}\n</tools>\n\nFor function call returns, you should first print <tool_calls:opensource>\nFor each function call, you should return object like:\n<tool_call:opensource>{function-name}<tool_sep:opensource>\n<arg_key:opensource>{arg-key-1}</arg_key:opensource>\n<arg_value:opensource>{arg-value-1}</arg_value:opensource>\n<arg_key:opensource>{arg-key-2}</arg_key:opensource>\n<arg_value:opensource>{arg-value-2}</arg_value:opensource>\n...\n</tool_call:opensource>\nAt the end of function call returns, you should print </tool_calls:opensource><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>What is the weather in Paris?<｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "tool_call_roundtrip": {
+  "output": "<｜hy_begin_of_sentence:opensource｜>You can call tools.\n\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}}\n</tools>\n\nFor function call returns, you should first print <tool_calls:opensource>\nFor each function call, you should return object like:\n<tool_call:opensource>{function-name}<tool_sep:opensource>\n<arg_key:opensource>{arg-key-1}</arg_key:opensource>\n<arg_value:opensource>{arg-value-1}</arg_value:opensource>\n<arg_key:opensource>{arg-key-2}</arg_key:opensource>\n<arg_value:opensource>{arg-value-2}</arg_value:opensource>\n...\n</tool_call:opensource>\nAt the end of function call returns, you should print </tool_calls:opensource><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>What is the weather in São Paulo?<｜hy_Assistant:opensource｜><think:opensource></think:opensource><tool_calls:opensource>\n<tool_call:opensource>get_weather<tool_sep:opensource>\n<arg_key:opensource>location</arg_key:opensource>\n<arg_value:opensource>São Paulo</arg_value:opensource>\n<arg_key:opensource>unit</arg_key:opensource>\n<arg_value:opensource>celsius</arg_value:opensource>\n<arg_key:opensource>days</arg_key:opensource>\n<arg_value:opensource>2</arg_value:opensource>\n</tool_call:opensource>\n</tool_calls:opensource><｜hy_eos:opensource｜><tool_responses:opensource>\n<tool_response:opensource>\n{\"temperature\": 22.5, \"condition\": \"sunny\"}\n</tool_response:opensource>\n</tool_responses:opensource><｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'str object' has no attribute 'items'"
+  }
+ },
+ "continue_final_message": {
+  "output": "<｜hy_begin_of_sentence:opensource｜><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>Finish the sentence.<｜hy_Assistant:opensource｜><think:opensource></think:opensource>The capital of France is"
+ },
+ "unicode": {
+  "output": "<｜hy_begin_of_sentence:opensource｜>Você é um assistente útil. 🙂<｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "thinking_disabled": {
+  "output": "<｜hy_begin_of_sentence:opensource｜><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>Give me a short answer: what is the speed of light?<｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "reasoning_history": {
+  "output": "<｜hy_begin_of_sentence:opensource｜><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>Hi there.<｜hy_Assistant:opensource｜><think:opensource></think:opensource><think>\nThe user greets me.\n</think>\n\nHello! How can I help?<｜hy_eos:opensource｜><｜hy_User:opensource｜>What is 7 * 6?<｜hy_Assistant:opensource｜><think:opensource></think:opensource>It is 42.<｜hy_eos:opensource｜><｜hy_User:opensource｜>And 6 * 9?<｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "date_string": {
+  "output": "<｜hy_begin_of_sentence:opensource｜>Answer briefly.<｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>What day is it?<｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "content_parts": {
+  "output": "<｜hy_begin_of_sentence:opensource｜><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>What is in this image?<｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "roles_not_alternating": {
+  "output": "<｜hy_begin_of_sentence:opensource｜><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>First question.<｜hy_User:opensource｜>Second question.<｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "documents": {
+  "output": "<｜hy_begin_of_sentence:opensource｜><｜reasoning_mode:opensource｜>reasoning_effort:no_think<｜hy_User:opensource｜>What is the capital of France?<｜hy_Assistant:opensource｜><think:opensource></think:opensource>"
+ },
+ "reasoning_effort": {
+  "output": "<｜hy_begin_of_sentence:opensource｜>You are terse.<｜reasoning_mode:opensource｜>reasoning_effort:low<｜hy_User:opensource｜>Explain recursion in one line.<｜hy_Assistant:opensource｜><think:opensource>"
+ }
+}

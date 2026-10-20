@@ -1,0 +1,213 @@
+[
+  {
+    "name": "user",
+    "messages": [{"role": "user", "content": "Hello! What can you do?"}],
+    "add_generation_prompt": true
+  },
+  {
+    "name": "user_without_generation_prompt",
+    "messages": [{"role": "user", "content": "Hello! What can you do?"}],
+    "add_generation_prompt": false
+  },
+  {
+    "name": "system_multiturn",
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": "What is 2+2?"},
+      {"role": "assistant", "content": "2+2 equals 4."},
+      {"role": "user", "content": "And 3+3?"}
+    ],
+    "add_generation_prompt": true
+  },
+  {
+    "name": "multiturn_ending_with_assistant",
+    "messages": [
+      {"role": "user", "content": "Name a color."},
+      {"role": "assistant", "content": "Blue."},
+      {"role": "user", "content": "Another one, please."},
+      {"role": "assistant", "content": "Green."}
+    ],
+    "add_generation_prompt": false
+  },
+  {
+    "name": "tools_defined",
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_weather",
+          "description": "Get the current weather in a city. Use <celsius> & 'metric' units > 0.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {"type": "string", "description": "The city, for example \"Paris, France\""},
+              "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]},
+              "days": {"type": "integer", "description": "Number of days", "default": 1}
+            },
+            "required": ["location"]
+          }
+        }
+      },
+      {
+        "type": "function",
+        "function": {
+          "name": "search",
+          "description": "Search the web.",
+          "parameters": {
+            "type": "object",
+            "properties": {"query": {"type": "string"}, "max_results": {"type": "number", "minimum": 0.5}},
+            "required": ["query", "max_results"]
+          }
+        }
+      }
+    ],
+    "messages": [{"role": "user", "content": "What is the weather in Paris?"}],
+    "add_generation_prompt": true
+  },
+  {
+    "name": "tool_call_roundtrip",
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "get_weather",
+          "description": "Get the current weather in a city.",
+          "parameters": {
+            "type": "object",
+            "properties": {
+              "location": {"type": "string", "description": "The city name"},
+              "unit": {"type": "string", "enum": ["celsius", "fahrenheit"]}
+            },
+            "required": ["location"]
+          }
+        }
+      }
+    ],
+    "messages": [
+      {"role": "system", "content": "You can call tools."},
+      {"role": "user", "content": "What is the weather in São Paulo?"},
+      {
+        "role": "assistant",
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "a1B2c3D4e",
+            "type": "function",
+            "function": {"name": "get_weather", "arguments": {"location": "São Paulo", "unit": "celsius", "days": 2}}
+          }
+        ]
+      },
+      {"role": "tool", "tool_call_id": "a1B2c3D4e", "name": "get_weather", "content": "{\"temperature\": 22.5, \"condition\": \"sunny\"}"}
+    ],
+    "add_generation_prompt": true
+  },
+  {
+    "name": "tool_call_string_arguments",
+    "tools": [
+      {
+        "type": "function",
+        "function": {
+          "name": "lookup",
+          "description": "Look up a word.",
+          "parameters": {"type": "object", "properties": {"word": {"type": "string"}}, "required": ["word"]}
+        }
+      }
+    ],
+    "messages": [
+      {"role": "user", "content": "Define 'serendipity'."},
+      {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {"id": "Zz9Yy8Xx7", "type": "function", "function": {"name": "lookup", "arguments": "{\"word\": \"serendipity\"}"}}
+        ]
+      },
+      {"role": "tool", "tool_call_id": "Zz9Yy8Xx7", "content": "The occurrence of events by chance in a happy way."},
+      {"role": "assistant", "content": "Serendipity means a happy accident."},
+      {"role": "user", "content": "Thanks!"}
+    ],
+    "add_generation_prompt": true
+  },
+  {
+    "name": "continue_final_message",
+    "messages": [
+      {"role": "user", "content": "Finish the sentence."},
+      {"role": "assistant", "content": "The capital of France is"}
+    ],
+    "add_generation_prompt": false,
+    "continue_final_message": true
+  },
+  {
+    "name": "unicode",
+    "messages": [
+      {"role": "system", "content": "Você é um assistente útil. 🙂"},
+      {"role": "user", "content": "日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  "}
+    ],
+    "add_generation_prompt": true
+  },
+  {
+    "name": "thinking_disabled",
+    "messages": [{"role": "user", "content": "Give me a short answer: what is the speed of light?"}],
+    "add_generation_prompt": true,
+    "variables": {"enable_thinking": false}
+  },
+  {
+    "name": "reasoning_history",
+    "messages": [
+      {"role": "user", "content": "Hi there."},
+      {"role": "assistant", "content": "<think>\nThe user greets me.\n</think>\n\nHello! How can I help?"},
+      {"role": "user", "content": "What is 7 * 6?"},
+      {"role": "assistant", "content": "It is 42.", "reasoning_content": "Seven times six is forty-two."},
+      {"role": "user", "content": "And 6 * 9?"}
+    ],
+    "add_generation_prompt": true
+  },
+  {
+    "name": "date_string",
+    "messages": [
+      {"role": "system", "content": "Answer briefly."},
+      {"role": "user", "content": "What day is it?"}
+    ],
+    "add_generation_prompt": true,
+    "variables": {"date_string": "26 Jul 2024"}
+  },
+  {
+    "name": "content_parts",
+    "messages": [
+      {
+        "role": "user",
+        "content": [
+          {"type": "text", "text": "What is in this image?"},
+          {"type": "image", "url": "https://example.com/cat.png"}
+        ]
+      }
+    ],
+    "add_generation_prompt": true
+  },
+  {
+    "name": "roles_not_alternating",
+    "messages": [
+      {"role": "user", "content": "First question."},
+      {"role": "user", "content": "Second question."}
+    ],
+    "add_generation_prompt": true
+  },
+  {
+    "name": "documents",
+    "documents": [
+      {"title": "Paris", "text": "Paris is the capital of France."},
+      {"title": "Berlin", "text": "Berlin is the capital of Germany."}
+    ],
+    "messages": [{"role": "user", "content": "What is the capital of France?"}],
+    "add_generation_prompt": true
+  },
+  {
+    "name": "reasoning_effort",
+    "messages": [
+      {"role": "system", "content": "You are terse."},
+      {"role": "user", "content": "Explain recursion in one line."}
+    ],
+    "add_generation_prompt": true,
+    "variables": {"reasoning_effort": "low"}
+  }
+]

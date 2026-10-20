@@ -1,0 +1,98 @@
+{
+ "user": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "user_without_generation_prompt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "system_multiturn": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "multiturn_ending_with_assistant": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "tools_defined": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'dict object' has no attribute 'description'"
+  }
+ },
+ "tool_call_roundtrip": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'dict object' has no attribute 'description'"
+  }
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'dict object' has no attribute 'description'"
+  }
+ },
+ "continue_final_message": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "unicode": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "thinking_disabled": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "reasoning_history": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "date_string": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "roles_not_alternating": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "documents": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ },
+ "reasoning_effort": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable"
+  }
+ }
+}

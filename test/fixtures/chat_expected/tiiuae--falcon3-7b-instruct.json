@@ -1,0 +1,53 @@
+{
+ "user": {
+  "output": "<|user|>\nHello! What can you do?\n<|assistant|>\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|user|>\nHello! What can you do?\n"
+ },
+ "system_multiturn": {
+  "output": "<|system|>\nYou are a helpful assistant.\n<|user|>\nWhat is 2+2?\n<|assistant|>\n2+2 equals 4.<|endoftext|>\n<|user|>\nAnd 3+3?\n<|assistant|>\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|user|>\nName a color.\n<|assistant|>\nBlue.<|endoftext|>\n<|user|>\nAnother one, please.\n<|assistant|>\nGreen.<|endoftext|>"
+ },
+ "tools_defined": {
+  "output": "<|system|>\nYou are a Falcon assistant skilled in function calling. You are helpful, respectful, and concise.\n\n# Tools\n\nYou have access to the following functions. You MUST use them to answer questions when needed. For each function call, you MUST return a JSON object inside <tool_call></tool_call> tags.\n\n<tools>[\n  {\n    \"type\": \"function\",\n    \"function\": {\n      \"name\": \"get_weather\",\n      \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\",\n      \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"location\": {\n            \"type\": \"string\",\n            \"description\": \"The city, for example \\\"Paris, France\\\"\"\n          },\n          \"unit\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"celsius\",\n              \"fahrenheit\"\n            ]\n          },\n          \"days\": {\n            \"type\": \"integer\",\n            \"description\": \"Number of days\",\n            \"default\": 1\n          }\n        },\n        \"required\": [\n          \"location\"\n        ]\n      }\n    }\n  },\n  {\n    \"type\": \"function\",\n    \"function\": {\n      \"name\": \"search\",\n      \"description\": \"Search the web.\",\n      \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"query\": {\n            \"type\": \"string\"\n          },\n          \"max_results\": {\n            \"type\": \"number\",\n            \"minimum\": 0.5\n          }\n        },\n        \"required\": [\n          \"query\",\n          \"max_results\"\n        ]\n      }\n    }\n  }\n]</tools>\n\n# Output Format\n\nYour response MUST follow this format when making function calls:\n<tool_call>\n[\n  {\"name\": \"function_name\", \"arguments\": {\"arg1\": \"value1\", \"arg2\": \"value2\"}},\n  {\"name\": \"another_function\", \"arguments\": {\"arg\": \"value\"}}\n]\n</tool_call>\nIf no function calls are needed, respond normally without the tool_call tags.\n<|user|>\nWhat is the weather in Paris?\n<|assistant|>\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|system|>\nYou can call tools.You are a Falcon assistant skilled in function calling. You are helpful, respectful, and concise.\n\n# Tools\n\nYou have access to the following functions. You MUST use them to answer questions when needed. For each function call, you MUST return a JSON object inside <tool_call></tool_call> tags.\n\n<tools>[\n  {\n    \"type\": \"function\",\n    \"function\": {\n      \"name\": \"get_weather\",\n      \"description\": \"Get the current weather in a city.\",\n      \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"location\": {\n            \"type\": \"string\",\n            \"description\": \"The city name\"\n          },\n          \"unit\": {\n            \"type\": \"string\",\n            \"enum\": [\n              \"celsius\",\n              \"fahrenheit\"\n            ]\n          }\n        },\n        \"required\": [\n          \"location\"\n        ]\n      }\n    }\n  }\n]</tools>\n\n# Output Format\n\nYour response MUST follow this format when making function calls:\n<tool_call>\n[\n  {\"name\": \"function_name\", \"arguments\": {\"arg1\": \"value1\", \"arg2\": \"value2\"}},\n  {\"name\": \"another_function\", \"arguments\": {\"arg\": \"value\"}}\n]\n</tool_call>\nIf no function calls are needed, respond normally without the tool_call tags.\n<|user|>\nWhat is the weather in São Paulo?\n\n<tool_call>\n[\n  {\n    \"id\": \"a1B2c3D4e\",\n    \"type\": \"function\",\n    \"function\": {\n      \"name\": \"get_weather\",\n      \"arguments\": {\n        \"location\": \"São Paulo\",\n        \"unit\": \"celsius\",\n        \"days\": 2\n      }\n    }\n  }\n]\n</tool_call><|endoftext|>\n<|assistant|>\n<tool_response>\n{\"temperature\": 22.5, \"condition\": \"sunny\"}\n</tool_response>\n<|assistant|>\n"
+ },
+ "tool_call_string_arguments": {
+  "output": "<|system|>\nYou are a Falcon assistant skilled in function calling. You are helpful, respectful, and concise.\n\n# Tools\n\nYou have access to the following functions. You MUST use them to answer questions when needed. For each function call, you MUST return a JSON object inside <tool_call></tool_call> tags.\n\n<tools>[\n  {\n    \"type\": \"function\",\n    \"function\": {\n      \"name\": \"lookup\",\n      \"description\": \"Look up a word.\",\n      \"parameters\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"word\": {\n            \"type\": \"string\"\n          }\n        },\n        \"required\": [\n          \"word\"\n        ]\n      }\n    }\n  }\n]</tools>\n\n# Output Format\n\nYour response MUST follow this format when making function calls:\n<tool_call>\n[\n  {\"name\": \"function_name\", \"arguments\": {\"arg1\": \"value1\", \"arg2\": \"value2\"}},\n  {\"name\": \"another_function\", \"arguments\": {\"arg\": \"value\"}}\n]\n</tool_call>\nIf no function calls are needed, respond normally without the tool_call tags.\n<|user|>\nDefine 'serendipity'.\n\n<tool_call>\n[\n  {\n    \"id\": \"Zz9Yy8Xx7\",\n    \"type\": \"function\",\n    \"function\": {\n      \"name\": \"lookup\",\n      \"arguments\": \"{\\\"word\\\": \\\"serendipity\\\"}\"\n    }\n  }\n]\n</tool_call><|endoftext|>\n<|assistant|>\n<tool_response>\nThe occurrence of events by chance in a happy way.\n</tool_response>\n<|assistant|>\nSerendipity means a happy accident.<|endoftext|>\n<|user|>\nThanks!\n<|assistant|>\n"
+ },
+ "continue_final_message": {
+  "output": "<|user|>\nFinish the sentence.\n<|assistant|>\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<|system|>\nVocê é um assistente útil. 🙂\n<|user|>\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  \n<|assistant|>\n"
+ },
+ "thinking_disabled": {
+  "output": "<|user|>\nGive me a short answer: what is the speed of light?\n<|assistant|>\n"
+ },
+ "reasoning_history": {
+  "output": "<|user|>\nHi there.\n<|assistant|>\n<think>\nThe user greets me.\n</think>\n\nHello! How can I help?<|endoftext|>\n<|user|>\nWhat is 7 * 6?\n<|assistant|>\nIt is 42.<|endoftext|>\n<|user|>\nAnd 6 * 9?\n<|assistant|>\n"
+ },
+ "date_string": {
+  "output": "<|system|>\nAnswer briefly.\n<|user|>\nWhat day is it?\n<|assistant|>\n"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<|user|>\nFirst question.\n<|user|>\nSecond question.\n<|assistant|>\n"
+ },
+ "documents": {
+  "output": "<|user|>\nWhat is the capital of France?\n<|assistant|>\n"
+ },
+ "reasoning_effort": {
+  "output": "<|system|>\nYou are terse.\n<|user|>\nExplain recursion in one line.\n<|assistant|>\n"
+ }
+}

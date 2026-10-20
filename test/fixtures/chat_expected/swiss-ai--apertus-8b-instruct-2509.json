@@ -1,0 +1,62 @@
+{
+ "user": {
+  "output": "<s><|system_start|>You are Apertus, a helpful assistant created by the SwissAI initiative.\nKnowledge cutoff: 2024-04\nCurrent date: 2025-03-09<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>Hello! What can you do?<|user_end|><|assistant_start|>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<s><|system_start|>You are Apertus, a helpful assistant created by the SwissAI initiative.\nKnowledge cutoff: 2024-04\nCurrent date: 2025-03-09<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>Hello! What can you do?<|user_end|>"
+ },
+ "system_multiturn": {
+  "output": "<s><|system_start|>You are a helpful assistant.<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>What is 2+2?<|user_end|><|assistant_start|>2+2 equals 4.<|assistant_end|><|user_start|>And 3+3?<|user_end|><|assistant_start|>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<s><|system_start|>You are Apertus, a helpful assistant created by the SwissAI initiative.\nKnowledge cutoff: 2024-04\nCurrent date: 2025-03-09<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>Name a color.<|user_end|><|assistant_start|>Blue.<|assistant_end|><|user_start|>Another one, please.<|user_end|><|assistant_start|>Green.<|assistant_end|>"
+ },
+ "tools_defined": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'dict object' has no attribute 'description'"
+  }
+ },
+ "tool_call_roundtrip": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'dict object' has no attribute 'description'"
+  }
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'dict object' has no attribute 'description'"
+  }
+ },
+ "continue_final_message": {
+  "output": "<s><|system_start|>You are Apertus, a helpful assistant created by the SwissAI initiative.\nKnowledge cutoff: 2024-04\nCurrent date: 2025-03-09<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>Finish the sentence.<|user_end|><|assistant_start|>The capital of France is"
+ },
+ "unicode": {
+  "output": "<s><|system_start|>Você é um assistente útil. 🙂<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|user_end|><|assistant_start|>"
+ },
+ "thinking_disabled": {
+  "output": "<s><|system_start|>You are Apertus, a helpful assistant created by the SwissAI initiative.\nKnowledge cutoff: 2024-04\nCurrent date: 2025-03-09<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>Give me a short answer: what is the speed of light?<|user_end|><|assistant_start|>"
+ },
+ "reasoning_history": {
+  "output": "<s><|system_start|>You are Apertus, a helpful assistant created by the SwissAI initiative.\nKnowledge cutoff: 2024-04\nCurrent date: 2025-03-09<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>Hi there.<|user_end|><|assistant_start|><think>\nThe user greets me.\n</think>\n\nHello! How can I help?<|assistant_end|><|user_start|>What is 7 * 6?<|user_end|><|assistant_start|>It is 42.<|assistant_end|><|user_start|>And 6 * 9?<|user_end|><|assistant_start|>"
+ },
+ "date_string": {
+  "output": "<s><|system_start|>Answer briefly.<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>What day is it?<|user_end|><|assistant_start|>"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TemplateError",
+   "message": "Invalid user message: user"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<s><|system_start|>You are Apertus, a helpful assistant created by the SwissAI initiative.\nKnowledge cutoff: 2024-04\nCurrent date: 2025-03-09<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>First question.<|user_end|><|user_start|>Second question.<|user_end|><|assistant_start|>"
+ },
+ "documents": {
+  "output": "<s><|system_start|>You are Apertus, a helpful assistant created by the SwissAI initiative.\nKnowledge cutoff: 2024-04\nCurrent date: 2025-03-09<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>What is the capital of France?<|user_end|><|assistant_start|>"
+ },
+ "reasoning_effort": {
+  "output": "<s><|system_start|>You are terse.<|system_end|><|developer_start|>Deliberation: disabled\nTool Capabilities: disabled<|developer_end|><|user_start|>Explain recursion in one line.<|user_end|><|assistant_start|>"
+ }
+}

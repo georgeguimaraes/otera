@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<s>[INST]Hello! What can you do?[/INST]"
+ },
+ "user_without_generation_prompt": {
+  "output": "<s>[INST]Hello! What can you do?[/INST]"
+ },
+ "system_multiturn": {
+  "output": "<s>[INST]What is 2+2?[/INST]2+2 equals 4.</s>[INST]You are a helpful assistant.\n\nAnd 3+3?[/INST]"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<s>[INST]Name a color.[/INST]Blue.</s>[INST]Another one, please.[/INST]Green.</s>"
+ },
+ "tools_defined": {
+  "output": "<s>[AVAILABLE_TOOLS][{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}}, {\"type\": \"function\", \"function\": {\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}}][/AVAILABLE_TOOLS][INST]What is the weather in Paris?[/INST]"
+ },
+ "tool_call_roundtrip": {
+  "output": "<s>[AVAILABLE_TOOLS][{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}}][/AVAILABLE_TOOLS][INST]What is the weather in São Paulo?[/INST][TOOL_CALLS][{\"name\": \"get_weather\", \"arguments\": {\"location\": \"São Paulo\", \"unit\": \"celsius\", \"days\": 2}, \"id\": \"a1B2c3D4e\"}]</s>[TOOL_RESULTS]{\"content\": {\"temperature\": 22.5, \"condition\": \"sunny\"}, \"call_id\": \"a1B2c3D4e\"}[/TOOL_RESULTS]"
+ },
+ "tool_call_string_arguments": {
+  "output": "<s>[INST]Define 'serendipity'.[/INST][TOOL_CALLS][{\"name\": \"lookup\", \"arguments\": \"{\\\"word\\\": \\\"serendipity\\\"}\", \"id\": \"Zz9Yy8Xx7\"}]</s>[TOOL_RESULTS]{\"content\": The occurrence of events by chance in a happy way., \"call_id\": \"Zz9Yy8Xx7\"}[/TOOL_RESULTS]Serendipity means a happy accident.</s>[AVAILABLE_TOOLS][{\"type\": \"function\", \"function\": {\"name\": \"lookup\", \"description\": \"Look up a word.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"word\": {\"type\": \"string\"}}, \"required\": [\"word\"]}}}][/AVAILABLE_TOOLS][INST]Thanks![/INST]"
+ },
+ "continue_final_message": {
+  "output": "<s>[INST]Finish the sentence.[/INST]The capital of France is"
+ },
+ "unicode": {
+  "output": "<s>[INST]Você é um assistente útil. 🙂\n\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  [/INST]"
+ },
+ "thinking_disabled": {
+  "output": "<s>[INST]Give me a short answer: what is the speed of light?[/INST]"
+ },
+ "reasoning_history": {
+  "output": "<s>[INST]Hi there.[/INST]<think>\nThe user greets me.\n</think>\n\nHello! How can I help?</s>[INST]What is 7 * 6?[/INST]It is 42.</s>[INST]And 6 * 9?[/INST]"
+ },
+ "date_string": {
+  "output": "<s>[INST]Answer briefly.\n\nWhat day is it?[/INST]"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "error": {
+   "type": "TemplateError",
+   "message": "After the optional system message, conversation roles must alternate user/assistant/user/assistant/..."
+  }
+ },
+ "documents": {
+  "output": "<s>[INST]What is the capital of France?[/INST]"
+ },
+ "reasoning_effort": {
+  "output": "<s>[INST]You are terse.\n\nExplain recursion in one line.[/INST]"
+ }
+}

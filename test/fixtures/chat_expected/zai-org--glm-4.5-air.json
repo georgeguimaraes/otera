@@ -1,0 +1,53 @@
+{
+ "user": {
+  "output": "[gMASK]<sop><|user|>\nHello! What can you do?<|assistant|>"
+ },
+ "user_without_generation_prompt": {
+  "output": "[gMASK]<sop><|user|>\nHello! What can you do?"
+ },
+ "system_multiturn": {
+  "output": "[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\nWhat is 2+2?<|assistant|>\n<think></think>\n2+2 equals 4.<|user|>\nAnd 3+3?<|assistant|>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "[gMASK]<sop><|user|>\nName a color.<|assistant|>\n<think></think>\nBlue.<|user|>\nAnother one, please.<|assistant|>\n<think></think>\nGreen."
+ },
+ "tools_defined": {
+  "output": "[gMASK]<sop><|system|>\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}}\n{\"type\": \"function\", \"function\": {\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}}\n</tools>\n\nFor each function call, output the function name and arguments within the following XML format:\n<tool_call>{function-name}\n<arg_key>{arg-key-1}</arg_key>\n<arg_value>{arg-value-1}</arg_value>\n<arg_key>{arg-key-2}</arg_key>\n<arg_value>{arg-value-2}</arg_value>\n...\n</tool_call><|user|>\nWhat is the weather in Paris?<|assistant|>"
+ },
+ "tool_call_roundtrip": {
+  "output": "[gMASK]<sop><|system|>\n# Tools\n\nYou may call one or more functions to assist with the user query.\n\nYou are provided with function signatures within <tools></tools> XML tags:\n<tools>\n{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}}\n</tools>\n\nFor each function call, output the function name and arguments within the following XML format:\n<tool_call>{function-name}\n<arg_key>{arg-key-1}</arg_key>\n<arg_value>{arg-value-1}</arg_value>\n<arg_key>{arg-key-2}</arg_key>\n<arg_value>{arg-value-2}</arg_value>\n...\n</tool_call><|system|>\nYou can call tools.<|user|>\nWhat is the weather in São Paulo?<|assistant|>\n<think></think>\n<tool_call>get_weather\n<arg_key>location</arg_key>\n<arg_value>São Paulo</arg_value>\n<arg_key>unit</arg_key>\n<arg_value>celsius</arg_value>\n<arg_key>days</arg_key>\n<arg_value>2</arg_value>\n</tool_call><|observation|>\n<tool_response>\n{\"temperature\": 22.5, \"condition\": \"sunny\"}\n</tool_response><|assistant|>"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'str object' has no attribute 'items'"
+  }
+ },
+ "continue_final_message": {
+  "output": "[gMASK]<sop><|user|>\nFinish the sentence.<|assistant|>\n<think></think>\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "[gMASK]<sop><|system|>\nVocê é um assistente útil. 🙂<|user|>\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|assistant|>"
+ },
+ "thinking_disabled": {
+  "output": "[gMASK]<sop><|user|>\nGive me a short answer: what is the speed of light?/nothink<|assistant|>\n<think></think>"
+ },
+ "reasoning_history": {
+  "output": "[gMASK]<sop><|user|>\nHi there.<|assistant|>\n<think></think>\nHello! How can I help?<|user|>\nWhat is 7 * 6?<|assistant|>\n<think></think>\nIt is 42.<|user|>\nAnd 6 * 9?<|assistant|>"
+ },
+ "date_string": {
+  "output": "[gMASK]<sop><|system|>\nAnswer briefly.<|user|>\nWhat day is it?<|assistant|>"
+ },
+ "content_parts": {
+  "output": "[gMASK]<sop><|user|>\nWhat is in this image?<|assistant|>"
+ },
+ "roles_not_alternating": {
+  "output": "[gMASK]<sop><|user|>\nFirst question.<|user|>\nSecond question.<|assistant|>"
+ },
+ "documents": {
+  "output": "[gMASK]<sop><|user|>\nWhat is the capital of France?<|assistant|>"
+ },
+ "reasoning_effort": {
+  "output": "[gMASK]<sop><|system|>\nYou are terse.<|user|>\nExplain recursion in one line.<|assistant|>"
+ }
+}

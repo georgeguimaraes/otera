@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<|im_start|>user\nHello! What can you do?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|im_start|>user\nHello! What can you do?<|im_end|>\n"
+ },
+ "system_multiturn": {
+  "output": "<|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n2+2 equals 4.<|im_end|>\n<|im_start|>user\nAnd 3+3?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|im_start|>user\nName a color.<|im_end|>\n<|im_start|>assistant\nBlue.<|im_end|>\n<|im_start|>user\nAnother one, please.<|im_end|>\n<|im_start|>assistant\nGreen.<|im_end|>\n"
+ },
+ "tools_defined": {
+  "output": "<|im_start|>system\nYou are Qwen, a helpful AI assistant that can interact with a computer to solve tasks.\n\n# Tools\n\nYou have access to the following functions:\n\n<tools>\n<function>\n<name>get_weather</name>\n<description>Get the current weather in a city. Use <celsius> & 'metric' units > 0.</description>\n<parameters>\n<parameter>\n<name>location</name>\n<type>string</type>\n<description>The city, for example \"Paris, France\"</description>\n</parameter>\n<parameter>\n<name>unit</name>\n<type>string</type>\n<enum>[\"celsius\", \"fahrenheit\"]</enum>\n</parameter>\n<parameter>\n<name>days</name>\n<type>integer</type>\n<description>Number of days</description>\n<default>1</default>\n</parameter>\n<required>[\"location\"]</required>\n</parameters>\n</function>\n<function>\n<name>search</name>\n<description>Search the web.</description>\n<parameters>\n<parameter>\n<name>query</name>\n<type>string</type>\n</parameter>\n<parameter>\n<name>max_results</name>\n<type>number</type>\n<minimum>0.5</minimum>\n</parameter>\n<required>[\"query\", \"max_results\"]</required>\n</parameters>\n</function>\n</tools>\n\nIf you choose to call a function ONLY reply in the following format with NO suffix:\n\n<tool_call>\n<function=example_function_name>\n<parameter=example_parameter_1>\nvalue_1\n</parameter>\n<parameter=example_parameter_2>\nThis is the value for the second parameter\nthat can span\nmultiple lines\n</parameter>\n</function>\n</tool_call>\n\n<IMPORTANT>\nReminder:\n- Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags\n- Required parameters MUST be specified\n- You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after\n- If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls\n</IMPORTANT><|im_end|>\n<|im_start|>user\nWhat is the weather in Paris?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|im_start|>system\nYou can call tools.\n\n# Tools\n\nYou have access to the following functions:\n\n<tools>\n<function>\n<name>get_weather</name>\n<description>Get the current weather in a city.</description>\n<parameters>\n<parameter>\n<name>location</name>\n<type>string</type>\n<description>The city name</description>\n</parameter>\n<parameter>\n<name>unit</name>\n<type>string</type>\n<enum>[\"celsius\", \"fahrenheit\"]</enum>\n</parameter>\n<required>[\"location\"]</required>\n</parameters>\n</function>\n</tools>\n\nIf you choose to call a function ONLY reply in the following format with NO suffix:\n\n<tool_call>\n<function=example_function_name>\n<parameter=example_parameter_1>\nvalue_1\n</parameter>\n<parameter=example_parameter_2>\nThis is the value for the second parameter\nthat can span\nmultiple lines\n</parameter>\n</function>\n</tool_call>\n\n<IMPORTANT>\nReminder:\n- Function calls MUST follow the specified format: an inner <function=...></function> block must be nested within <tool_call></tool_call> XML tags\n- Required parameters MUST be specified\n- You may provide optional reasoning for your function call in natural language BEFORE the function call, but NOT after\n- If there is no function call available, answer the question like normal with your current knowledge and do not tell the user about function calls\n</IMPORTANT><|im_end|>\n<|im_start|>user\nWhat is the weather in São Paulo?<|im_end|>\n<|im_start|>assistant\n<tool_call>\n<function=get_weather>\n<parameter=location>\nSão Paulo\n</parameter>\n<parameter=unit>\ncelsius\n</parameter>\n<parameter=days>\n2\n</parameter>\n</function>\n</tool_call><|im_end|>\n<|im_start|>user\n<tool_response>\n{\"temperature\": 22.5, \"condition\": \"sunny\"}\n</tool_response><|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "Can only get item pairs from a mapping."
+  }
+ },
+ "continue_final_message": {
+  "output": "<|im_start|>user\nFinish the sentence.<|im_end|>\n<|im_start|>assistant\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<|im_start|>system\nVocê é um assistente útil. 🙂<|im_end|>\n<|im_start|>user\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|im_end|>\n<|im_start|>assistant\n"
+ },
+ "thinking_disabled": {
+  "output": "<|im_start|>user\nGive me a short answer: what is the speed of light?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "reasoning_history": {
+  "output": "<|im_start|>user\nHi there.<|im_end|>\n<|im_start|>assistant\n<think>\nThe user greets me.\n</think>\n\nHello! How can I help?<|im_end|>\n<|im_start|>user\nWhat is 7 * 6?<|im_end|>\n<|im_start|>assistant\nIt is 42.<|im_end|>\n<|im_start|>user\nAnd 6 * 9?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "date_string": {
+  "output": "<|im_start|>system\nAnswer briefly.<|im_end|>\n<|im_start|>user\nWhat day is it?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<|im_start|>user\nFirst question.<|im_end|>\n<|im_start|>user\nSecond question.<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "documents": {
+  "output": "<|im_start|>user\nWhat is the capital of France?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "reasoning_effort": {
+  "output": "<|im_start|>system\nYou are terse.<|im_end|>\n<|im_start|>user\nExplain recursion in one line.<|im_end|>\n<|im_start|>assistant\n"
+ }
+}

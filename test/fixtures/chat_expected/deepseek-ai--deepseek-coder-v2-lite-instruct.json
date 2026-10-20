@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "<｜begin▁of▁sentence｜>User: Hello! What can you do?\n\nAssistant:"
+ },
+ "user_without_generation_prompt": {
+  "output": "<｜begin▁of▁sentence｜>User: Hello! What can you do?\n\n"
+ },
+ "system_multiturn": {
+  "output": "<｜begin▁of▁sentence｜>You are a helpful assistant.\n\nUser: What is 2+2?\n\nAssistant: 2+2 equals 4.<｜end▁of▁sentence｜>User: And 3+3?\n\nAssistant:"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<｜begin▁of▁sentence｜>User: Name a color.\n\nAssistant: Blue.<｜end▁of▁sentence｜>User: Another one, please.\n\nAssistant: Green.<｜end▁of▁sentence｜>"
+ },
+ "tools_defined": {
+  "output": "<｜begin▁of▁sentence｜>User: What is the weather in Paris?\n\nAssistant:"
+ },
+ "tool_call_roundtrip": {
+  "output": "<｜begin▁of▁sentence｜>You can call tools.\n\nUser: What is the weather in São Paulo?\n\nAssistant: <｜end▁of▁sentence｜>Assistant:"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"NoneType\") to str"
+  }
+ },
+ "continue_final_message": {
+  "output": "<｜begin▁of▁sentence｜>User: Finish the sentence.\n\nAssistant: The capital of France is"
+ },
+ "unicode": {
+  "output": "<｜begin▁of▁sentence｜>Você é um assistente útil. 🙂\n\nUser: 日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  \n\nAssistant:"
+ },
+ "thinking_disabled": {
+  "output": "<｜begin▁of▁sentence｜>User: Give me a short answer: what is the speed of light?\n\nAssistant:"
+ },
+ "reasoning_history": {
+  "output": "<｜begin▁of▁sentence｜>User: Hi there.\n\nAssistant: <think>\nThe user greets me.\n</think>\n\nHello! How can I help?<｜end▁of▁sentence｜>User: What is 7 * 6?\n\nAssistant: It is 42.<｜end▁of▁sentence｜>User: And 6 * 9?\n\nAssistant:"
+ },
+ "date_string": {
+  "output": "<｜begin▁of▁sentence｜>Answer briefly.\n\nUser: What day is it?\n\nAssistant:"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<｜begin▁of▁sentence｜>User: First question.\n\nUser: Second question.\n\nAssistant:"
+ },
+ "documents": {
+  "output": "<｜begin▁of▁sentence｜>User: What is the capital of France?\n\nAssistant:"
+ },
+ "reasoning_effort": {
+  "output": "<｜begin▁of▁sentence｜>You are terse.\n\nUser: Explain recursion in one line.\n\nAssistant:"
+ }
+}

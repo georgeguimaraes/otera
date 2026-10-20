@@ -1,0 +1,56 @@
+{
+ "user": {
+  "output": "[|system|][|endofturn|]\n[|user|]Hello! What can you do?\n[|assistant|]"
+ },
+ "user_without_generation_prompt": {
+  "output": "[|system|][|endofturn|]\n[|user|]Hello! What can you do?\n"
+ },
+ "system_multiturn": {
+  "output": "[|system|]You are a helpful assistant.[|endofturn|]\n[|user|]What is 2+2?\n[|assistant|]2+2 equals 4.[|endofturn|]\n[|user|]And 3+3?\n[|assistant|]"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "[|system|][|endofturn|]\n[|user|]Name a color.\n[|assistant|]Blue.[|endofturn|]\n[|user|]Another one, please.\n[|assistant|]Green.[|endofturn|]\n"
+ },
+ "tools_defined": {
+  "output": "[|system|][|endofturn|]\n[|user|]What is the weather in Paris?\n[|assistant|]"
+ },
+ "tool_call_roundtrip": {
+  "output": "[|system|]You can call tools.[|endofturn|]\n[|user|]What is the weather in São Paulo?\n[|assistant|][|endofturn|]\n[|tool|]{\"temperature\": 22.5, \"condition\": \"sunny\"}[|endofturn|]\n[|assistant|]"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"NoneType\") to str"
+  }
+ },
+ "continue_final_message": {
+  "output": "[|system|][|endofturn|]\n[|user|]Finish the sentence.\n[|assistant|]The capital of France is"
+ },
+ "unicode": {
+  "output": "[|system|]Você é um assistente útil. 🙂[|endofturn|]\n[|user|]日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  \n[|assistant|]"
+ },
+ "thinking_disabled": {
+  "output": "[|system|][|endofturn|]\n[|user|]Give me a short answer: what is the speed of light?\n[|assistant|]"
+ },
+ "reasoning_history": {
+  "output": "[|system|][|endofturn|]\n[|user|]Hi there.\n[|assistant|]<think>\nThe user greets me.\n</think>\n\nHello! How can I help?[|endofturn|]\n[|user|]What is 7 * 6?\n[|assistant|]It is 42.[|endofturn|]\n[|user|]And 6 * 9?\n[|assistant|]"
+ },
+ "date_string": {
+  "output": "[|system|]Answer briefly.[|endofturn|]\n[|user|]What day is it?\n[|assistant|]"
+ },
+ "content_parts": {
+  "error": {
+   "type": "TypeError",
+   "message": "can only concatenate str (not \"list\") to str"
+  }
+ },
+ "roles_not_alternating": {
+  "output": "[|system|][|endofturn|]\n[|user|]First question.\n[|user|]Second question.\n[|assistant|]"
+ },
+ "documents": {
+  "output": "[|system|][|endofturn|]\n[|user|]What is the capital of France?\n[|assistant|]"
+ },
+ "reasoning_effort": {
+  "output": "[|system|]You are terse.[|endofturn|]\n[|user|]Explain recursion in one line.\n[|assistant|]"
+ }
+}
