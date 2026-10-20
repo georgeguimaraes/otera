@@ -1,0 +1,9 @@
+{"$settings": {"transformers": true}, "x": {"b": 1, "a": [1, 2.5, null, true, "é\n\"<>&'"]}}
+---
+{{ x|tojson }}
+{{ x|tojson(2) }}
+{{ x|tojson(separators='ab') }}
+{{ x|tojson(separators=(',', ':')) }}
+{{ x|tojson(indent=2, sort_keys=true) }}
+{{ x|tojson(ensure_ascii=true) }}
+{{ strftime_now('%Y-%m-%d %H:%M') }} {{ strftime_now(format='%d %b %Y') }}

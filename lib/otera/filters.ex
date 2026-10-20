@@ -79,10 +79,8 @@ defmodule Otera.Filters do
       "" ->
         ""
 
-      item ->
-        item
-        |> String.split_at(1)
-        |> then(fn {first, rest} -> String.upcase(first) <> String.downcase(rest) end)
+      <<first::utf8, rest::binary>> ->
+        String.upcase(<<first::utf8>>) <> Methods.call(rest, "lower", [], %Dict{})
     end)
   end
 
@@ -107,7 +105,7 @@ defmodule Otera.Filters do
       bind("do_indent", args, kwargs, [{"width", 4}, {"first", false}, {"blank", false}])
 
     indention = if is_binary(width), do: width, else: String.duplicate(" ", width)
-    lines = Methods.call(Value.to_str(value) <> "\n", "splitlines", [], %Dict{})
+    lines = Methods.call(indent_text(value), "splitlines", [], %Dict{})
 
     text =
       if Value.truthy?(blank) do
@@ -143,7 +141,7 @@ defmodule Otera.Filters do
         string
 
       Value.truthy?(killwords) ->
-        String.slice(string, 0, length - Value.str_length(ending)) <> ending
+        Value.slice(string, 0, length - Value.str_length(ending), nil) <> ending
 
       true ->
         string
@@ -156,7 +154,7 @@ defmodule Otera.Filters do
 
   defp filter("wordcount", value, args, kwargs, _env) do
     bind("do_wordcount", args, kwargs, [])
-    ~r/\w+/u |> Regex.scan(Value.to_str(value)) |> length()
+    ~r/[\p{L}\p{N}_]+/u |> Regex.scan(Value.to_str(value)) |> length()
   end
 
   defp filter("format", value, args, kwargs, _env) do
@@ -192,9 +190,6 @@ defmodule Otera.Filters do
 
       value when is_boolean(value) ->
         if(value, do: 1, else: 0)
-
-      %Undefined{} = undefined ->
-        Undefined.fail(undefined)
 
       value ->
         raise Otera.Error,
@@ -263,6 +258,7 @@ defmodule Otera.Filters do
         value |> Value.to_list() |> Enum.reverse()
 
       value ->
+        unless Value.iterable?(value), do: filter_argument_error("argument must be iterable")
         %Iterable{type: reverse_type(value), items: value |> Value.to_list() |> Enum.reverse()}
     end
   end
@@ -302,8 +298,7 @@ defmodule Otera.Filters do
       end
 
     value
-    |> call_items()
-    |> Value.to_list()
+    |> dict_items()
     |> sort_by(&postprocess(elem(&1, position), case_sensitive), Value.truthy?(reverse))
   end
 
@@ -339,6 +334,7 @@ defmodule Otera.Filters do
       |> Value.to_list()
       |> Enum.reduce({[], []}, fn item, {items, seen} ->
         key = postprocess(getter.(item), case_sensitive)
+        Value.hashable!(key)
 
         if Enum.any?(seen, &Value.equal?(&1, key)),
           do: {items, seen},
@@ -473,6 +469,17 @@ defmodule Otera.Filters do
   defp filter_argument_error(message),
     do: raise(Otera.Error, kind: :filter_argument_error, message: message)
 
+  # Jinja2 runs `s += "\n"` on the value of indent.
+  defp indent_text(value) when is_binary(value), do: value <> "\n"
+  defp indent_text(%Undefined{} = undefined), do: Undefined.fail(undefined)
+
+  defp indent_text(value),
+    do:
+      raise(Otera.Error,
+        kind: :type_error,
+        message: "unsupported operand type(s) for +=: '#{Value.type_name(value)}' and 'str'"
+      )
+
   defp reverse_type(value) when is_list(value), do: "list_reverseiterator"
   defp reverse_type(%Dict{}), do: "dict_reversekeyiterator"
   defp reverse_type(%Iterable{type: "dict_keys"}), do: "dict_reversekeyiterator"
@@ -482,7 +489,16 @@ defmodule Otera.Filters do
 
   defp bind(function, args, kwargs, params), do: Methods.bind(args, kwargs, params, function)
 
-  defp call_items(value), do: filter("items", value, [], %Dict{}, nil)
+  # dictsort calls value.items() in Python.
+  defp dict_items(%Dict{pairs: pairs}), do: pairs
+  defp dict_items(%Undefined{} = undefined), do: Undefined.fail(undefined)
+
+  defp dict_items(value),
+    do:
+      raise(Otera.Error,
+        kind: :attribute_error,
+        message: "'#{Value.type_name(value)}' object has no attribute 'items'"
+      )
 
   # Looks up a dotted attribute path such as "function.name" with item lookup first, like Jinja2.
   defp attrgetter(attribute, default \\ nil)
@@ -566,7 +582,16 @@ defmodule Otera.Filters do
 
   defp to_float(%Undefined{} = undefined), do: Undefined.fail(undefined)
   defp to_float(value) when is_float(value), do: value
-  defp to_float(value) when is_integer(value), do: value * 1.0
+
+  defp to_float(value) when is_integer(value) do
+    value * 1.0
+  rescue
+    ArithmeticError ->
+      reraise Otera.Error,
+              [kind: :overflow_error, message: "int too large to convert to float"],
+              __STACKTRACE__
+  end
+
   defp to_float(value) when is_boolean(value), do: if(value, do: 1.0, else: 0.0)
 
   defp to_float(value) when is_binary(value) do
@@ -579,16 +604,44 @@ defmodule Otera.Filters do
         true -> text
       end
 
-    case Float.parse(text) do
-      {float, ""} -> float
-      _ -> nil
+    cond do
+      text =~ ~r/\A[+-]?(inf|infinity|nan)\z/ -> unsupported_float()
+      match?({_, ""}, Float.parse(text)) -> text |> Float.parse() |> elem(0)
+      text =~ ~r/\A[+-]?\d+(\.\d*)?(e[+-]?\d+)?\z/ -> unsupported_float()
+      true -> nil
     end
   end
 
   defp to_float(_value), do: nil
 
-  defp round_number(%Undefined{} = undefined, _precision, _method), do: Undefined.fail(undefined)
-  defp round_number(value, _precision, "common") when is_integer(value), do: value
+  defp unsupported_float,
+    do:
+      raise(Otera.Error,
+        kind: :not_implemented_error,
+        message: "Otera does not support the floats inf and nan"
+      )
+
+  defp round_number(_value, _precision, method) when method not in ["common", "ceil", "floor"],
+    do: filter_argument_error("method must be common, ceil or floor")
+
+  defp round_number(value, precision, method) when is_boolean(value),
+    do: round_number(if(value, do: 1, else: 0), precision, method)
+
+  defp round_number(value, precision, "common") when is_integer(value) and precision >= 0,
+    do: value
+
+  # Python rounds an integer to tens, hundreds and so on with ties to even.
+  defp round_number(value, precision, "common") when is_integer(value) do
+    unit = Integer.pow(10, -precision)
+    remainder = Integer.mod(value, unit)
+    base = value - remainder
+
+    cond do
+      2 * remainder > unit -> base + unit
+      2 * remainder < unit or rem(div(base, unit), 2) == 0 -> base
+      true -> base + unit
+    end
+  end
 
   defp round_number(value, precision, "common") when is_float(value) do
     sign = if value < 0 or <<value::float>> == <<-0.0::float>>, do: "-", else: ""
@@ -596,20 +649,23 @@ defmodule Otera.Filters do
     rounded
   end
 
-  defp round_number(value, precision, method)
-       when method in ["ceil", "floor"] and is_number(value) do
-    scale = :math.pow(10, precision)
-    scaled = value * scale
-    rounded = if method == "ceil", do: Float.ceil(scaled * 1.0), else: Float.floor(scaled * 1.0)
-    rounded / scale
-  end
+  # Like Python: math.ceil(value * 10 ** precision) / 10 ** precision, where math.ceil gives an integer.
+  defp round_number(value, precision, method) when method in ["ceil", "floor"] do
+    scale = if precision >= 0, do: Integer.pow(10, precision), else: :math.pow(10, precision)
 
-  defp round_number(_value, _precision, method) when method not in ["common", "ceil", "floor"],
-    do:
-      raise(Otera.Error,
-        kind: :filter_argument_error,
-        message: "method must be common, ceil or floor"
-      )
+    case Value.binary_op(:mul, value, scale) do
+      scaled when is_number(scaled) ->
+        rounded =
+          if method == "ceil", do: Float.ceil(scaled * 1.0), else: Float.floor(scaled * 1.0)
+
+        Value.binary_op(:div, trunc(rounded), scale)
+
+      scaled ->
+        raise Otera.Error,
+          kind: :type_error,
+          message: "must be real number, not #{Value.type_name(scaled)}"
+    end
+  end
 
   defp round_number(value, _precision, _method),
     do:

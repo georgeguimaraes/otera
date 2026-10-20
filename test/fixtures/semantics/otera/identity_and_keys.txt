@@ -1,0 +1,5 @@
+{}
+---
+{{ 1.0 is sameas true }} {{ 0.0 is sameas false }} {{ 1 is sameas 1 }} {{ none is sameas none }} {{ true is sameas true }}
+{{ {1: 'a', 1.0: 'b', true: 'c'} }} {{ {0: 'z', false: 'f'} }} {{ {1: 'x'}[1.0] }} {{ {true: 'y'}[1] }}
+{{ namespace }} {{ dict }}

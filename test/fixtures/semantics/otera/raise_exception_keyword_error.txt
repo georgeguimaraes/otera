@@ -1,0 +1,3 @@
+{"$settings": {"transformers": true}}
+---
+{{ raise_exception(message="boom") }}

@@ -1,0 +1,6 @@
+{"s": "a\r\nb", "e": "éx", "comb": "x̧y"}
+---
+{{ s.zfill(6) }}|{{ s|truncate(3, true, '…', 0) }}|{{ s|length }}|{{ s[1:] }}|{{ s|reverse }}|{{ s.center(7, '*') }}
+{{ '%.1s' % e }}|{{ '{:.1}'.format(e) }}|{{ '{:.1s}'.format(e) }}|{{ e|length }}|{{ e[0] }}|{{ e|list }}
+{{ comb|wordcount }} {{ "x_y z9 ½"|wordcount }} {{ "a\tb".expandtabs() }}|{{ "a\tbc\td".expandtabs(4) }}|{{ "x\n\ty".expandtabs(2) }}
+{{ "hello"|title }} {{ "o'neil x-ray"|title }}

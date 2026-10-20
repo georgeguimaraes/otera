@@ -202,9 +202,6 @@ defmodule Otera.Parser do
   defp parse_for(tokens, ctx) do
     {target, rest} = parse_assign_target(tokens, extra_end: ["in"])
 
-    if "loop" in target_names(target),
-      do: fail("Can't assign to special loop variable in for-loop target", line(hd(tokens)))
-
     rest = expect(rest, :name, "in")
     {iter, rest} = parse_tuple(rest, with_condexpr: false, extra_end: ["recursive"])
 
@@ -227,6 +224,9 @@ defmodule Otera.Parser do
         [{:name, "endfor", _} | rest] -> {[], rest}
         [{:name, "else", _} | rest] -> parse_statements(rest, ["endfor"], ctx, true)
       end
+
+    if "loop" in store_names([target, body, else_body]),
+      do: fail("Can't assign to special loop variable in for-loop target", line(hd(tokens)))
 
     {{:for, target, iter, test, body, else_body, recursive?}, rest}
   end
@@ -346,6 +346,19 @@ defmodule Otera.Parser do
     do: Enum.reduce(nodes, names, &collect_names/2)
 
   defp collect_names(_node, names), do: names
+
+  # The names that the targets of set statements and for loops in `node` assign.
+  defp store_names({tag, target, _value}) when tag == :set, do: target_names(target)
+
+  defp store_names({:set_block, target, _filter, body}),
+    do: target_names(target) ++ store_names(body)
+
+  defp store_names({:for, target, _iter, _test, body, else_body, _recursive}),
+    do: target_names(target) ++ store_names([body, else_body])
+
+  defp store_names(node) when is_tuple(node), do: node |> Tuple.to_list() |> store_names()
+  defp store_names(nodes) when is_list(nodes), do: Enum.flat_map(nodes, &store_names/1)
+  defp store_names(_leaf), do: []
 
   defp target_names({:name, name}), do: [name]
   defp target_names({:tuple, items}), do: Enum.flat_map(items, &target_names/1)
@@ -663,11 +676,11 @@ defmodule Otera.Parser do
 
   defp parse_filter_expr(node, tokens), do: {node, tokens}
 
-  defp parse_subscript(node, [{:operator, ".", line} | rest]) do
+  defp parse_subscript(node, [{:operator, ".", _line} | rest]) do
     case rest do
       [{:name, name, _} | rest] -> {{:getattr, node, name}, rest}
       [{:integer, index, _} | rest] -> {{:getitem, node, {:const, index}}, rest}
-      _ -> fail("expected name or number", line)
+      [token | _] -> fail("expected name or number", line(token))
     end
   end
 

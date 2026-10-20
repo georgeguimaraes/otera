@@ -227,7 +227,7 @@ defmodule Otera.Lexer do
         {:whitespace, match}
 
       match = not after_dot?(rest, state) && run(@float, rest) ->
-        {:float, match, parse_float(match)}
+        {:float, match, parse_float(match, state)}
 
       match = run(@integer, rest) ->
         {:integer, match, parse_integer(match)}
@@ -284,9 +284,12 @@ defmodule Otera.Lexer do
     end
   end
 
-  defp parse_float(text) do
-    {float, ""} = text |> String.replace("_", "") |> Float.parse()
-    float
+  # Python reads a float that is too large as inf, which Elixir floats do not have.
+  defp parse_float(text, state) do
+    case text |> String.replace("_", "") |> Float.parse() do
+      {float, ""} -> float
+      _too_large -> fail("Otera does not support the floats inf and nan", state)
+    end
   end
 
   # Python decodes string literals with the unicode-escape codec.

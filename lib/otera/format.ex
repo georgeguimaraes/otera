@@ -7,7 +7,8 @@ defmodule Otera.Format do
 
   alias Otera.{Dict, Value}
 
-  @printf_regex ~r/\A(?:\(([^)]*)\))?([-+ #0]*)(\*|\d+)?(?:\.(\*|\d+))?[hlL]?([diouxXeEfFgGcrsa])/
+  @printf_regex ~r/\A(?:\(([^)]*)\))?([-+ #0]*)(\*|\d+)?(?:\.(\*|\d+))?[hlL]?(.?)/su
+  @printf_types ~w(d i o u x X e E f F g G c r s a)
   @spec_regex ~r/\A(?:(?<fill>.)?(?<align>[<>=^]))?(?<sign>[-+ ])?(?<alternate>#)?(?<zero>0)?(?<width>\d+)?(?<grouping>[,_])?(?:\.(?<precision>\d+))?(?<type>[bcdeEfFgGnosxX%])?\z/su
 
   @doc """
@@ -15,14 +16,15 @@ defmodule Otera.Format do
   """
   @spec printf(String.t(), term) :: String.t()
   def printf(format, args) do
+    # Like Python, a dict or a list is one argument that is also a mapping, so extra arguments are no error.
     {positional, mapping} =
       case args do
-        %Dict{} -> {[args], args}
         args when is_tuple(args) -> {Tuple.to_list(args), nil}
+        args when is_struct(args, Dict) or is_list(args) -> {[args], args}
         arg -> {[arg], nil}
       end
 
-    {output, rest} = printf(format, positional, mapping, [])
+    {output, rest} = printf(format, format, positional, mapping, [])
 
     if rest != [] and mapping == nil,
       do: fail(:type_error, "not all arguments converted during string formatting")
@@ -30,38 +32,52 @@ defmodule Otera.Format do
     IO.iodata_to_binary(output)
   end
 
-  defp printf("", args, _mapping, acc), do: {Enum.reverse(acc), args}
-  defp printf("%%" <> rest, args, mapping, acc), do: printf(rest, args, mapping, ["%" | acc])
+  defp printf("", _format, args, _mapping, acc), do: {Enum.reverse(acc), args}
 
-  defp printf("%" <> rest, args, mapping, acc) do
+  defp printf("%%" <> rest, format, args, mapping, acc),
+    do: printf(rest, format, args, mapping, ["%" | acc])
+
+  defp printf("%" <> rest, format, args, mapping, acc) do
     case Regex.run(@printf_regex, rest) do
-      [spec, key, flags, width, precision, type] ->
+      [spec, key, flags, width, precision, type] when type in @printf_types ->
         {width, args} = star(width, args)
         {precision, args} = star(precision, args)
         {value, args} = printf_arg(key, args, mapping)
         text = printf_value(value, flags, width, precision, type)
+        rest = binary_part(rest, byte_size(spec), byte_size(rest) - byte_size(spec))
+        printf(rest, format, args, mapping, [text | acc])
 
-        printf(
-          binary_part(rest, byte_size(spec), byte_size(rest) - byte_size(spec)),
-          args,
-          mapping,
-          [text | acc]
-        )
-
-      nil ->
+      [_spec, _key, _flags, _width, _precision, ""] ->
         fail(:value_error, "incomplete format")
+
+      [spec | _] ->
+        <<char::utf8>> = String.last(spec)
+        index = Value.str_length(format) - Value.str_length(rest) + Value.str_length(spec) - 1
+        hex = char |> Integer.to_string(16) |> String.downcase()
+
+        fail(
+          :value_error,
+          "unsupported format character #{Value.repr(<<char::utf8>>)} (0x#{hex}) at index #{index}"
+        )
     end
   end
 
-  defp printf(<<char::utf8, rest::binary>>, args, mapping, acc),
-    do: printf(rest, args, mapping, [<<char::utf8>> | acc])
+  defp printf(<<char::utf8, rest::binary>>, format, args, mapping, acc),
+    do: printf(rest, format, args, mapping, [<<char::utf8>> | acc])
 
   defp printf_arg("", [], _mapping),
     do: fail(:type_error, "not enough arguments for format string")
 
   defp printf_arg("", [arg | args], _mapping), do: {arg, args}
-  defp printf_arg(_key, _args, nil), do: fail(:type_error, "format requires a mapping")
-  defp printf_arg(key, args, mapping), do: {Value.getitem(mapping, key), args}
+
+  defp printf_arg(key, args, %Dict{} = mapping) do
+    case Dict.fetch(mapping, key) do
+      {:ok, value} -> {value, args}
+      :error -> fail(:key_error, Value.repr(key))
+    end
+  end
+
+  defp printf_arg(_key, _args, _mapping), do: fail(:type_error, "format requires a mapping")
 
   defp star("*", [width | args]), do: {width, args}
   defp star("", args), do: {nil, args}
@@ -93,10 +109,16 @@ defmodule Otera.Format do
     end
   end
 
-  defp printf_convert(value, "s", spec), do: pad(Value.to_str(value), spec)
-  defp printf_convert(value, type, spec) when type in ["r", "a"], do: pad(Value.repr(value), spec)
+  defp printf_convert(value, "s", spec),
+    do: pad(truncate(Value.to_str(value), spec.precision), spec)
+
+  defp printf_convert(value, "r", spec),
+    do: pad(truncate(Value.repr(value), spec.precision), spec)
+
+  defp printf_convert(value, "a", spec), do: pad(truncate(ascii(value), spec.precision), spec)
   defp printf_convert(value, "c", spec) when is_integer(value), do: pad(<<value::utf8>>, spec)
-  defp printf_convert(value, "c", spec), do: pad(value, spec)
+  defp printf_convert(<<_::utf8>> = value, "c", spec), do: pad(value, spec)
+  defp printf_convert(_value, "c", _spec), do: fail(:type_error, "%c requires int or char")
 
   defp printf_convert(value, type, spec) when type in ["d", "i", "u"],
     do: format_number(printf_integer(value, type), spec)
@@ -117,7 +139,10 @@ defmodule Otera.Format do
         "%#{type} format: a real number is required, not #{Value.type_name(value)}"
       )
 
-  defp printf_number(value, _type) when is_number(value), do: value
+  defp printf_number(value, type)
+       when is_integer(value) or (is_float(value) and type not in ["x", "X", "o"]),
+       do: value
+
   defp printf_number(value, _type) when is_boolean(value), do: if(value, do: 1, else: 0)
 
   defp printf_number(value, type) when type in ["x", "X", "o"],
@@ -153,7 +178,9 @@ defmodule Otera.Format do
       case conversion do
         "r" -> Value.repr(value)
         "s" -> Value.to_str(value)
+        "a" -> ascii(value)
         nil -> value
+        other -> fail(:value_error, "Unknown conversion specifier #{other}")
       end
 
     {spec, index} = nested_spec(spec, args, kwargs, index)
@@ -166,6 +193,7 @@ defmodule Otera.Format do
   defp format_fields(<<char::utf8, rest::binary>>, args, kwargs, index, acc),
     do: format_fields(rest, args, kwargs, index, [<<char::utf8>> | acc])
 
+  defp field_text("", 0, ""), do: fail(:value_error, "Single '{' encountered in format string")
   defp field_text("", _depth, _acc), do: fail(:value_error, "expected '}' before end of string")
   defp field_text("}" <> rest, 0, acc), do: {acc, rest}
   defp field_text("}" <> rest, depth, acc), do: field_text(rest, depth - 1, acc <> "}")
@@ -211,7 +239,7 @@ defmodule Otera.Format do
         value
 
       :error ->
-        fail(:index_error, "Replacement index #{index} out of range for positional args tuple")
+        fail(:index_error, "tuple index out of range")
     end
   end
 
@@ -242,9 +270,19 @@ defmodule Otera.Format do
       captures ->
         spec = parse_spec(captures)
 
-        if is_binary(value) or spec.type == "s",
-          do: pad(truncate(Value.to_str(value), spec.precision), %{spec | type: "s"}),
-          else: format_number(value, spec)
+        cond do
+          is_binary(value) ->
+            pad(truncate(value, spec.precision), %{spec | type: "s"})
+
+          is_number(value) or is_boolean(value) ->
+            format_number(value, spec)
+
+          true ->
+            fail(
+              :type_error,
+              "unsupported format string passed to #{Value.type_name(value)}.__format__"
+            )
+        end
     end
   end
 
@@ -275,11 +313,26 @@ defmodule Otera.Format do
   defp integer(digits), do: String.to_integer(digits)
 
   defp truncate(string, nil), do: string
-  defp truncate(string, precision), do: String.slice(string, 0, precision)
+  defp truncate(string, precision), do: Value.slice(string, 0, precision, nil)
+
+  # Python ascii(): repr() with the non-ASCII characters escaped.
+  defp ascii(value) do
+    for <<char::utf8 <- Value.repr(value)>>, into: "" do
+      cond do
+        char < 0x80 -> <<char>>
+        char <= 0xFF -> "\\x" <> hex(char, 2)
+        char <= 0xFFFF -> "\\u" <> hex(char, 4)
+        true -> "\\U" <> hex(char, 8)
+      end
+    end
+  end
+
+  defp hex(char, size),
+    do: char |> Integer.to_string(16) |> String.downcase() |> String.pad_leading(size, "0")
 
   defp format_number(value, %{type: type} = spec) when is_number(value) do
     {sign, digits} = number_digits(value, spec, type)
-    digits = group(digits, spec.grouping)
+    digits = group(digits, spec.grouping, if(type in ["x", "X", "o", "b"], do: 4, else: 3))
 
     sign =
       cond do
@@ -300,6 +353,8 @@ defmodule Otera.Format do
         :value_error,
         "Unknown format code '#{spec.type}' for object of type '#{Value.type_name(value)}'"
       )
+
+  defp number_digits(value, _spec, "c") when is_integer(value), do: {false, <<value::utf8>>}
 
   defp number_digits(value, _spec, type) when type in [nil, "d", "n"] and is_integer(value),
     do: {value < 0, Integer.to_string(abs(value))}
@@ -429,16 +484,16 @@ defmodule Otera.Format do
       else: {fraction + Integer.pow(2, 52), exponent - 1075}
   end
 
-  defp group(digits, nil), do: digits
+  defp group(digits, nil, _size), do: digits
 
-  defp group(digits, separator) do
+  defp group(digits, separator, size) do
     [whole | fraction] = String.split(digits, ".", parts: 2)
 
     grouped =
       whole
       |> String.reverse()
       |> String.graphemes()
-      |> Enum.chunk_every(3)
+      |> Enum.chunk_every(size)
       |> Enum.map_join(separator, &Enum.join/1)
       |> String.reverse()
 

@@ -1,0 +1,3 @@
+{"$settings": {"transformers": true}, "x": [1]}
+---
+{{ x|tojson(indent=2.0) }}

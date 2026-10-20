@@ -263,8 +263,12 @@ defmodule Otera.Evaluator do
   defp eval({:list, items}, ctx), do: Enum.map(items, &eval(&1, ctx))
   defp eval({:tuple, items}, ctx), do: items |> Enum.map(&eval(&1, ctx)) |> List.to_tuple()
 
-  defp eval({:dict, pairs}, ctx),
-    do: Dict.new(Enum.map(pairs, fn {key, value} -> {eval(key, ctx), eval(value, ctx)} end))
+  defp eval({:dict, pairs}, ctx) do
+    pairs
+    |> Enum.map(fn {key, value} -> {eval(key, ctx), eval(value, ctx)} end)
+    |> tap(&Enum.each(&1, fn {key, _value} -> Value.hashable!(key) end))
+    |> Dict.new()
+  end
 
   defp eval({:getattr, expr, name}, ctx), do: Value.getattr(eval(expr, ctx), name)
 

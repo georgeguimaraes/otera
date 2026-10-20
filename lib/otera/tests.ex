@@ -101,11 +101,7 @@ defmodule Otera.Tests do
 
   defp test("in", value, [sequence], _env), do: Value.contains?(sequence, value)
 
-  defp test("sameas", value, [other], _env),
-    do:
-      value === other or
-        (is_number(value) and Value.equal?(value, other) and
-           is_integer(value) == is_integer(other))
+  defp test("sameas", value, [other], _env), do: value === other
 
   defp test("filter", value, [], env),
     do: Otera.Filters.builtin?(value) or is_map_key(env.filters, value)

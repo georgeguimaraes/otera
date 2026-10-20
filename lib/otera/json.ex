@@ -25,7 +25,7 @@ defmodule Otera.JSON do
 
     case JSON.decode(json, nil, decoders) do
       {value, nil, ""} -> value
-      {:error, error} -> raise JSON.DecodeError, error
+      {:error, _reason} -> JSON.decode!(json)
     end
   end
 
@@ -55,10 +55,31 @@ defmodule Otera.JSON do
   defp indent(indent) when is_boolean(indent), do: if(indent, do: " ", else: "")
   defp indent(indent) when is_binary(indent), do: indent
 
+  defp indent(indent),
+    do:
+      raise(Otera.Error,
+        kind: :type_error,
+        message: "can't multiply sequence by non-int of type '#{Value.type_name(indent)}'"
+      )
+
   defp separators(nil, nil), do: {", ", ": "}
   defp separators(nil, _indent), do: {",", ": "}
-  defp separators({item, key}, _indent), do: {item, key}
-  defp separators([item, key], _indent), do: {item, key}
+
+  # Python unpacks the separators from any iterable of two items.
+  defp separators(separators, _indent) do
+    case Value.to_list(separators) do
+      [item, key] ->
+        {item, key}
+
+      items when length(items) < 2 ->
+        raise Otera.Error,
+          kind: :value_error,
+          message: "not enough values to unpack (expected 2, got #{length(items)})"
+
+      _items ->
+        raise Otera.Error, kind: :value_error, message: "too many values to unpack (expected 2)"
+    end
+  end
 
   defp encode(nil, _options, _level), do: "null"
   defp encode(true, _options, _level), do: "true"

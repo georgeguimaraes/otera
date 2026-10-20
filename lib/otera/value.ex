@@ -106,6 +106,9 @@ defmodule Otera.Value do
   def type_name(%Namespace{}), do: "Namespace"
   def type_name(%Macro{}), do: "Macro"
   def type_name(%Loop{}), do: "LoopContext"
+  def type_name(%Method{receiver: :builtins, name: "range"}), do: "function"
+
+  def type_name(%Method{receiver: :builtins}), do: "type"
   def type_name(%Method{}), do: "builtin_function_or_method"
   def type_name(value) when is_function(value), do: "function"
 
@@ -160,6 +163,14 @@ defmodule Otera.Value do
   def repr(%Macro{name: nil}), do: "<Macro anonymous>"
   def repr(%Macro{name: name}), do: "<Macro #{repr(name)}>"
   def repr(%Loop{} = loop), do: "<LoopContext #{loop.index0 + 1}/#{Loop.get(loop, "length")}>"
+
+  def repr(%Method{receiver: :builtins, name: name}) do
+    case name do
+      "range" -> "<function safe_range>"
+      "dict" -> "<class 'dict'>"
+      "namespace" -> "<class 'jinja2.utils.Namespace'>"
+    end
+  end
 
   def repr(%Method{name: name, receiver: receiver}),
     do: "<built-in method #{name} of #{type_name(receiver)} object>"
@@ -333,7 +344,7 @@ defmodule Otera.Value do
 
   def compare(op, left, right) do
     case order(left, right) do
-      :error ->
+      {:error, left, right} ->
         symbol = %{lt: "<", lteq: "<=", gt: ">", gteq: ">="}[op]
 
         raise Otera.Error,
@@ -351,7 +362,8 @@ defmodule Otera.Value do
     end
   end
 
-  # Returns :lt, :eq or :gt for values that Python can order, or :error.
+  # Returns :lt, :eq or :gt for values that Python can order. For sequences, Python compares
+  # the first items that differ, so an error names the types of those items.
   defp order(left, right)
        when (is_number(left) or is_boolean(left)) and (is_number(right) or is_boolean(right)),
        do: order_terms(number(left), number(right))
@@ -362,7 +374,7 @@ defmodule Otera.Value do
   defp order(left, right) when is_tuple(left) and is_tuple(right),
     do: order_sequences(Tuple.to_list(left), Tuple.to_list(right))
 
-  defp order(_left, _right), do: :error
+  defp order(left, right), do: {:error, left, right}
 
   defp order_terms(left, right) when left < right, do: :lt
   defp order_terms(left, right) when left > right, do: :gt
@@ -387,11 +399,38 @@ defmodule Otera.Value do
 
   def binary_op(op, left, right) when is_boolean(left) or is_boolean(right) do
     if (numeric?(left) and numeric?(right)) or op == :mul,
-      do: arithmetic(op, number(left), number(right)),
+      do: binary_op(op, number(left), number(right)),
       else: arithmetic(op, left, right)
   end
 
-  def binary_op(op, left, right), do: arithmetic(op, left, right)
+  def binary_op(op, left, right) do
+    arithmetic(op, left, right)
+  rescue
+    ArithmeticError ->
+      {kind, message} = arithmetic_error(op, left, right)
+      reraise Otera.Error, [kind: kind, message: message], __STACKTRACE__
+  end
+
+  # Python raises these errors, or gives inf, nan or a complex number, which Elixir floats do not have.
+  defp arithmetic_error(:pow, left, right) when left < 0 and is_float(right),
+    do: {:not_implemented_error, "Otera does not support complex numbers"}
+
+  defp arithmetic_error(:pow, _left, _right), do: {:overflow_error, "(34, 'Result too large')"}
+
+  defp arithmetic_error(:div, left, right) when is_integer(left) and is_integer(right),
+    do: {:overflow_error, "integer division result too large for a float"}
+
+  defp arithmetic_error(_op, left, right) do
+    if Enum.any?([left, right], &(is_integer(&1) and not float?(&1))),
+      do: {:overflow_error, "int too large to convert to float"},
+      else: {:not_implemented_error, "Otera does not support the floats inf and nan"}
+  end
+
+  defp float?(integer) do
+    is_float(integer * 1.0)
+  rescue
+    ArithmeticError -> false
+  end
 
   defp arithmetic(:add, left, right) when is_number(left) and is_number(right), do: left + right
   defp arithmetic(:add, left, right) when is_binary(left) and is_binary(right), do: left <> right
@@ -534,7 +573,7 @@ defmodule Otera.Value do
   def iterable?(value),
     do:
       is_list(value) or is_tuple(value) or is_binary(value) or is_struct(value, Dict) or
-        is_struct(value, Undefined)
+        is_struct(value, Undefined) or is_struct(value, Iterable) or is_struct(value, Loop)
 
   @doc """
   Returns the length of `value`, like Python `len()`.
@@ -577,10 +616,14 @@ defmodule Otera.Value do
         message: "'in <string>' requires string as left operand, not #{type_name(item)}"
       )
 
-  def contains?(%Dict{} = dict, item), do: Enum.any?(Dict.keys(dict), &equal?(&1, item))
+  def contains?(%Dict{} = dict, item) do
+    hashable!(item)
+    Enum.any?(Dict.keys(dict), &equal?(&1, item))
+  end
 
   def contains?(container, item)
-      when is_list(container) or is_tuple(container) or is_struct(container, Undefined),
+      when is_list(container) or is_tuple(container) or is_struct(container, Undefined) or
+             is_struct(container, Iterable),
       do: Enum.any?(to_list(container), &equal?(&1, item))
 
   def contains?(container, _item),
@@ -601,9 +644,31 @@ defmodule Otera.Value do
   def getattr(%Loop{} = loop, name), do: Loop.get(loop, name)
   def getattr(%Macro{} = macro, name), do: Macro.get(macro, name)
 
+  def getattr(number, name)
+      when (is_integer(number) or is_boolean(number)) and name in ["real", "numerator"],
+      do: number(number)
+
+  def getattr(number, "imag") when is_integer(number) or is_boolean(number), do: 0
+  def getattr(number, "denominator") when is_integer(number) or is_boolean(number), do: 1
+  def getattr(number, "real") when is_float(number), do: number
+  def getattr(number, "imag") when is_float(number), do: 0.0
+
   def getattr(object, name) do
     if Methods.has?(object, name), do: method(object, name), else: item_or_undefined(object, name)
   end
+
+  @doc """
+  Raises the Python `TypeError` for a dict key or a set item that is a list or a dict.
+  """
+  @spec hashable!(term) :: :ok
+  def hashable!(value)
+      when is_list(value) or is_struct(value, Dict) or is_struct(value, Iterable),
+      do: raise(Otera.Error, kind: :type_error, message: "unhashable type: '#{type_name(value)}'")
+
+  def hashable!(value) when is_tuple(value),
+    do: value |> Tuple.to_list() |> Enum.each(&hashable!/1)
+
+  def hashable!(_value), do: :ok
 
   @doc """
   Looks up `x[key]`, like the immutable sandbox of Jinja2: an item first, then a Python attribute.

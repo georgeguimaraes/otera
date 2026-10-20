@@ -1,0 +1,7 @@
+{"s": "ünïcödé straße ǅ", "greek": "ΣΑΣ ΟΔΟΣ", "esz": "ßa", "iota": "ᾳb"}
+---
+{{ s.upper() }}|{{ s.lower() }}|{{ s.title() }}|{{ s.capitalize() }}|{{ s.swapcase() }}|{{ s.casefold() }}
+{{ greek.lower() }}|{{ greek.capitalize() }}|{{ greek.title() }}|{{ greek|lower }}
+{{ esz.title() }}|{{ esz.capitalize() }}|{{ esz|capitalize }}|{{ esz|title }}|{{ esz|upper }}
+{{ iota.upper() }}|{{ iota.title() }}|{{ iota|title }}|{{ iota.capitalize() }}
+{{ "ǅ".isupper() }} {{ "ǅ".islower() }} {{ "ß".islower() }} {{ "İ".lower() }}

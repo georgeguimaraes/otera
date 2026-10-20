@@ -11,8 +11,8 @@ defmodule Otera.Methods do
   @list ~w(append clear copy count extend index insert pop remove reverse sort)
   @tuple ~w(count index)
   @dict ~w(clear copy fromkeys get items keys pop popitem setdefault update values)
-  @int ~w(as_integer_ratio bit_count bit_length conjugate denominator from_bytes imag is_integer numerator real to_bytes)
-  @float ~w(as_integer_ratio conjugate fromhex hex imag is_integer real)
+  @int ~w(as_integer_ratio bit_count bit_length conjugate from_bytes to_bytes)
+  @float ~w(as_integer_ratio conjugate fromhex hex is_integer)
 
   @unsafe_list ~w(append clear pop reverse insert sort extend remove)
   @unsafe_dict ~w(clear pop popitem setdefault update)
@@ -23,18 +23,24 @@ defmodule Otera.Methods do
   Returns true if the Python type of `value` has the method `name`.
   """
   @spec has?(term, String.t()) :: boolean
-  def has?(value, name) when is_binary(value), do: name in @str
-  def has?(value, name) when is_list(value), do: name in @list
-  def has?(value, name) when is_tuple(value), do: name in @tuple
-  def has?(%Dict{}, name), do: name in @dict
-  def has?(value, name) when is_integer(value) or is_boolean(value), do: name in @int
-  def has?(value, name) when is_float(value), do: name in @float
-  def has?(_value, _name), do: false
+  def has?(value, name), do: dunder?(name) or name in methods(value)
+
+  # Python objects have many attributes like __class__. The sandbox makes all of them unsafe.
+  defp dunder?(name), do: String.starts_with?(name, "__") and String.ends_with?(name, "__")
+
+  defp methods(value) when is_binary(value), do: @str
+  defp methods(value) when is_list(value), do: @list
+  defp methods(value) when is_tuple(value), do: @tuple
+  defp methods(%Dict{}), do: @dict
+  defp methods(value) when is_integer(value) or is_boolean(value), do: @int
+  defp methods(value) when is_float(value), do: @float
+  defp methods(_value), do: []
 
   @doc """
   Returns false for the methods that change a list or a dict.
   """
   @spec safe?(term, String.t()) :: boolean
+  def safe?(_value, "_" <> _), do: false
   def safe?(value, name) when is_list(value), do: name not in @unsafe_list
   def safe?(%Dict{}, name), do: name not in @unsafe_dict
   def safe?(_value, _name), do: true
@@ -127,6 +133,9 @@ defmodule Otera.Methods do
       "splitlines" ->
         [{"keepends", false}]
 
+      "expandtabs" ->
+        [{"tabsize", 8}]
+
       _ ->
         []
     end
@@ -147,14 +156,27 @@ defmodule Otera.Methods do
     Value.strip(string, chars && string_arg(chars, name), side)
   end
 
+  defp method(string, "split", [nil, maxsplit]),
+    do: string |> String.to_charlist() |> split_whitespace(int_arg(maxsplit), [])
+
   defp method(string, "split", [sep, maxsplit]), do: split(string, sep, maxsplit)
+
+  # Splitting the reversed string from the left splits the string from the right.
+  defp method(string, "rsplit", [nil, maxsplit]) do
+    string
+    |> String.to_charlist()
+    |> Enum.reverse()
+    |> split_whitespace(int_arg(maxsplit), [])
+    |> Enum.map(&(&1 |> String.to_charlist() |> Enum.reverse() |> List.to_string()))
+    |> Enum.reverse()
+  end
 
   defp method(string, "rsplit", [sep, maxsplit]) do
     string
-    |> String.reverse()
-    |> split(sep && String.reverse(sep), maxsplit)
+    |> reverse_bytes()
+    |> split(reverse_bytes(string_arg(sep, "rsplit")), maxsplit)
+    |> Enum.map(&reverse_bytes/1)
     |> Enum.reverse()
-    |> Enum.map(&String.reverse/1)
   end
 
   defp method(string, name, [prefix, start, stop]) when name in ["startswith", "endswith"] do
@@ -219,14 +241,33 @@ defmodule Otera.Methods do
     end
   end
 
-  defp method(string, "lower", []), do: String.downcase(string)
-  defp method(string, "casefold", []), do: String.downcase(string)
+  defp method(string, "lower", []), do: String.downcase(string, :greek)
+  defp method(string, "casefold", []), do: :string.casefold(string)
   defp method(string, "upper", []), do: String.upcase(string)
   defp method(string, "capitalize", []), do: capitalize(string)
   defp method(string, "title", []), do: title(string)
 
   defp method(string, "swapcase", []),
     do: string |> String.codepoints() |> Enum.map_join(&swapcase/1)
+
+  defp method(string, "expandtabs", [tabsize]) do
+    {chars, _column} =
+      string
+      |> String.codepoints()
+      |> Enum.map_reduce(0, fn
+        "\t", column ->
+          spaces = if tabsize > 0, do: tabsize - rem(column, tabsize), else: 0
+          {String.duplicate(" ", spaces), column + spaces}
+
+        char, _column when char in ["\n", "\r"] ->
+          {char, 0}
+
+        char, column ->
+          {char, column + 1}
+      end)
+
+    Enum.join(chars)
+  end
 
   defp method(string, "join", [items]) do
     items
@@ -248,6 +289,7 @@ defmodule Otera.Methods do
   end
 
   defp method(string, name, [width, fill]) when name in ["center", "ljust", "rjust"] do
+    width = int_arg(width)
     count = max(width - Value.str_length(string), 0)
 
     case name do
@@ -270,7 +312,7 @@ defmodule Otera.Methods do
         string -> {"", string}
       end
 
-    sign <> String.pad_leading(digits, max(width - String.length(sign), 0), "0")
+    sign <> String.duplicate("0", max(int_arg(width) - Value.str_length(string), 0)) <> digits
   end
 
   defp method(string, "partition", [sep]) do
@@ -334,6 +376,19 @@ defmodule Otera.Methods do
     end
   end
 
+  defp method(number, "bit_length", []) when is_integer(number) or is_boolean(number),
+    do:
+      number
+      |> int_arg()
+      |> abs()
+      |> Integer.digits(2)
+      |> then(&if(&1 == [0], do: 0, else: length(&1)))
+
+  defp method(number, "conjugate", []) when is_number(number) or is_boolean(number),
+    do: Value.binary_op(:add, number, 0)
+
+  defp method(number, "is_integer", []) when is_float(number), do: number == Float.floor(number)
+
   defp method(list, "copy", []) when is_list(list), do: list
   defp method(%Dict{} = dict, "copy", []), do: dict
 
@@ -388,25 +443,46 @@ defmodule Otera.Methods do
 
   defp string_arg(value, _name) when is_binary(value), do: value
 
-  defp string_arg(value, name),
+  defp string_arg(value, name) do
+    message =
+      case name do
+        name when name in ["strip", "lstrip", "rstrip"] ->
+          "#{name} arg must be None or str"
+
+        name when name in ["split", "rsplit"] ->
+          "must be str or None, not #{Value.type_name(value)}"
+
+        "replace" ->
+          "replace() argument 1 must be str, not #{Value.type_name(value)}"
+
+        _ ->
+          "must be str, not #{Value.type_name(value)}"
+      end
+
+    raise Otera.Error, kind: :type_error, message: message
+  end
+
+  defp int_arg(value) when is_integer(value), do: value
+  defp int_arg(true), do: 1
+  defp int_arg(false), do: 0
+
+  defp int_arg(value),
     do:
       raise(Otera.Error,
         kind: :type_error,
-        message: "#{name} arg must be None or str, not #{Value.type_name(value)}"
+        message: "'#{Value.type_name(value)}' object cannot be interpreted as an integer"
       )
 
   # Python splits on runs of whitespace and drops empty strings when `sep` is None.
-  defp split(string, nil, maxsplit),
-    do: string |> String.to_charlist() |> split_whitespace(maxsplit, [])
-
   defp split(_string, "", _maxsplit),
     do: raise(Otera.Error, kind: :value_error, message: "empty separator")
 
-  defp split(string, sep, maxsplit) when maxsplit < 0,
-    do: :binary.split(string, string_arg(sep, "split"), [:global])
-
-  defp split(string, sep, maxsplit),
-    do: String.split(string, string_arg(sep, "split"), parts: maxsplit + 1)
+  defp split(string, sep, maxsplit) do
+    case int_arg(maxsplit) do
+      maxsplit when maxsplit < 0 -> :binary.split(string, string_arg(sep, "split"), [:global])
+      maxsplit -> String.split(string, string_arg(sep, "split"), parts: maxsplit + 1)
+    end
+  end
 
   defp split_whitespace(chars, maxsplit, acc) do
     case Enum.drop_while(chars, &Value.whitespace?/1) do
@@ -460,27 +536,29 @@ defmodule Otera.Methods do
 
   defp capitalize(""), do: ""
 
-  defp capitalize(string) do
-    [first | rest] = String.codepoints(string)
-    String.upcase(first) <> String.downcase(Enum.join(rest))
-  end
+  defp capitalize(<<first::utf8, rest::binary>>),
+    do: :string.titlecase(<<first::utf8>>) <> String.downcase(rest, :greek)
 
-  # Python title-cases each run of cased characters.
+  # Python title-cases the first character of each run of cased characters, and lowercases the
+  # rest of the run, with the final sigma of Greek.
   defp title(string) do
-    {chars, _} =
-      string
-      |> String.codepoints()
-      |> Enum.map_reduce(false, fn char, previous_cased ->
-        cased = String.upcase(char) != String.downcase(char)
-        {if(previous_cased, do: String.downcase(char), else: String.upcase(char)), cased}
-      end)
-
-    Enum.join(chars)
+    string
+    |> String.codepoints()
+    |> Enum.chunk_by(&cased?/1)
+    |> Enum.map_join(fn
+      [first | rest] = run ->
+        if cased?(first),
+          do: :string.titlecase(first) <> String.downcase(Enum.join(rest), :greek),
+          else: Enum.join(run)
+    end)
   end
 
   defp swapcase(char) do
-    upper = String.upcase(char)
-    if upper == char, do: String.downcase(char), else: upper
+    cond do
+      String.downcase(char) != char and String.upcase(char) == char -> String.downcase(char)
+      String.upcase(char) != char and String.downcase(char) == char -> String.upcase(char)
+      true -> char
+    end
   end
 
   defp cased?(string), do: String.upcase(string) != String.downcase(string)

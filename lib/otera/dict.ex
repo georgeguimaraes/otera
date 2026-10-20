@@ -20,15 +20,17 @@ defmodule Otera.Dict do
   @doc """
   Makes a dict from a list of `{key, value}` pairs.
 
-  As in Python, a repeated key keeps the position of its first occurrence and the value of its last.
+  As in Python, a repeated key keeps its first position and its last value, and the keys `1`, `1.0` and `true` are the same key.
   """
   @spec new([{term, term}]) :: t
   def new(pairs) do
     {reversed, _seen} =
       Enum.reduce(pairs, {[], MapSet.new()}, fn {key, value}, {acc, seen} ->
-        if MapSet.member?(seen, key),
-          do: {List.keyreplace(acc, key, 0, {key, value}), seen},
-          else: {[{key, value} | acc], MapSet.put(seen, key)}
+        normal = normalize(key)
+
+        if MapSet.member?(seen, normal),
+          do: {replace(acc, normal, value), seen},
+          else: {[{key, value} | acc], MapSet.put(seen, normal)}
       end)
 
     %__MODULE__{pairs: Enum.reverse(reversed)}
@@ -40,7 +42,9 @@ defmodule Otera.Dict do
   @impl Access
   @spec fetch(t, term) :: {:ok, term} | :error
   def fetch(%__MODULE__{pairs: pairs}, key) do
-    case List.keyfind(pairs, key, 0) do
+    normal = normalize(key)
+
+    case Enum.find(pairs, fn {k, _} -> normalize(k) === normal end) do
       {_, value} -> {:ok, value}
       nil -> :error
     end
@@ -69,8 +73,12 @@ defmodule Otera.Dict do
   @impl Access
   def pop(%__MODULE__{pairs: pairs} = dict, key) do
     case fetch(dict, key) do
-      {:ok, value} -> {value, %__MODULE__{pairs: List.keydelete(pairs, key, 0)}}
-      :error -> {nil, dict}
+      {:ok, value} ->
+        {value,
+         %__MODULE__{pairs: Enum.reject(pairs, &(normalize(elem(&1, 0)) === normalize(key)))}}
+
+      :error ->
+        {nil, dict}
     end
   end
 
@@ -87,10 +95,21 @@ defmodule Otera.Dict do
   def values(%__MODULE__{pairs: pairs}), do: Enum.map(pairs, &elem(&1, 1))
 
   defp store(pairs, key, value) do
-    if List.keymember?(pairs, key, 0),
-      do: List.keyreplace(pairs, key, 0, {key, value}),
+    normal = normalize(key)
+
+    if Enum.any?(pairs, &(normalize(elem(&1, 0)) === normal)),
+      do: replace(pairs, normal, value),
       else: pairs ++ [{key, value}]
   end
+
+  defp replace(pairs, normal, value),
+    do: Enum.map(pairs, fn {k, v} -> if normalize(k) === normal, do: {k, value}, else: {k, v} end)
+
+  # Python hashes equal numbers alike, so True, 1 and 1.0 are one key.
+  defp normalize(true), do: 1
+  defp normalize(false), do: 0
+  defp normalize(key) when is_float(key) and key == trunc(key), do: trunc(key)
+  defp normalize(key), do: key
 end
 
 defimpl Enumerable, for: Otera.Dict do

@@ -1,0 +1,3 @@
+{"messages": [{"role": "user", "content": "a"}, {"role": "user", "content": ["b"]}]}
+---
+{{ messages|sort(attribute="role,content")|list }}

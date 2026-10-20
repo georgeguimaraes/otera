@@ -1,0 +1,5 @@
+{}
+---
+{{ 12345|round(-2) }} {{ 15|round(-1) }} {{ 25|round(-1) }} {{ -15|round(-1) }} {{ 5|round(-1) }} {{ 7|round(-1) }}
+{{ true|round }} {{ false|round(2) }} {{ -0.5|round(0, 'ceil') }} {{ 2.5|round(0, 'floor') }} {{ 1.25|round(1, 'ceil') }} {{ 1234|round(-2, 'floor') }}
+{{ 2.5|round }} {{ 3.5|round }} {{ -2.5|round }} {{ 1234.5|round(-2) }} {{ 0.125|round(2) }}

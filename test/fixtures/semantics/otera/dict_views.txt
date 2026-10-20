@@ -1,0 +1,6 @@
+{"d": {"b": 1, "a": 2}, "msg": {"role": "user", "tool_calls": []}}
+---
+{{ 'b' in d.keys() }} {{ 'z' in d.keys() }} {{ 2 in d.values() }} {{ ('a', 2) in d.items() }} {{ ['a', 2] in d.items() }}
+{% if 'tool_calls' in msg.keys() %}has tool calls{% endif %} {% if 'x' not in msg.keys() %}no x{% endif %}
+{{ d.keys() }} {{ d.values()|list }} {{ d.items()|length }} {{ d.keys()|first }} {{ d.keys()|last }}
+{{ "T" if d.keys() else "F" }} {{ "T" if {}.keys() else "F" }}

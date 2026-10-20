@@ -27,7 +27,19 @@ defmodule Otera.SemanticsTest do
     %Dict{pairs: pairs} = JSON.decode!(variables)
     {settings, variables} = List.keytake(pairs, "$settings", 0) || {{"$settings", %Dict{}}, pairs}
     {_, %Dict{pairs: settings}} = settings
-    options = Enum.map(settings, fn {key, value} -> {String.to_existing_atom(key), value} end)
+
+    options =
+      case settings do
+        [{"transformers", true}] ->
+          transformers_options()
+
+        settings ->
+          Enum.map(settings, fn {key, value} -> {String.to_existing_atom(key), value} end)
+      end
+
     Otera.render(source, Dict.new(variables), options)
   end
+
+  # scripts/generate_semantics_expected.py renders with this time for strftime_now.
+  defp transformers_options, do: Otera.ChatTemplate.options(now: ~N[2025-03-09 14:30:05])
 end

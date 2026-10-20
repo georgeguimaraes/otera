@@ -1,0 +1,6 @@
+{"crlf": "line1\r\nline2\r\nline3", "comb": "café x", "family": "👨‍👩‍👧x"}
+---
+{{ crlf.rsplit('\n') }} {{ crlf.rsplit('\n', 1) }} {{ crlf.rsplit('\r') }} {{ 'a\r\nb'.rsplit('\n', 1)[-1] }}
+{{ comb.rsplit('́') }} {{ comb.rsplit('e', 1) }} {{ family.rsplit('‍', 1) }}
+{{ "  a b  c ".rsplit() }} {{ "  a b  c ".rsplit(none, 1) }} {{ "a,b,,c".rsplit(",", 2) }} {{ "aaa".rsplit("aa") }}
+{{ crlf.split('\n') }} {{ crlf.splitlines() }} {{ "a b c".split() }}

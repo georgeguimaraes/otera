@@ -1,0 +1,3 @@
+{"xs": [1]}
+---
+{% for x in xs %}{% set loop = 1 %}{% endfor %}
