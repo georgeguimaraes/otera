@@ -1,0 +1,13 @@
+{"$settings": {"autoescape": true}, "text": "<b>\"Tom\" & 'Ann'</b>", "number": 3, "items": ["<a>", 1, null]}
+---
+text: {{ text }}
+literal: {{ "<i>" }} {{ '"' }}
+number: {{ number }} {{ 1.5 }} {{ none }} {{ true }}
+undefined: [{{ missing }}]
+list: {{ items }}
+safe: {{ text|safe }} {{ number|safe }} {{ none|safe }} {{ missing|safe }}
+escape twice: {{ text|e|e }} {{ text|escape }}
+forceescape: {{ text|safe|forceescape }} {{ text|forceescape }}
+safe list: {{ [text|safe, text] }}
+data: <p>{{ "&" }}</p>
+print: {% print text %}

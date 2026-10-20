@@ -1,0 +1,13 @@
+{"$settings": {"autoescape": true}, "text": "<b>", "number": 3}
+---
+tilde plain: {{ text ~ "&" }}
+tilde safe: {{ (text|safe) ~ text ~ number ~ none }}
+tilde safe last: {{ text ~ (text|safe) }}
+plus safe str: {{ (text|safe) + text }}
+plus str safe: {{ text + (text|safe) }}
+plus safe safe: {{ (text|safe) + ("&"|safe) }}
+times: {{ (text|safe) * 2 }} {{ 2 * (text|safe) }} {{ text * 2 }}
+percent: {{ ("<%s>"|safe) % text }} {{ ("%s|%r"|safe) % (text, text) }} {{ ("%d<"|safe) % number }}
+percent mapping: {{ ("%(a)s"|safe) % {"a": text} }}
+percent truncate: {{ ("%.2s"|safe) % text }}
+plain percent: {{ "<%s>" % (text|safe) }}

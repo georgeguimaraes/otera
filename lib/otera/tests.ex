@@ -73,13 +73,13 @@ defmodule Otera.Tests do
   defp test("integer", value, [], _env), do: is_integer(value)
   defp test("float", value, [], _env), do: is_float(value)
   defp test("number", value, [], _env), do: is_number(value) or is_boolean(value)
-  defp test("string", value, [], _env), do: is_binary(value)
+  defp test("string", value, [], _env), do: is_binary(value) or is_struct(value, Otera.Markup)
   defp test("mapping", value, [], _env), do: is_struct(value, Dict)
 
   defp test("sequence", value, [], _env),
     do:
       is_binary(value) or is_list(value) or is_tuple(value) or is_struct(value, Dict) or
-        is_struct(value, Undefined)
+        is_struct(value, Undefined) or is_struct(value, Otera.Markup)
 
   defp test("iterable", value, [], _env), do: Value.iterable?(value) or is_struct(value, Loop)
 
@@ -90,7 +90,7 @@ defmodule Otera.Tests do
         is_struct(value, Method) or
         is_struct(value, Loop) or is_struct(value, Undefined)
 
-  defp test("escaped", _value, [], _env), do: false
+  defp test("escaped", value, [], _env), do: is_struct(value, Otera.Markup)
 
   defp test("lower", value, [], _env),
     do: Methods.call(Value.to_str(value), "islower", [], %Dict{})

@@ -12,6 +12,7 @@ defmodule Otera.Evaluator do
     Filters,
     Loop,
     Macro,
+    Markup,
     Method,
     Methods,
     Namespace,
@@ -21,7 +22,17 @@ defmodule Otera.Evaluator do
     Value
   }
 
-  defstruct frames: [], filters: %{}, tests: %{}, globals: %{}, name: nil
+  # `escape` is the autoescape of the code that runs, which escapes its outputs and joins, like the
+  # compile-time autoescape of Jinja2. `autoescape` is the autoescape of the eval context at runtime,
+  # which decides if macros, set blocks and some filters give Markup. They differ only in a macro
+  # that a template calls where the autoescape differs from where it defined the macro.
+  defstruct frames: [],
+            filters: %{},
+            tests: %{},
+            globals: %{},
+            name: nil,
+            escape: false,
+            autoescape: false
 
   @builtins ["range", "dict", "namespace", "cycler", "joiner", "lipsum"]
   @max_range 100_000
@@ -29,11 +40,15 @@ defmodule Otera.Evaluator do
   @doc """
   Renders `ast` with `variables`, a map with string keys. Raises `Otera.Error`.
 
-  Options: `:filters`, `:tests` and `:globals`, maps from names to Elixir functions or values.
+  Options: `:filters`, `:tests` and `:globals`, maps from names to Elixir functions or values, and `:autoescape`, a boolean or a function of the template name.
   """
   @spec render(list, map, keyword) :: String.t()
   def render(ast, variables, opts) do
+    autoescape = autoescape?(Keyword.get(opts, :autoescape, false), nil)
+
     ctx = %__MODULE__{
+      escape: autoescape,
+      autoescape: autoescape,
       frames: [variables],
       filters: names(Keyword.get(opts, :filters, %{})),
       tests: names(Keyword.get(opts, :tests, %{})),
@@ -51,6 +66,11 @@ defmodule Otera.Evaluator do
 
   defp names(map), do: Map.new(map, fn {name, value} -> {to_string(name), value} end)
 
+  defp autoescape?(autoescape, name) when is_function(autoescape, 1),
+    do: Value.truthy?(autoescape.(name))
+
+  defp autoescape?(autoescape, _name), do: Value.truthy?(autoescape)
+
   ## Statements
 
   defp exec_body(nodes, ctx), do: exec_body(nodes, ctx, [])
@@ -67,7 +87,7 @@ defmodule Otera.Evaluator do
   defp exec({:text, text}, ctx), do: {text, ctx, :ok}
 
   defp exec({:output, expr, line}, ctx),
-    do: {at(line, ctx, fn -> Value.to_str(eval(expr, ctx)) end), ctx, :ok}
+    do: {at(line, ctx, fn -> output(eval(expr, ctx), ctx) end), ctx, :ok}
 
   defp exec({control, _line}, ctx) when control in [:break, :continue], do: {[], ctx, control}
 
@@ -92,7 +112,8 @@ defmodule Otera.Evaluator do
     value = capture(body, ctx)
 
     at(line, ctx, fn ->
-      value = if filter, do: eval(fill_hole(filter, value), ctx), else: value
+      value = if filter, do: eval(fill_hole(filter, safe(value, ctx.escape)), ctx), else: value
+      value = if ctx.autoescape, do: Markup.new(Value.to_str(value)), else: value
       {[], assign(target, value, ctx), :ok}
     end)
   end
@@ -107,7 +128,8 @@ defmodule Otera.Evaluator do
       body: body,
       special_names: special_names,
       frames: closure(ctx),
-      line: line
+      line: line,
+      escape: ctx.escape
     }
 
     {[], put_var(ctx, name, macro), :ok}
@@ -124,7 +146,8 @@ defmodule Otera.Evaluator do
       body: body,
       special_names: special_names,
       frames: closure(ctx),
-      line: line
+      line: line,
+      escape: ctx.escape
     }
 
     at(line, ctx, fn ->
@@ -135,8 +158,15 @@ defmodule Otera.Evaluator do
   end
 
   defp exec({:filter_block, filter, body, line}, ctx) do
-    value = capture(body, ctx)
+    value = safe(capture(body, ctx), ctx.escape)
     {at(line, ctx, fn -> Value.to_str(eval(fill_hole(filter, value), ctx)) end), ctx, :ok}
+  end
+
+  defp exec({:autoescape, expr, body, line}, ctx) do
+    autoescape = at(line, ctx, fn -> Value.truthy?(eval(expr, ctx)) end)
+    inner = %{push(ctx, %{}) | escape: autoescape, autoescape: autoescape}
+    {output, _inner, signal} = exec_body(body, inner)
+    {output, ctx, signal}
   end
 
   defp exec({:with, assignments, body, line}, ctx) do
@@ -167,6 +197,13 @@ defmodule Otera.Evaluator do
     {output, _inner, _signal} = exec_body(body, push(ctx, %{}))
     IO.iodata_to_binary(output)
   end
+
+  defp safe(text, true), do: Markup.new(text)
+  defp safe(text, false), do: text
+
+  # Like the output of Jinja2: with autoescape, escape(value), and else str(value).
+  defp output(value, %{escape: true}), do: Markup.escape(value).text
+  defp output(value, _ctx), do: Value.to_str(value)
 
   defp fill_hole({:filter, name, nil, args, kwargs, line}, value),
     do: {:filter, name, {:const, value}, args, kwargs, line}
@@ -351,7 +388,7 @@ defmodule Otera.Evaluator do
   defp eval({:binop, op, left, right, _line}, ctx),
     do: Value.binary_op(op, eval(left, ctx), eval(right, ctx))
 
-  defp eval({:concat, exprs}, ctx), do: Enum.map_join(exprs, &Value.to_str(eval(&1, ctx)))
+  defp eval({:concat, exprs}, ctx), do: concat(Enum.map(exprs, &eval(&1, ctx)), ctx.escape)
   defp eval({:compare, expr, ops, _line}, ctx), do: compare(eval(expr, ctx), ops, ctx)
 
   defp eval({:cond, test, then_expr, else_expr, _line}, ctx) do
@@ -375,6 +412,16 @@ defmodule Otera.Evaluator do
     {args, kwargs} = eval_args(args, kwargs, ctx)
     call_test(ctx, name, value, args, kwargs)
   end
+
+  # markup_join of Jinja2: with autoescape, a Markup part makes the result a Markup, and the
+  # plain parts are escaped. Else str_join.
+  defp concat(values, true) do
+    if Enum.any?(values, &is_struct(&1, Markup)),
+      do: Methods.call(Markup.new(""), "join", [Enum.map(values, &Markup.soft_str/1)], %Dict{}),
+      else: Enum.map_join(values, &Value.to_str/1)
+  end
+
+  defp concat(values, false), do: Enum.map_join(values, &Value.to_str/1)
 
   defp eval_optional(nil, _ctx), do: nil
   defp eval_optional(expr, ctx), do: eval(expr, ctx)
@@ -465,7 +512,7 @@ defmodule Otera.Evaluator do
 
   defp call_value(%Loop{recurse: {node, loop_ctx}, depth0: depth0}, [iterable], _kwargs, _ctx) do
     {output, _ctx, _signal} = loop(node, iterable, loop_ctx, depth0 + 1)
-    IO.iodata_to_binary(output)
+    safe(IO.iodata_to_binary(output), loop_ctx.escape)
   end
 
   defp call_value(%Loop{}, _args, _kwargs, _ctx),
@@ -520,9 +567,16 @@ defmodule Otera.Evaluator do
     end
   end
 
+  # The body escapes like the place that defines the macro, and the result is a Markup when the
+  # place that calls it has autoescape, like Macro.__call__ of Jinja2.
   defp call_macro(macro, args, kwargs, ctx) do
     {positional, extra} = Enum.split(args, length(macro.params))
-    macro_ctx = %{ctx | frames: [%{}] ++ macro.frames ++ [List.last(ctx.frames)]}
+
+    macro_ctx = %{
+      ctx
+      | frames: [%{}] ++ macro.frames ++ [List.last(ctx.frames)],
+        escape: macro.escape
+    }
 
     {macro_ctx, kwargs} =
       at(macro.line, macro_ctx, fn -> bind_params(macro_ctx, macro.params, positional, kwargs) end)
@@ -530,7 +584,7 @@ defmodule Otera.Evaluator do
     {macro_ctx, kwargs} = bind_caller(macro_ctx, macro, kwargs)
     macro_ctx = macro_ctx |> bind_kwargs(macro, kwargs) |> bind_varargs(macro, extra)
     {output, _ctx, _signal} = exec_body(macro.body, macro_ctx)
-    IO.iodata_to_binary(output)
+    safe(IO.iodata_to_binary(output), ctx.autoescape)
   end
 
   # Positional arguments come first, then keyword arguments, then defaults, which can read the

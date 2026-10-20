@@ -2,9 +2,9 @@ defmodule Otera.Filters do
   @moduledoc """
   The builtin filters of Jinja2, with their Python behavior.
 
-  The filters are `abs`, `attr`, `batch`, `capitalize`, `center`, `count`, `default` (`d`), `dictsort`, `escape` (`e`), `filesizeformat`, `first`, `float`, `format`, `groupby`, `indent`, `int`, `items`, `join`, `last`, `length`, `list`, `lower`, `map`, `max`, `min`, `pprint`, `random`, `reject`, `rejectattr`, `replace`, `reverse`, `round`, `safe`, `select`, `selectattr`, `slice`, `sort`, `string`, `striptags`, `sum`, `title`, `tojson`, `trim`, `truncate`, `unique`, `upper`, `urlencode`, `wordcount`, `wordwrap` and `xmlattr`.
+  The filters are `abs`, `attr`, `batch`, `capitalize`, `center`, `count`, `default` (`d`), `dictsort`, `escape` (`e`), `filesizeformat`, `first`, `float`, `forceescape`, `format`, `groupby`, `indent`, `int`, `items`, `join`, `last`, `length`, `list`, `lower`, `map`, `max`, `min`, `pprint`, `random`, `reject`, `rejectattr`, `replace`, `reverse`, `round`, `safe`, `select`, `selectattr`, `slice`, `sort`, `string`, `striptags`, `sum`, `title`, `tojson`, `trim`, `truncate`, `unique`, `upper`, `urlencode`, `wordcount`, `wordwrap` and `xmlattr`.
 
-  Without autoescape, `safe` only converts its value to a string. `escape` always escapes HTML, as in Jinja2. The filters that give a generator in Jinja2, such as `map` and `select`, give a list.
+  `safe`, `escape`, `forceescape` and `tojson` give an `Otera.Markup`. As in Jinja2, the string filters keep a `Markup`, and `join`, `replace` and `xmlattr` follow the autoescape of the render. The filters that give a generator in Jinja2, such as `map` and `select`, give a list.
   """
 
   alias Otera.{
@@ -15,6 +15,7 @@ defmodule Otera.Filters do
     JSON,
     Loop,
     Macro,
+    Markup,
     Methods,
     Namespace,
     Undefined,
@@ -50,22 +51,27 @@ defmodule Otera.Filters do
 
   defp filter("trim", value, args, kwargs, _env) do
     [chars] = bind("do_trim", args, kwargs, [{"chars", nil}])
-    Methods.call(Value.to_str(value), "strip", [chars], %Dict{})
+    Methods.call(Markup.soft_str(value), "strip", [chars], %Dict{})
   end
 
   defp filter("string", value, args, kwargs, _env) do
     bind("soft_str", args, kwargs, [])
-    Value.to_str(value)
+    Markup.soft_str(value)
   end
 
   defp filter("safe", value, args, kwargs, _env) do
     bind("do_mark_safe", args, kwargs, [])
-    Value.to_str(value)
+    Markup.new(Value.to_str(value))
   end
 
   defp filter(name, value, args, kwargs, _env) when name in ["escape", "e"] do
     bind("escape", args, kwargs, [])
-    value |> Value.to_str() |> HTML.escape()
+    Markup.escape(value)
+  end
+
+  defp filter("forceescape", value, args, kwargs, _env) do
+    bind("do_forceescape", args, kwargs, [])
+    Markup.escape(Value.to_str(value))
   end
 
   defp filter("striptags", value, args, kwargs, _env) do
@@ -91,8 +97,9 @@ defmodule Otera.Filters do
 
     value
     |> string_method("splitlines", [])
-    |> Enum.map_join(wrapstring, fn line ->
+    |> Enum.map_join(Value.to_str(wrapstring), fn line ->
       line
+      |> Value.to_str()
       |> Otera.TextWrap.wrap(width, Value.truthy?(break_long), Value.truthy?(break_hyphens))
       |> Enum.join(wrapstring)
     end)
@@ -101,7 +108,7 @@ defmodule Otera.Filters do
   defp filter("urlencode", value, args, kwargs, _env) do
     bind("do_urlencode", args, kwargs, [])
 
-    if is_binary(value) or not Value.iterable?(value) do
+    if is_binary(value) or is_struct(value, Markup) or not Value.iterable?(value) do
       url_quote(value, false)
     else
       value
@@ -113,7 +120,7 @@ defmodule Otera.Filters do
     end
   end
 
-  defp filter("xmlattr", value, args, kwargs, _env) do
+  defp filter("xmlattr", value, args, kwargs, env) do
     [autospace] = bind("do_xmlattr", args, kwargs, [{"autospace", true}])
 
     text =
@@ -130,7 +137,8 @@ defmodule Otera.Filters do
         "#{HTML.escape(key)}=\"#{HTML.escape(Value.to_str(item))}\""
       end)
 
-    if Value.truthy?(autospace) and text != "", do: " " <> text, else: text
+    text = if Value.truthy?(autospace) and text != "", do: " " <> text, else: text
+    if env.autoescape, do: Markup.new(text), else: text
   end
 
   defp filter("filesizeformat", value, args, kwargs, _env) do
@@ -175,7 +183,7 @@ defmodule Otera.Filters do
 
   defp filter(name, value, args, kwargs, _env) when name in ["upper", "lower", "capitalize"] do
     bind("do_#{name}", args, kwargs, [])
-    Methods.call(Value.to_str(value), name, [], %Dict{})
+    Methods.call(Markup.soft_str(value), name, [], %Dict{})
   end
 
   defp filter("title", value, args, kwargs, _env) do
@@ -192,20 +200,29 @@ defmodule Otera.Filters do
     end)
   end
 
-  defp filter("replace", value, args, kwargs, _env) do
+  defp filter("replace", value, args, kwargs, env) do
     [old, new, count] = bind("do_replace", args, kwargs, ["old", "new", {"count", nil}])
 
-    Methods.call(
-      Value.to_str(value),
-      "replace",
-      [Value.to_str(old), Value.to_str(new), count || -1],
-      %Dict{}
-    )
+    # Like do_replace: with autoescape, a Markup argument escapes a plain string value.
+    value =
+      cond do
+        not env.autoescape ->
+          Value.to_str(value)
+
+        is_struct(old, Markup) or (is_struct(new, Markup) and not is_struct(value, Markup)) ->
+          Markup.escape(value)
+
+        true ->
+          Markup.soft_str(value)
+      end
+
+    plain = &if(env.autoescape, do: Markup.soft_str(&1), else: Value.to_str(&1))
+    Methods.call(value, "replace", [plain.(old), plain.(new), count || -1], %Dict{})
   end
 
   defp filter("center", value, args, kwargs, _env) do
     [width] = bind("do_center", args, kwargs, [{"width", 80}])
-    Methods.call(Value.to_str(value), "center", [width], %Dict{})
+    Methods.call(Markup.soft_str(value), "center", [width], %Dict{})
   end
 
   defp filter("indent", value, args, kwargs, _env) do
@@ -213,23 +230,8 @@ defmodule Otera.Filters do
       bind("do_indent", args, kwargs, [{"width", 4}, {"first", false}, {"blank", false}])
 
     indention = if is_binary(width), do: width, else: String.duplicate(" ", width)
-    lines = Methods.call(indent_text(value), "splitlines", [], %Dict{})
-
-    text =
-      if Value.truthy?(blank) do
-        Enum.join(lines, "\n" <> indention)
-      else
-        [head | tail] = lines
-
-        Enum.join(
-          [
-            head | Enum.map(tail, fn line -> if line == "", do: line, else: indention <> line end)
-          ],
-          "\n"
-        )
-      end
-
-    if Value.truthy?(first), do: indention <> text, else: text
+    # A Markup value makes the indention a Markup too, so nothing is escaped.
+    Markup.map(indent_value(value), &indent(&1, indention, first, blank))
   end
 
   defp filter("truncate", value, args, kwargs, _env) do
@@ -241,22 +243,24 @@ defmodule Otera.Filters do
         {"leeway", nil}
       ])
 
-    string = Value.to_str(value)
+    string = Markup.soft_str(value)
     leeway = leeway || 5
 
     cond do
-      Value.str_length(string) <= length + leeway ->
+      Value.length(string) <= length + leeway ->
         string
 
       Value.truthy?(killwords) ->
-        Value.slice(string, 0, length - Value.str_length(ending), nil) <> ending
+        string
+        |> Value.slice(0, length - Value.str_length(ending), nil)
+        |> then(&Value.binary_op(:add, &1, ending))
 
       true ->
         string
         |> Value.slice(0, length - Value.str_length(ending), nil)
         |> Methods.call("rsplit", [" ", 1], %Dict{})
         |> hd()
-        |> Kernel.<>(ending)
+        |> then(&Value.binary_op(:add, &1, ending))
     end
   end
 
@@ -273,8 +277,9 @@ defmodule Otera.Filters do
           message: "can't handle positional and keyword arguments at the same time"
         )
 
-    Otera.Format.printf(
-      Value.to_str(value),
+    Value.binary_op(
+      :mod,
+      Markup.soft_str(value),
       if(kwargs.pairs != [], do: kwargs, else: List.to_tuple(args))
     )
   end
@@ -359,7 +364,7 @@ defmodule Otera.Filters do
     bind("do_reverse", args, kwargs, [])
 
     case value do
-      value when is_binary(value) ->
+      value when is_binary(value) or is_struct(value, Markup) ->
         Value.slice(value, nil, nil, -1)
 
       %Iterable{type: "generator"} ->
@@ -371,10 +376,16 @@ defmodule Otera.Filters do
     end
   end
 
-  defp filter("join", value, args, kwargs, _env) do
+  defp filter("join", value, args, kwargs, env) do
     [separator, attribute] = bind("do_join", args, kwargs, [{"d", ""}, {"attribute", nil}])
     getter = attrgetter(attribute)
-    value |> Value.to_list() |> Enum.map_join(Value.to_str(separator), &Value.to_str(getter.(&1)))
+    items = value |> Value.to_list() |> Enum.map(getter)
+
+    # Like do_join: with autoescape, a Markup item or separator escapes the plain strings.
+    if env.autoescape and
+         (is_struct(separator, Markup) or Enum.any?(items, &is_struct(&1, Markup))),
+       do: Methods.call(Markup.escape(separator), "join", [items], %Dict{}),
+       else: Enum.map_join(items, Value.to_str(separator), &Value.to_str/1)
   end
 
   defp filter("sum", value, args, kwargs, _env) do
@@ -536,6 +547,7 @@ defmodule Otera.Filters do
       "&" -> "\\u0026"
       "'" -> "\\u0027"
     end)
+    |> Markup.new()
   end
 
   defp filter(name, _value, _args, _kwargs, _env),
@@ -550,12 +562,12 @@ defmodule Otera.Filters do
   """
   @spec builtin?(String.t()) :: boolean
   def builtin?(name) do
-    name in ~w(abs attr batch capitalize center count d default dictsort e escape filesizeformat first float format groupby indent int items join last length list lower map max min pprint random reject rejectattr replace reverse round safe select selectattr slice sort string striptags sum title tojson trim truncate unique upper urlencode wordcount wordwrap xmlattr)
+    name in ~w(abs attr batch capitalize center count d default dictsort e escape filesizeformat first float forceescape format groupby indent int items join last length list lower map max min pprint random reject rejectattr replace reverse round safe select selectattr slice sort string striptags sum title tojson trim truncate unique upper urlencode wordcount wordwrap xmlattr)
   end
 
   defp string_method(%Undefined{} = undefined, _name, _args), do: Undefined.fail(undefined)
 
-  defp string_method(value, name, args) when is_binary(value),
+  defp string_method(value, name, args) when is_binary(value) or is_struct(value, Markup),
     do: Methods.call(value, name, args, %Dict{})
 
   defp string_method(value, name, _args),
@@ -647,11 +659,28 @@ defmodule Otera.Filters do
   defp filter_argument_error(message),
     do: raise(Otera.Error, kind: :filter_argument_error, message: message)
 
-  # Jinja2 runs `s += "\n"` on the value of indent.
-  defp indent_text(value) when is_binary(value), do: value <> "\n"
-  defp indent_text(%Undefined{} = undefined), do: Undefined.fail(undefined)
+  defp indent(text, indention, first, blank) do
+    lines = Methods.call(text, "splitlines", [], %Dict{})
 
-  defp indent_text(value),
+    text =
+      if Value.truthy?(blank) do
+        Enum.join(lines, "\n" <> indention)
+      else
+        [head | tail] = lines
+        tail = Enum.map(tail, fn line -> if line == "", do: line, else: indention <> line end)
+        Enum.join([head | tail], "\n")
+      end
+
+    if Value.truthy?(first), do: indention <> text, else: text
+  end
+
+  # Jinja2 runs `s += "\n"` on the value of indent.
+  defp indent_value(value) when is_binary(value) or is_struct(value, Markup),
+    do: Markup.map(value, &(&1 <> "\n"))
+
+  defp indent_value(%Undefined{} = undefined), do: Undefined.fail(undefined)
+
+  defp indent_value(value),
     do:
       raise(Otera.Error,
         kind: :type_error,
@@ -706,8 +735,8 @@ defmodule Otera.Filters do
   end
 
   defp postprocess(value, case_sensitive) do
-    if is_binary(value) and not Value.truthy?(case_sensitive),
-      do: String.downcase(value),
+    if (is_binary(value) or is_struct(value, Markup)) and not Value.truthy?(case_sensitive),
+      do: String.downcase(Value.to_str(value)),
       else: value
   end
 
@@ -727,6 +756,8 @@ defmodule Otera.Filters do
   defp to_int(value, _base) when is_integer(value), do: value
   defp to_int(value, _base) when is_boolean(value), do: if(value, do: 1, else: 0)
   defp to_int(value, _base) when is_float(value), do: trunc(value)
+
+  defp to_int(%Markup{text: text}, base), do: to_int(text, base)
 
   defp to_int(value, base) when is_binary(value) do
     with nil <- parse_int(Value.strip(value, nil, :both), base),
@@ -775,6 +806,8 @@ defmodule Otera.Filters do
   end
 
   defp to_float(value) when is_boolean(value), do: if(value, do: 1.0, else: 0.0)
+
+  defp to_float(%Markup{text: text}), do: to_float(text)
 
   defp to_float(value) when is_binary(value) do
     text = value |> Value.strip(nil, :both) |> String.replace("_", "") |> String.downcase()

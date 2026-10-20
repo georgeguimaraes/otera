@@ -13,9 +13,11 @@ defmodule Otera.Format do
 
   @doc """
   Formats `args` into `format` with the rules of the Python `%` operator.
+
+  With `escape`, the conversions `%s`, `%r` and `%a` escape their text, like the `%` operator of a `Markup`.
   """
-  @spec printf(String.t(), term) :: String.t()
-  def printf(format, args) do
+  @spec printf(String.t(), term, boolean) :: String.t()
+  def printf(format, args, escape \\ false) do
     # Like Python, a dict or a list is one argument that is also a mapping, so extra arguments are no error.
     {positional, mapping} =
       case args do
@@ -24,7 +26,7 @@ defmodule Otera.Format do
         arg -> {[arg], nil}
       end
 
-    {output, rest} = printf(format, format, positional, mapping, [])
+    {output, rest} = printf(format, {format, escape}, positional, mapping, [])
 
     if rest != [] and mapping == nil,
       do: fail(:type_error, "not all arguments converted during string formatting")
@@ -43,7 +45,7 @@ defmodule Otera.Format do
         {width, args} = star(width, args)
         {precision, args} = star(precision, args)
         {value, args} = printf_arg(key, args, mapping)
-        text = printf_value(value, flags, width, precision, type)
+        text = printf_value(value, flags, width, precision, type, elem(format, 1))
         rest = binary_part(rest, byte_size(spec), byte_size(rest) - byte_size(spec))
         printf(rest, format, args, mapping, [text | acc])
 
@@ -52,7 +54,10 @@ defmodule Otera.Format do
 
       [spec | _] ->
         <<char::utf8>> = String.last(spec)
-        index = Value.str_length(format) - Value.str_length(rest) + Value.str_length(spec) - 1
+
+        index =
+          Value.str_length(elem(format, 0)) - Value.str_length(rest) + Value.str_length(spec) - 1
+
         hex = char |> Integer.to_string(16) |> String.downcase()
 
         fail(
@@ -83,7 +88,7 @@ defmodule Otera.Format do
   defp star("", args), do: {nil, args}
   defp star(digits, args), do: {String.to_integer(digits), args}
 
-  defp printf_value(value, flags, width, precision, type) do
+  defp printf_value(value, flags, width, precision, type, escape) do
     align = if String.contains?(flags, "-"), do: "<", else: ">"
     zero = String.contains?(flags, "0") and align == ">" and type not in ["s", "r", "a", "c"]
 
@@ -95,7 +100,8 @@ defmodule Otera.Format do
       width: width,
       grouping: nil,
       precision: precision,
-      type: printf_type(type)
+      type: printf_type(type),
+      escape: escape
     }
 
     printf_convert(value, type, spec)
@@ -110,12 +116,14 @@ defmodule Otera.Format do
   end
 
   defp printf_convert(value, "s", spec),
-    do: pad(truncate(Value.to_str(value), spec.precision), spec)
+    do: pad(truncate(escape(Value.to_str(value), spec), spec.precision), spec)
 
   defp printf_convert(value, "r", spec),
-    do: pad(truncate(Value.repr(value), spec.precision), spec)
+    do: pad(truncate(escape(Value.repr(value), spec), spec.precision), spec)
 
-  defp printf_convert(value, "a", spec), do: pad(truncate(ascii(value), spec.precision), spec)
+  defp printf_convert(value, "a", spec),
+    do: pad(truncate(escape(ascii(value), spec), spec.precision), spec)
+
   defp printf_convert(value, "c", spec) when is_integer(value), do: pad(<<value::utf8>>, spec)
   defp printf_convert(<<_::utf8>> = value, "c", spec), do: pad(value, spec)
   defp printf_convert(_value, "c", _spec), do: fail(:type_error, "%c requires int or char")
@@ -124,6 +132,9 @@ defmodule Otera.Format do
     do: format_number(printf_integer(value, type), spec)
 
   defp printf_convert(value, type, spec), do: format_number(printf_number(value, type), spec)
+
+  defp escape(text, %{escape: true}), do: Otera.HTML.escape(text)
+  defp escape(text, _spec), do: text
 
   defp printf_type(type) when type in ["i", "u"], do: "d"
   defp printf_type(type), do: type
@@ -154,22 +165,24 @@ defmodule Otera.Format do
 
   @doc """
   Formats `args` and `kwargs` into `format` with the rules of Python `str.format()`.
+
+  With `escape`, each field escapes its text, like the `format` method of a `Markup`.
   """
-  @spec format(String.t(), list, Dict.t()) :: String.t()
-  def format(format, args, kwargs) do
-    {output, _index} = format_fields(format, args, kwargs, 0, [])
+  @spec format(String.t(), list, Dict.t(), boolean) :: String.t()
+  def format(format, args, kwargs, escape \\ false) do
+    {output, _index} = format_fields(format, {args, kwargs, escape}, 0, [])
     IO.iodata_to_binary(output)
   end
 
-  defp format_fields("", _args, _kwargs, index, acc), do: {Enum.reverse(acc), index}
+  defp format_fields("", _fields, index, acc), do: {Enum.reverse(acc), index}
 
-  defp format_fields("{{" <> rest, args, kwargs, index, acc),
-    do: format_fields(rest, args, kwargs, index, ["{" | acc])
+  defp format_fields("{{" <> rest, fields, index, acc),
+    do: format_fields(rest, fields, index, ["{" | acc])
 
-  defp format_fields("}}" <> rest, args, kwargs, index, acc),
-    do: format_fields(rest, args, kwargs, index, ["}" | acc])
+  defp format_fields("}}" <> rest, fields, index, acc),
+    do: format_fields(rest, fields, index, ["}" | acc])
 
-  defp format_fields("{" <> rest, args, kwargs, index, acc) do
+  defp format_fields("{" <> rest, {args, kwargs, escape} = fields, index, acc) do
     {field, rest} = field_text(rest, 0, "")
     {name, conversion, spec} = split_field(field)
     {value, index} = field_value(name, args, kwargs, index)
@@ -183,15 +196,15 @@ defmodule Otera.Format do
         other -> fail(:value_error, "Unknown conversion specifier #{other}")
       end
 
-    {spec, index} = nested_spec(spec, args, kwargs, index)
-    format_fields(rest, args, kwargs, index, [format_value(value, spec) | acc])
+    {spec, index} = nested_spec(spec, fields, index)
+    format_fields(rest, fields, index, [format_field(value, spec, escape) | acc])
   end
 
-  defp format_fields("}" <> _rest, _args, _kwargs, _index, _acc),
+  defp format_fields("}" <> _rest, _fields, _index, _acc),
     do: fail(:value_error, "Single '}' encountered in format string")
 
-  defp format_fields(<<char::utf8, rest::binary>>, args, kwargs, index, acc),
-    do: format_fields(rest, args, kwargs, index, [<<char::utf8>> | acc])
+  defp format_fields(<<char::utf8, rest::binary>>, fields, index, acc),
+    do: format_fields(rest, fields, index, [<<char::utf8>> | acc])
 
   defp field_text("", 0, ""), do: fail(:value_error, "Single '{' encountered in format string")
   defp field_text("", _depth, _acc), do: fail(:value_error, "expected '}' before end of string")
@@ -211,9 +224,9 @@ defmodule Otera.Format do
     end
   end
 
-  defp nested_spec(spec, args, kwargs, index) do
+  defp nested_spec(spec, fields, index) do
     if String.contains?(spec, "{") do
-      {output, index} = format_fields(spec, args, kwargs, index, [])
+      {output, index} = format_fields(spec, fields, index, [])
       {IO.iodata_to_binary(output), index}
     else
       {spec, index}
@@ -257,7 +270,16 @@ defmodule Otera.Format do
     Value.getitem(value, if(key =~ ~r/\A\d+\z/, do: String.to_integer(key), else: key))
   end
 
+  # markupsafe.EscapeFormatter: a Markup field takes no format specification, and other fields are escaped.
+  defp format_field(%Otera.Markup{}, spec, true) when spec != "",
+    do: fail(:value_error, "Unsupported format specification for Markup.")
+
+  defp format_field(%Otera.Markup{text: text}, _spec, true), do: text
+  defp format_field(value, spec, true), do: Otera.HTML.escape(format_value(value, spec))
+  defp format_field(value, spec, false), do: format_value(value, spec)
+
   defp format_value(value, ""), do: Value.to_str(value)
+  defp format_value(%Otera.Markup{text: text}, spec), do: format_value(text, spec)
 
   defp format_value(value, spec) do
     case Regex.named_captures(@spec_regex, spec) do

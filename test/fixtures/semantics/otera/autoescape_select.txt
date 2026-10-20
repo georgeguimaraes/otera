@@ -1,0 +1,3 @@
+{"$settings": {"autoescape": ["html", "xml"]}, "text": "<b>"}
+---
+{{ text }} {{ text|safe }}

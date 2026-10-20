@@ -9,6 +9,7 @@ defmodule Otera.Value do
   | `nil`, `true`, `false`            | `None`, `True`, `False` |
   | integer, float                    | `int`, `float`        |
   | binary                            | `str`                 |
+  | `Otera.Markup`                    | `Markup`, a `str`     |
   | list, tuple                       | `list`, `tuple`       |
   | map, `Otera.Dict`                 | `dict`                |
   | other atom                        | `str`                 |
@@ -21,7 +22,7 @@ defmodule Otera.Value do
 
   import Kernel, except: [length: 1]
 
-  alias Otera.{Dict, Iterable, Loop, Macro, Method, Methods, Namespace, Undefined}
+  alias Otera.{Dict, Iterable, Loop, Macro, Markup, Method, Methods, Namespace, Undefined}
 
   @internal [
     Dict,
@@ -35,7 +36,8 @@ defmodule Otera.Value do
     Otera.Bytes,
     Otera.Cycler,
     Otera.Joiner,
-    Otera.GroupTuple
+    Otera.GroupTuple,
+    Markup
   ]
 
   @doc """
@@ -73,6 +75,7 @@ defmodule Otera.Value do
   def truthy?(%Dict{pairs: pairs}), do: pairs != []
   def truthy?(%Undefined{}), do: false
   def truthy?(%Otera.Bytes{data: data}), do: data != ""
+  def truthy?(%Markup{text: text}), do: text != ""
   def truthy?(%Iterable{items: items} = iterable), do: not Iterable.view?(iterable) or items != []
   def truthy?(_value), do: true
 
@@ -92,6 +95,7 @@ defmodule Otera.Value do
   def type_name(%Otera.Joiner{}), do: "Joiner"
   def type_name(%Otera.GroupTuple{}), do: "_GroupTuple"
   def type_name(%Otera.Bytes{}), do: "bytes"
+  def type_name(%Markup{}), do: "Markup"
   def type_name(%Iterable{type: type}), do: type
   def type_name(%Undefined{}), do: "Undefined"
   def type_name(%Namespace{}), do: "Namespace"
@@ -125,6 +129,7 @@ defmodule Otera.Value do
   """
   @spec to_str(term) :: String.t()
   def to_str(value) when is_binary(value), do: value
+  def to_str(%Markup{text: text}), do: text
   def to_str(%Undefined{}), do: ""
   def to_str(value), do: repr(value)
 
@@ -143,6 +148,7 @@ defmodule Otera.Value do
   def repr(value) when is_integer(value), do: Integer.to_string(value)
   def repr(value) when is_float(value), do: format_float(value)
   def repr(value) when is_binary(value), do: repr_string(value)
+  def repr(%Markup{text: text}), do: "Markup(" <> repr_string(text) <> ")"
   def repr(value) when is_list(value), do: "[" <> Enum.map_join(value, ", ", &repr/1) <> "]"
   def repr({item}), do: "(" <> repr(item) <> ",)"
 
@@ -302,6 +308,9 @@ defmodule Otera.Value do
   Returns true if `left == right` in Python.
   """
   @spec equal?(term, term) :: boolean
+  def equal?(%Markup{text: left}, right), do: equal?(left, right)
+  def equal?(left, %Markup{text: right}), do: equal?(left, right)
+
   def equal?(%Otera.GroupTuple{} = left, right),
     do: equal?(Otera.GroupTuple.to_tuple(left), right)
 
@@ -368,6 +377,10 @@ defmodule Otera.Value do
 
   # Returns :lt, :eq or :gt for values that Python can order. For sequences, Python compares
   # the first items that differ, so an error names the types of those items.
+  defp order(%Markup{text: left}, right) when is_binary(right) or is_struct(right, Markup),
+    do: order(left, right)
+
+  defp order(left, %Markup{text: right}) when is_binary(left), do: order(left, right)
   defp order(%Otera.GroupTuple{} = left, right), do: order(Otera.GroupTuple.to_tuple(left), right)
   defp order(left, %Otera.GroupTuple{} = right), do: order(left, Otera.GroupTuple.to_tuple(right))
 
@@ -409,6 +422,22 @@ defmodule Otera.Value do
       do: binary_op(op, number(left), number(right)),
       else: arithmetic(op, left, right)
   end
+
+  # markupsafe: `+` escapes a plain string, `%` escapes the arguments, and `*` keeps the Markup.
+  def binary_op(:add, %Markup{} = left, right) when is_binary(right) or is_struct(right, Markup),
+    do: Markup.new(left.text <> Markup.escape(right).text)
+
+  def binary_op(:add, left, %Markup{} = right) when is_binary(left),
+    do: Markup.new(Markup.escape(left).text <> right.text)
+
+  def binary_op(:mul, %Markup{} = left, right) when is_integer(right),
+    do: Markup.map(left, &binary_op(:mul, &1, right))
+
+  def binary_op(:mul, left, %Markup{} = right) when is_integer(left),
+    do: binary_op(:mul, right, left)
+
+  def binary_op(:mod, %Markup{} = left, right),
+    do: Markup.map(left, &Otera.Format.printf(&1, right, true))
 
   def binary_op(op, left, right) do
     arithmetic(op, left, right)
@@ -562,6 +591,7 @@ defmodule Otera.Value do
   def to_list(value) when is_list(value), do: value
   def to_list(value) when is_tuple(value), do: Tuple.to_list(value)
   def to_list(value) when is_binary(value), do: String.codepoints(value)
+  def to_list(%Markup{text: text}), do: String.codepoints(text)
   def to_list(%Dict{} = dict), do: Dict.keys(dict)
   def to_list(%Undefined{}), do: []
   def to_list(%Otera.Bytes{data: data}), do: :binary.bin_to_list(data)
@@ -583,7 +613,8 @@ defmodule Otera.Value do
     do:
       is_list(value) or is_tuple(value) or is_binary(value) or is_struct(value, Dict) or
         is_struct(value, Undefined) or is_struct(value, Iterable) or is_struct(value, Loop) or
-        is_struct(value, Otera.Bytes) or is_struct(value, Otera.GroupTuple)
+        is_struct(value, Otera.Bytes) or is_struct(value, Otera.GroupTuple) or
+        is_struct(value, Markup)
 
   @doc """
   Returns the length of `value`, like Python `len()`.
@@ -591,6 +622,7 @@ defmodule Otera.Value do
   @spec length(term) :: non_neg_integer
   def length(%Otera.GroupTuple{}), do: 2
   def length(value) when is_binary(value), do: str_length(value)
+  def length(%Markup{text: text}), do: str_length(text)
   def length(value) when is_list(value), do: Kernel.length(value)
   def length(value) when is_tuple(value), do: tuple_size(value)
   def length(%Dict{pairs: pairs}), do: Kernel.length(pairs)
@@ -620,6 +652,11 @@ defmodule Otera.Value do
   @spec contains?(term, term) :: boolean
   def contains?(%Otera.GroupTuple{} = group, item),
     do: contains?(Otera.GroupTuple.to_tuple(group), item)
+
+  def contains?(%Markup{text: text}, item), do: contains?(text, item)
+
+  def contains?(container, %Markup{text: text}) when is_binary(container),
+    do: contains?(container, text)
 
   def contains?(container, item) when is_binary(container) and is_binary(item),
     do: String.contains?(container, item)
@@ -701,6 +738,13 @@ defmodule Otera.Value do
   def getitem(%Otera.GroupTuple{} = group, key),
     do: getitem(Otera.GroupTuple.to_tuple(group), key)
 
+  def getitem(%Markup{text: text} = markup, index) when is_integer(index) or is_boolean(index) do
+    case getitem(text, index) do
+      char when is_binary(char) -> Markup.new(char)
+      _undefined -> %Undefined{obj: markup, name: index}
+    end
+  end
+
   def getitem(object, key) do
     case fetch_item(object, key) do
       {:ok, value} -> value
@@ -759,6 +803,9 @@ defmodule Otera.Value do
 
   def slice(%Otera.GroupTuple{} = group, start, stop, step),
     do: slice(Otera.GroupTuple.to_tuple(group), start, stop, step)
+
+  def slice(%Markup{} = markup, start, stop, step),
+    do: Markup.map(markup, &slice(&1, start, stop, step))
 
   def slice(sequence, start, stop, step)
       when is_list(sequence) or is_tuple(sequence) or is_binary(sequence) do

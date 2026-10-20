@@ -1,0 +1,12 @@
+{"text": "<b>", "flag": true}
+---
+{%- macro m() %}<{{ text }}>{% endmacro -%}
+off: {{ text }}
+{% autoescape true %}on: {{ text }} {{ m() }} {{ m() is escaped }}{% set inner = 1 %}{% endautoescape %}
+leak: {{ inner }}
+{% autoescape flag %}flag: {{ text }}{% endautoescape %}
+{% autoescape "html" %}string: {{ text }}{% endautoescape %}
+{% autoescape 0 %}zero: {{ text }}{% endautoescape %}
+{% autoescape true %}{% macro n() %}<{{ text }}>{% endmacro %}{% autoescape false %}nested: {{ text }} {{ n() }}{% endautoescape %} {{ text }}{% endautoescape %}
+scope: [{{ n }}]
+{% autoescape true %}concat: {{ (text|safe) ~ text }} {{ ["<"]|join("<"|safe) }}{% endautoescape %}

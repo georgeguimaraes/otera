@@ -106,6 +106,7 @@ defmodule Otera.Dict do
     do: Enum.map(pairs, fn {k, v} -> if normalize(k) === normal, do: {k, value}, else: {k, v} end)
 
   # Python hashes equal numbers alike, so True, 1 and 1.0 are one key.
+  defp normalize(%Otera.Markup{text: text}), do: text
   defp normalize(true), do: 1
   defp normalize(false), do: 0
   defp normalize(key) when is_float(key) and key == trunc(key), do: trunc(key)

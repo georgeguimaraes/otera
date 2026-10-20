@@ -5,7 +5,7 @@ defmodule Otera.Methods do
   `has?/2` knows every method of the Python types `str`, `list`, `tuple`, `dict`, `int` and `float`, because a method name hides a dict key of the same name in `x.name`. `call/4` runs the methods that chat templates use. As in the immutable sandbox of transformers, the methods that change a list or a dict are unsafe.
   """
 
-  alias Otera.{Dict, Format, Iterable, Loop, Unicode, Value}
+  alias Otera.{Dict, Format, HTML, Iterable, Loop, Markup, Unicode, Value}
 
   @str ~w(capitalize casefold center count encode endswith expandtabs find format format_map index isalnum isalpha isascii isdecimal isdigit isidentifier islower isnumeric isprintable isspace istitle isupper join ljust lower lstrip maketrans partition removeprefix removesuffix replace rfind rindex rjust rpartition rsplit rstrip split splitlines startswith strip swapcase title translate upper zfill)
   @list ~w(append clear copy count extend index insert pop remove reverse sort)
@@ -13,6 +13,10 @@ defmodule Otera.Methods do
   @dict ~w(clear copy fromkeys get items keys pop popitem setdefault update values)
   @int ~w(as_integer_ratio bit_count bit_length conjugate from_bytes to_bytes)
   @float ~w(as_integer_ratio conjugate fromhex hex is_integer)
+
+  @markup ~w(escape striptags unescape)
+  # The methods that markupsafe wraps to give a Markup.
+  @markup_results ~w(capitalize casefold center expandtabs ljust lower lstrip removeprefix removesuffix replace rjust rstrip strip swapcase title translate upper zfill)
 
   @unsafe_list ~w(append clear pop reverse insert sort extend remove)
   @unsafe_dict ~w(clear pop popitem setdefault update)
@@ -29,6 +33,7 @@ defmodule Otera.Methods do
   defp dunder?(name), do: String.starts_with?(name, "__") and String.ends_with?(name, "__")
 
   defp methods(value) when is_binary(value), do: @str
+  defp methods(%Markup{}), do: @str ++ @markup
   defp methods(value) when is_list(value), do: @list
   defp methods(value) when is_tuple(value), do: @tuple
   defp methods(%Dict{}), do: @dict
@@ -53,6 +58,8 @@ defmodule Otera.Methods do
   def call(receiver, "format", args, kwargs) when is_binary(receiver),
     do: Format.format(receiver, args, kwargs)
 
+  def call(%Markup{} = markup, name, args, kwargs), do: markup_method(markup, name, args, kwargs)
+
   def call(%Loop{} = loop, "cycle", args, _kwargs) do
     if args == [],
       do: raise(Otera.Error, kind: :type_error, message: "no items for cycling given")
@@ -70,11 +77,73 @@ defmodule Otera.Methods do
   def call(%Otera.GroupTuple{} = group, name, args, kwargs),
     do: call(Otera.GroupTuple.to_tuple(group), name, args, kwargs)
 
+  # A Markup is a str, so the methods of a str take it as a plain string.
+  def call(receiver, name, args, kwargs) when is_binary(receiver) do
+    {style, params} = signature(receiver, name)
+    check_call(style, "str.#{name}", name, params, args, kwargs)
+    values = args |> bind(kwargs, params, name) |> Enum.map(&plain/1)
+    method(receiver, name, values)
+  end
+
   def call(receiver, name, args, kwargs) do
     {style, params} = signature(receiver, name)
     check_call(style, "#{Value.type_name(receiver)}.#{name}", name, params, args, kwargs)
     method(receiver, name, bind(args, kwargs, params, name))
   end
+
+  defp plain(%Markup{text: text}), do: text
+  defp plain(value), do: value
+
+  # The methods of markupsafe: they escape the strings that they add, and most give a Markup.
+  defp markup_method(markup, "join", args, kwargs) do
+    [items] = bind(args, kwargs, ["iterable"], "join")
+    text = items |> Value.to_list() |> Enum.map_join(markup.text, &Markup.escape(&1).text)
+    Markup.new(text)
+  end
+
+  defp markup_method(markup, name, args, kwargs) when name in ["format", "format_map"] do
+    {args, kwargs} =
+      if name == "format",
+        do: {args, kwargs},
+        else: {[], hd(bind(args, kwargs, ["mapping"], name))}
+
+    Markup.new(Format.format(markup.text, args, kwargs, true))
+  end
+
+  defp markup_method(_markup, "escape", args, kwargs),
+    do: Markup.escape(hd(bind(args, kwargs, ["s"], "escape")))
+
+  defp markup_method(markup, name, args, kwargs) when name in ["striptags", "unescape"] do
+    bind(args, kwargs, [], name)
+    if name == "striptags", do: HTML.striptags(markup.text), else: HTML.unescape(markup.text)
+  end
+
+  defp markup_method(markup, name, args, kwargs) do
+    args = escape_args(name, args)
+    result = call(markup.text, name, args, kwargs)
+
+    cond do
+      name in @markup_results ->
+        Markup.new(result)
+
+      name in ["split", "rsplit", "splitlines"] ->
+        Enum.map(result, &Markup.new/1)
+
+      name in ["partition", "rpartition"] ->
+        result |> Tuple.to_list() |> Enum.map(&Markup.new/1) |> List.to_tuple()
+
+      true ->
+        result
+    end
+  end
+
+  # Markup.replace escapes the new text, and center, ljust and rjust escape the fill character.
+  defp escape_args("replace", [old, new | rest]), do: [old, Markup.escape(new) | rest]
+
+  defp escape_args(name, [width, fill]) when name in ["center", "ljust", "rjust"],
+    do: [width, Markup.escape(fill)]
+
+  defp escape_args(_name, args), do: args
 
   # CPython checks the arguments of its builtin methods in a few styles, each with its own messages.
   defp check_call(style, qualified, name, params, args, %Dict{pairs: kwargs}) do
@@ -399,6 +468,9 @@ defmodule Otera.Methods do
       {item, _} when is_binary(item) ->
         item
 
+      {%Otera.Markup{text: text}, _} ->
+        text
+
       {item, index} ->
         raise Otera.Error,
           kind: :type_error,
@@ -412,6 +484,18 @@ defmodule Otera.Methods do
 
   defp str_method(string, name, [width, fill]) when name in ["center", "ljust", "rjust"] do
     width = int_arg(width)
+
+    cond do
+      not is_binary(fill) ->
+        type_error("The fill character must be a unicode character, not #{Value.type_name(fill)}")
+
+      Value.str_length(fill) != 1 ->
+        type_error("The fill character must be exactly one character long")
+
+      true ->
+        :ok
+    end
+
     count = max(width - Value.str_length(string), 0)
 
     case name do

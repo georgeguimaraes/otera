@@ -39,6 +39,17 @@ Otera.render("{{ 'hi'|shout(times=2) }}", %{}, filters: %{"shout" => shout})
 #=> {:ok, "hi!!"}
 ```
 
+## Autoescape
+
+With the `autoescape` option, Otera escapes the HTML characters in the output of each `{{ ... }}`, like Jinja2. The `safe` filter marks a string as safe, and an `Otera.Markup` in the variables is safe too:
+
+```elixir
+Otera.render("{{ comment }} {{ link|safe }}", %{comment: "<script>", link: "<a href='/'>Home</a>"}, autoescape: true)
+#=> {:ok, "&lt;script&gt; <a href='/'>Home</a>"}
+```
+
+`autoescape` can also be a function that gets the name of the template, for example to escape only the templates that end with `.html`. The tag `{% autoescape false %}` turns the escaping off in a part of a template.
+
 ## Chat templates
 
 `Otera.ChatTemplate` renders a chat template with the environment of transformers: `trim_blocks`, `lstrip_blocks`, the functions `raise_exception` and `strftime_now`, and the `tojson` filter of transformers.
@@ -74,7 +85,7 @@ To get the same prompt as transformers for messages and tool definitions that co
 
 Otera follows Python Jinja2 3.1: the lexer and its whitespace control, the operators and their precedence, scoping, macros and call blocks, loops with `loop` and `break` and `continue`, namespaces, the builtin filters and tests, and the Python methods of strings, lists and dicts. Values print like Python values, for example `True`, `None` and `['a', 1.5]`. Like transformers, Otera renders in the immutable sandbox of Jinja2, so `list.append` and `dict.update` raise a security error.
 
-The tags `extends`, `block`, `include`, `import` and `autoescape` are not in Otera yet. Without autoescape, `safe` gives a plain string.
+The tags `extends`, `block`, `include` and `import` are not in Otera yet.
 
 Known differences from Python:
 

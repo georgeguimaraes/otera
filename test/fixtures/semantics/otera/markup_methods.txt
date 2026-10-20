@@ -1,0 +1,17 @@
+{"$settings": {"autoescape": true}, "text": "<b>a, b</b>"}
+---
+{%- set m = text|safe -%}
+upper: {{ m.upper() }} {{ m.lower() }} {{ m.title() }} {{ m.swapcase() }} {{ m.casefold() }}
+strip: [{{ ("  " ~ m ~ "  ").strip() }}] [{{ m.strip("<>") }}] [{{ m.lstrip("<") }}] [{{ m.rstrip(">") }}]
+replace: {{ m.replace("a", "<i>") }} {{ m.replace("a", "<i>"|safe) }}
+pad: [{{ m.center(15, "*") }}] [{{ m.ljust(13, "-") }}] [{{ m.rjust(13) }}] [{{ m.zfill(13) }}]
+split: {{ m.split(", ") }} {{ m.rsplit(" ", 1) }} {{ m.splitlines() }} {{ m.partition(",") }} {{ m.rpartition(",") }}
+join: {{ m.join(["<1>", "2"|safe]) }} {{ ", ".join([m, "<"]) }}
+format: {{ ("{}:{}"|safe).format("<", m) }} {{ ("{0!r}"|safe).format("<") }} {{ ("{a}"|safe).format_map({"a": "<"}) }} {{ "{}".format(m) }}
+index: {{ m[0] }} {{ m[1:3] }} {{ m[-1] }} {{ m[0] is escaped }} {{ m[1:3] is escaped }}
+plain: {{ m.startswith("<b>") }} {{ m.find("a") }} {{ m.count("b") }} {{ m.isupper() }} {{ m|length }}
+striptags: {{ m.striptags() }} {{ ("&lt;x&gt; <b>y</b>"|safe).unescape() }} {{ m.striptags() is escaped }}
+escape method: {{ m.escape("<") }}
+removeprefix: {{ m.removeprefix("<b>") }} {{ m.removesuffix("</b>") }} {{ ("a\tb"|safe).expandtabs(2) }}
+compare: {{ m < "z" }} {{ m == text }} {{ "a" in m }} {{ m|list|first is escaped }}
+loop: {% for c in "<a"|safe %}{{ c }}{% endfor %}

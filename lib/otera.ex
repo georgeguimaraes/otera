@@ -17,6 +17,7 @@ defmodule Otera do
     * `:globals` - a map of names to values or Elixir functions that the template can use.
     * `:filters` - a map of names to Elixir functions, called with the value and the filter arguments.
     * `:tests` - a map of names to Elixir functions, called with the value and the test arguments.
+    * `:autoescape` - escapes the HTML characters in the output of each `{{ ... }}`, except an `Otera.Markup`. A boolean, or a function that gets the name of the template and gives a boolean, like `select_autoescape` of Jinja2. A template from a string has the name `nil`. The default is `false`.
 
   A plain Elixir function gets the positional arguments of the call. For keyword arguments and defaults, give an `Otera.Function`, which has a Python signature. Values that a function returns become template values, like variables.
 

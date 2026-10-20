@@ -1,0 +1,6 @@
+{"$settings": {"autoescape": true}, "text": "<b>"}
+---
+{%- macro m() %}<{{ text }}>{% endmacro -%}
+on: {{ text }} {{ m() }}
+{% autoescape false %}off: {{ text }} {{ m() }} {{ m() is escaped }} {{ text|e }}{% set b %}<{{ text }}>{% endset %}{{ b is escaped }}{% endautoescape %}
+after: {{ text }}

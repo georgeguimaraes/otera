@@ -97,6 +97,8 @@ defmodule Otera.JSON do
   defp encode(value, options, _level) when is_binary(value),
     do: encode_string(value, options.ascii)
 
+  defp encode(%Otera.Markup{text: text}, options, _level), do: encode_string(text, options.ascii)
+
   defp encode(%Otera.GroupTuple{} = group, options, level),
     do: encode(Value.to_list(group), options, level)
 
@@ -147,6 +149,7 @@ defmodule Otera.JSON do
   end
 
   defp key_string(key) when is_binary(key), do: key
+  defp key_string(%Otera.Markup{text: text}), do: text
   defp key_string(key) when is_float(key), do: Value.format_float(key)
   defp key_string(key) when is_integer(key), do: Integer.to_string(key)
   defp key_string(true), do: "true"

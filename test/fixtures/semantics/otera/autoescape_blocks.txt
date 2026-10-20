@@ -1,0 +1,12 @@
+{"$settings": {"autoescape": true}, "text": "<b>"}
+---
+{%- macro m(x) %}<{{ x }}>{% endmacro -%}
+{%- macro wrap() %}[{{ caller() }}]{% endmacro -%}
+macro: {{ m(text) }} {{ m(text) is escaped }} {{ m(text) ~ text }}
+caller: {% call wrap() %}<{{ text }}>{% endcall %}
+set block: {% set b %}<i>{{ text }}</i>{% endset %}{{ b }} {{ b is escaped }}
+set block filter: {% set c | upper %}<i>{{ text }}</i>{% endset %}{{ c }} {{ c is escaped }}
+filter block: {% filter upper %}<i>{{ text }}</i>{% endfilter %}
+filter block replace: {% filter replace("I", "<u>") %}<i>{{ text }}</i>{% endfilter %}
+recursive loop: {% for x in [[text]] recursive %}{% if x is string %}{{ x }}{% else %}{{ loop(x) }}{% endif %}{% endfor %}
+recursive escaped: {% for x in [[1]] recursive %}{% if x is number %}{{ x }}{% else %}{{ loop(x) is escaped }}{% endif %}{% endfor %}

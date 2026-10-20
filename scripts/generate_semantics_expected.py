@@ -5,8 +5,9 @@ Usage (from the repository root):
     uv run --project scripts python -I scripts/generate_semantics_expected.py
 
 Each case is a text file: a JSON object with the variables, a line with `---`, and the template. The
-optional `$settings` key of the JSON object sets `trim_blocks`, `lstrip_blocks` and
-`keep_trailing_newline`, or `transformers: true` for the chat template environment of transformers,
+optional `$settings` key of the JSON object sets `trim_blocks`, `lstrip_blocks`,
+`keep_trailing_newline` and `autoescape`, a boolean or a list of file extensions for
+select_autoescape, or `transformers: true` for the chat template environment of transformers,
 with its tojson filter and its raise_exception and strftime_now functions. The cases in `minijinja/`
 come from the snapshot tests of minijinja (https://github.com/mitsuhiko/minijinja,
 minijinja/tests/inputs, Apache-2.0). The cases in `otera/` are new. The expected results never come
@@ -89,6 +90,8 @@ def render(source, variables, settings):
         if settings.pop("transformers", False):
             template = chat_template_utils._compile_jinja_template(source)
         else:
+            if isinstance(settings.get("autoescape"), list):
+                settings["autoescape"] = jinja2.select_autoescape(settings["autoescape"])
             template = ImmutableSandboxedEnvironment(extensions=[loopcontrols], **settings).from_string(source)
         return {"output": template.render(**variables)}
     except Exception as error:

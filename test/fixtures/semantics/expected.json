@@ -282,7 +282,7 @@
   }
  },
  "minijinja/format_kwargs.txt": {
-  "output": "named: 1-x\nspec: 002.2\nmapping: {'a': 1}"
+  "output": "named: 1-x\nspec: 002.2\nmapping: {'a': 1}\nsafe: <&amp;>"
  },
  "minijinja/getattr.txt": {
   "output": "name: Peter\nactive: True"
@@ -486,6 +486,27 @@
    "line": 1
   }
  },
+ "otera/autoescape_blocks.txt": {
+  "output": "macro: <&lt;b&gt;> True <&lt;b&gt;>&lt;b&gt;\ncaller: [<&lt;b&gt;>]\nset block: <i>&lt;b&gt;</i> True\nset block filter: <I>&LT;B&GT;</I> True\nfilter block: <I>&LT;B&GT;</I>\nfilter block replace: <i>&lt;b&gt;</i>\nrecursive loop: &lt;b&gt;\nrecursive escaped: True"
+ },
+ "otera/autoescape_concat.txt": {
+  "output": "tilde plain: &lt;b&gt;&amp;\ntilde safe: <b>&lt;b&gt;3None\ntilde safe last: &lt;b&gt;<b>\nplus safe str: <b>&lt;b&gt;\nplus str safe: &lt;b&gt;<b>\nplus safe safe: <b>&\ntimes: <b><b> <b><b> &lt;b&gt;&lt;b&gt;\npercent: <&lt;b&gt;> &lt;b&gt;|&#39;&lt;b&gt;&#39; 3<\npercent mapping: &lt;b&gt;\npercent truncate: &l\nplain percent: &lt;&lt;b&gt;&gt;"
+ },
+ "otera/autoescape_filters.txt": {
+  "output": "upper: &lt;B&gt;HELLO&lt;/B&gt; &amp; BYE <B>HELLO</B> & BYE\nlower: &lt;b&gt;hello&lt;/b&gt; &amp; bye <b>hello</b> & bye\ncapitalize: &lt;b&gt;hello&lt;/b&gt; &amp; bye <b>hello</b> & bye\ntitle: &lt;B&gt;hello&lt;/b&gt; &amp; Bye &lt;B&gt;hello&lt;/b&gt; &amp; Bye\ncenter: [  &lt;  ] [  <  ]\ntrim: [&lt;x&gt;] [<x>]\nstring: &lt;b&gt;Hello&lt;/b&gt; &amp; bye <b>Hello</b> & bye\nreverse: eyb &amp; &gt;b/&lt;olleH&gt;b&lt; eyb & >b/<olleH>b<\nfirst: &lt; e [&#39;&lt;&#39;, &#39;b&#39;, &#39;&gt;&#39;, &#39;H&#39;, &#39;e&#39;, &#39;l&#39;, &#39;l&#39;, &#39;o&#39;, &#39;&lt;&#39;, &#39;/&#39;, &#39;b&#39;, &#39;&gt;&#39;, &#39; &#39;, &#39;&amp;&#39;, &#39; &#39;, &#39;b&#39;, &#39;y&#39;, &#39;e&#39;]\nstriptags: Hello &amp; bye Hello &amp; bye &lt;i&gt;\nwordwrap: &lt;b&gt;He\nllo&lt;/\nb&gt; &amp;\nbye\ntruncate: &lt;b&gt;Hell&lt;&gt; <b>Hell&lt;&gt; <b>Hell&lt;&gt; <b>\nindent:   &lt;a&gt;\n  &lt;b&gt; <a>\n<><b>\nformat: &lt;&lt;b&gt;Hello&lt;/b&gt; &amp; bye&gt; <&lt;b&gt;Hello&lt;/b&gt; &amp; bye> <&lt;b&gt;Hello&lt;/b&gt; &amp; bye>\nreplace: &lt;i&gt;Hello&lt;/b&gt; &amp; bye &lt;i&gt;Hello</b> & bye &lt;b&gt;Hello&lt;/b&gt; &amp; bye &lt;b&gt;Hello&lt;/b&gt; &amp; bye <i>Hello</b> & bye\njoin: &lt;a&gt;&lt;br&gt;b &lt;a&gt;<br>b <a>&lt;br&gt;&lt;c&gt; <a><br>&lt;c&gt;\nxmlattr: <p title=\"&lt;x&gt;\" class=\"y\">\ntojson: \"\\u003cb\\u003eHello\\u003c/b\\u003e \\u0026 bye\" [\"\\u003ca\\u003e\", \"b\"]\nurlencode: %3Cb%3EHello%3C/b%3E%20%26%20bye\npprint: [Markup(&#39;&lt;b&gt;Hello&lt;/b&gt; &amp; bye&#39;)]\nlength: 18 4\ndefault: &lt;d&gt; <d>\nmap: <a>, b &lt;A&gt;, B\nescaped: False True True True True"
+ },
+ "otera/autoescape_off_tag.txt": {
+  "output": "on: &lt;b&gt; <&lt;b&gt;>\noff: <b> <&lt;b&gt;> False &lt;b&gt;False\nafter: &lt;b&gt;"
+ },
+ "otera/autoescape_output.txt": {
+  "output": "text: &lt;b&gt;&#34;Tom&#34; &amp; &#39;Ann&#39;&lt;/b&gt;\nliteral: &lt;i&gt; &#34;\nnumber: 3 1.5 None True\nundefined: []\nlist: [&#39;&lt;a&gt;&#39;, 1, None]\nsafe: <b>\"Tom\" & 'Ann'</b> 3 None \nescape twice: &lt;b&gt;&#34;Tom&#34; &amp; &#39;Ann&#39;&lt;/b&gt; &lt;b&gt;&#34;Tom&#34; &amp; &#39;Ann&#39;&lt;/b&gt;\nforceescape: &lt;b&gt;&#34;Tom&#34; &amp; &#39;Ann&#39;&lt;/b&gt; &lt;b&gt;&#34;Tom&#34; &amp; &#39;Ann&#39;&lt;/b&gt;\nsafe list: [Markup(&#39;&lt;b&gt;&#34;Tom&#34; &amp; \\&#39;Ann\\&#39;&lt;/b&gt;&#39;), &#39;&lt;b&gt;&#34;Tom&#34; &amp; \\&#39;Ann\\&#39;&lt;/b&gt;&#39;]\ndata: <p>&amp;</p>\nprint: &lt;b&gt;&#34;Tom&#34; &amp; &#39;Ann&#39;&lt;/b&gt;"
+ },
+ "otera/autoescape_select.txt": {
+  "output": "&lt;b&gt; <b>"
+ },
+ "otera/autoescape_tag.txt": {
+  "output": "off: <b>\non: &lt;b&gt; <<b>> True\nleak: \nflag: &lt;b&gt;\nstring: &lt;b&gt;\nzero: <b>\nnested: <b> <&lt;b&gt;> &lt;b&gt;\nscope: []\nconcat: <b>&lt;b&gt; &lt;"
+ },
  "otera/builtins_more.txt": {
   "output": "groupby: [berlin: bob][Paris: ann,cy][Rome: di] [('ann', [{'name': 'ann', 'city': 'Paris'}]), ('bob', [{'name': 'bob', 'city': 'berlin'}])] a=1;none=1;\nstriptags: [Tom & Jerry ©©A x ¬it; &] [a <b c] [no tags here x]\nurlencode: a%20b/c%3Fd%3D%C3%A9%26e q=a+b&n=1&x%2Fy=%C3%BC k=v+w&z=2 42\nxmlattr: <a href=\"/x?a=1&amp;b=2\" title=\"it&#39;s &#34;q&#34;\" n=\"3\"> [a=\"1\"] []\nfilesize: 1 Byte 999 Bytes 1.0 kB 1.5 KiB 123.5 MB 2.0 KiB 1000000.0 YB -5 Bytes\nwordwrap:\nThe quick brown fox\njumps over the lazy\ndog. Pack my box\nwith five dozen\nliquor jugs. How\nvexingly quick daft\nzebras jump!\na super-\nlong-hyphe\nnated-word\nhere and\nmore\nabcdefg\nhijklmn\nopqrstu\nvwxyz\nabcdefghijklmnopqrstuvwxyz\nrest\nline one|line two|is longer|than ten||last\nwell--\nknown\nem-dash\n--style\nwords\npprint:\n{'alpha': 'short',\n 'mid': {'k': 'v'},\n 'zeta': [1,\n          2,\n          3,\n          {'deep': ['a very long string value that keeps going',\n                    'another long string value here']}]}\n[{'city': 'Paris', 'name': 'ann'},\n {'city': 'berlin', 'name': 'bob'},\n {'city': 'paris', 'name': 'cy'},\n {'city': 'Rome', 'name': 'di'}]\n('The quick brown fox jumps over the lazy dog. Pack my box with five dozen '\n 'liquor jugs. How vexingly quick daft zebras jump!')\n(1, 'two') ['The quick brown fox jumps over the lazy dog. Pack my box with five dozen '\n 'liquor jugs. How vexingly quick daft zebras jump!',\n 'The quick brown fox jumps over the lazy dog. Pack my box with five dozen '\n 'liquor jugs. How vexingly quick daft zebras jump!']\ncycler: odd even odd even odd ('odd', 'even')\njoiner: ann | bob | cy | di , , \nbytes: b'caf\\xc3\\xa9' b\"a'b\" b'\\xe9' 5 café [120] b'ab'"
  },
@@ -670,6 +691,47 @@
  },
  "otera/macros.txt": {
   "output": "\nHello, A!!!!!|Hi, B!!|Hello, C!|Hello, !!!!!\n1:(2, 3):{'x': 4}\n<p>inside call</p>\n[1:x][2:y]\n321\n<Macro 'greet'> greet ('name', 'greeting', 'punct')\nHELLO, FILTERED!!!!!"
+ },
+ "otera/markup_errors.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "unsupported operand type(s) for +: 'Markup' and 'int'",
+   "line": 1
+  }
+ },
+ "otera/markup_fill_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "The fill character must be exactly one character long",
+   "line": 1
+  }
+ },
+ "otera/markup_format_spec_error.txt": {
+  "error": {
+   "type": "ValueError",
+   "message": "Unsupported format specification for Markup.",
+   "line": 1
+  }
+ },
+ "otera/markup_methods.txt": {
+  "output": "upper: <B>A, B</B> <b>a, b</b> <B>A, B</B> <B>A, B</B> <b>a, b</b>\nstrip: [<b>a, b</b>] [b>a, b</b] [b>a, b</b>] [<b>a, b</b]\nreplace: <b>&lt;i&gt;, b</b> <b><i>, b</b>\npad: [**<b>a, b</b>**] [<b>a, b</b>--] [  <b>a, b</b>] [00<b>a, b</b>]\nsplit: [Markup(&#39;&lt;b&gt;a&#39;), Markup(&#39;b&lt;/b&gt;&#39;)] [Markup(&#39;&lt;b&gt;a,&#39;), Markup(&#39;b&lt;/b&gt;&#39;)] [Markup(&#39;&lt;b&gt;a, b&lt;/b&gt;&#39;)] (Markup(&#39;&lt;b&gt;a&#39;), Markup(&#39;,&#39;), Markup(&#39; b&lt;/b&gt;&#39;)) (Markup(&#39;&lt;b&gt;a&#39;), Markup(&#39;,&#39;), Markup(&#39; b&lt;/b&gt;&#39;))\njoin: &lt;1&gt;<b>a, b</b>2 &lt;b&gt;a, b&lt;/b&gt;, &lt;\nformat: &lt;:<b>a, b</b> &#39;&lt;&#39; &lt; &lt;b&gt;a, b&lt;/b&gt;\nindex: < b> > True True\nplain: True 3 3 False 11\nstriptags: a, b &lt;x&gt; &lt;b&gt;y&lt;/b&gt; False\nescape method: &lt;\nremoveprefix: a, b</b> <b>a, b a b\ncompare: True True True False\nloop: &lt;a"
+ },
+ "otera/markup_radd_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "unsupported operand type(s) for +: 'int' and 'Markup'",
+   "line": 1
+  }
+ },
+ "otera/markup_sum_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "unsupported operand type(s) for +: 'int' and 'Markup'",
+   "line": 1
+  }
+ },
+ "otera/markup_without_autoescape.txt": {
+  "output": "safe: <b>Hi</b> &lt;b&gt;Hi&lt;/b&gt; &lt;b&gt;Hi&lt;/b&gt;\nplus: <b>Hi</b>&lt; &lt;<b>Hi</b>\ntilde: <b>Hi</b><\npercent: <&amp;> <&amp;>\nupper: <B>HI</B> <&lt;i&gt;>Hi</&lt;i&gt;>\njoin: <a><<b>\nreplace: <i>Hi</b>\ntojson: \"\\u003c\" True \"\\u003c\"&lt;\nxmlattr: <p a=\"&lt;\">\nindent: <a>\n<><b>\nescaped: False True\nrepr: [Markup('<b>Hi</b>'), Markup('&lt;b&gt;Hi&lt;/b&gt;')]\ntype: True True 1\nmacro: False <<b>Hi</b>>\nset block: False"
  },
  "otera/method_argument_count_error.txt": {
   "error": {

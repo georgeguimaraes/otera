@@ -1,0 +1,17 @@
+{"text": "<b>Hi</b>"}
+---
+safe: {{ text|safe }} {{ text|e }} {{ text|forceescape }}
+plus: {{ (text|safe) + "<" }} {{ "<" + (text|safe) }}
+tilde: {{ (text|safe) ~ "<" }}
+percent: {{ ("<%s>"|safe) % "&" }} {{ "<%s>"|safe|format("&") }}
+upper: {{ text|safe|upper }} {{ (text|safe).replace("b", "<i>") }}
+join: {{ ["<a>"|safe, "<b>"]|join("<") }}
+replace: {{ text|replace("<b>"|safe, "<i>") }}
+tojson: {{ "<"|tojson }} {{ "<"|tojson is escaped }} {{ ("<"|tojson) + "<" }}
+xmlattr: <p{{ {"a": "<"}|xmlattr }}>
+indent: {{ "<a>\n<b>"|safe|indent("<>") }}
+escaped: {{ text is escaped }} {{ text|safe is escaped }}
+repr: {{ [text|safe, text|e] }}
+type: {{ (text|safe) == text }} {{ text|safe in ["<b>Hi</b>"] }} {{ {text|safe: 1}[text] }}
+macro: {% macro m() %}<{{ text }}>{% endmacro %}{{ m() is escaped }} {{ m() }}
+set block: {% set b %}<x>{% endset %}{{ b is escaped }}

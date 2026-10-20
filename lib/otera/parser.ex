@@ -12,6 +12,7 @@ defmodule Otera.Parser do
     * `{:set, target, expr, line, check_line}` and `{:set_block, target, filter_or_nil, body, line}`
     * `{:macro, name, params, body, special_names, line}` and `{:call_block, call, params, body, special_names, line}`
     * `{:filter_block, filter, body, line}`, `{:with, [{target, expr}], body, line}` and `{:generation, body}`
+    * `{:autoescape, expr, body, line}`
     * `{:break, line}` and `{:continue, line}`
 
   Expressions:
@@ -24,7 +25,7 @@ defmodule Otera.Parser do
     * `{:concat, exprs}`, `{:compare, expr, [{op, expr}], line}` and `{:cond, test, then, else, line}`
     * `{:ns_ref, name, attr}` as an assignment target
 
-  The lines are the lines that Jinja2 gives to its nodes. The evaluator gives them to the runtime errors, like the template traceback of Jinja2. The line of a statement is the line of its tag, and the line of an output is the line of the outermost node of its expression. The `check_line` of a set and the `line` of a with block are the line of the code before them, because Jinja2 compiles the namespace check and the assignments without a line of their own.
+  The lines are the lines that Jinja2 gives to its nodes. The evaluator gives them to the runtime errors, like the template traceback of Jinja2. The line of a statement is the line of its tag, and the line of an output is the line of the outermost node of its expression. The `check_line` of a set and the `line` of a with block and of an autoescape block are the line of the code before them, because Jinja2 compiles the namespace check and the assignments without a line of their own.
 
   A filter of a filter block or a set block has `nil` as its innermost expression. An inline `if` without `else` gets an undefined value as its `else`. `params` of a macro is a list of `{name, default_or_nil}`, and `special_names` lists which of `caller`, `varargs` and `kwargs` the body uses.
 
@@ -37,7 +38,7 @@ defmodule Otera.Parser do
   @math1_ops %{"+" => :add, "-" => :sub}
   @math2_ops %{"*" => :mul, "/" => :div, "//" => :floordiv, "%" => :mod}
   @special_names ["caller", "varargs", "kwargs"]
-  @unsupported_tags ~w(block extends include import from autoescape)
+  @unsupported_tags ~w(block extends include import from)
 
   @doc """
   Returns the syntax tree of `tokens`. Raises `Otera.SyntaxError`.
@@ -111,6 +112,11 @@ defmodule Otera.Parser do
     {{:with, assignments, body, last}, body_last}
   end
 
+  defp fill_line({:autoescape, expr, body, nil}, last) do
+    {body, body_last} = fill_lines(body, last)
+    {{:autoescape, expr, body, last}, body_last}
+  end
+
   defp fill_line({:generation, body}, last) do
     {body, last} = fill_lines(body, last)
     {{:generation, body}, last}
@@ -149,6 +155,9 @@ defmodule Otera.Parser do
     do: check_names([filter, body], known, false)
 
   defp check_names({:generation, body}, known, _soft), do: check_names(body, known, false)
+
+  defp check_names({:autoescape, expr, body, _line}, known, _soft),
+    do: check_names([expr, body], known, false)
 
   defp check_names({:cond, test, then_expr, else_expr, _line}, known, _soft),
     do: check_names([test, then_expr, else_expr], known, true)
@@ -221,6 +230,7 @@ defmodule Otera.Parser do
   defp parse_tag("filter", rest, ctx, line), do: parse_filter_block(rest, ctx, line)
   defp parse_tag("with", rest, ctx, _line), do: parse_with(rest, ctx)
   defp parse_tag("print", rest, _ctx, _line), do: parse_print(rest)
+  defp parse_tag("autoescape", rest, ctx, _line), do: parse_autoescape(rest, ctx)
   defp parse_tag("generation", rest, ctx, _line), do: parse_generation(rest, ctx)
 
   defp parse_tag(control, rest, ctx, line) when control in ["break", "continue"],
@@ -357,6 +367,13 @@ defmodule Otera.Parser do
     rest = expect(rest, :operator, "=")
     {value, rest} = parse_expression(rest)
     parse_with(rest, ctx, [{target, value} | assignments])
+  end
+
+  # Like a with block, the autoescape tag is a scope, and its value has the line of the code before it.
+  defp parse_autoescape(tokens, ctx) do
+    {expr, rest} = parse_expression(tokens)
+    {body, rest} = parse_statements(rest, ["endautoescape"], ctx, true)
+    {{:autoescape, expr, body, nil}, rest}
   end
 
   defp parse_print(tokens), do: parse_print(tokens, [])

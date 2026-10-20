@@ -59,9 +59,22 @@ defmodule Otera.SemanticsTest do
     do: Otera.render(source, variables, transformers_options())
 
   defp render(source, variables, %Dict{pairs: settings}) do
-    options = Enum.map(settings, fn {key, value} -> {String.to_existing_atom(key), value} end)
+    options =
+      Enum.map(settings, fn {key, value} -> option(String.to_existing_atom(key), value) end)
+
     Otera.render(source, variables, options)
   end
+
+  # A list of extensions stands for select_autoescape of Jinja2, which escapes templates from strings.
+  defp option(:autoescape, extensions) when is_list(extensions) do
+    {:autoescape,
+     fn
+       nil -> true
+       name -> Enum.any?(extensions, &String.ends_with?(String.downcase(name), "." <> &1))
+     end}
+  end
+
+  defp option(key, value), do: {key, value}
 
   # scripts/generate_semantics_expected.py renders with this time for strftime_now.
   defp transformers_options, do: Otera.ChatTemplate.options(now: ~N[2025-03-09 14:30:05])

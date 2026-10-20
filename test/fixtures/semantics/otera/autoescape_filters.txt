@@ -1,0 +1,26 @@
+{"$settings": {"autoescape": true}, "text": "<b>Hello</b> & bye", "items": ["<a>", "b"], "attrs": {"title": "<x>", "class": "y"}}
+---
+upper: {{ text|upper }} {{ text|safe|upper }}
+lower: {{ text|lower }} {{ text|safe|lower }}
+capitalize: {{ text|capitalize }} {{ text|safe|capitalize }}
+title: {{ text|title }} {{ text|safe|title }}
+center: [{{ "<"|center(5) }}] [{{ "<"|safe|center(5) }}]
+trim: [{{ " <x> "|trim }}] [{{ " <x> "|safe|trim }}]
+string: {{ text|string }} {{ text|safe|string }}
+reverse: {{ text|reverse }} {{ text|safe|reverse }}
+first: {{ text|safe|first }} {{ text|safe|last }} {{ text|safe|list }}
+striptags: {{ text|striptags }} {{ text|safe|striptags }} {{ "&lt;i&gt;"|safe|striptags }}
+wordwrap: {{ text|safe|wordwrap(5) }}
+truncate: {{ text|truncate(9, end="<>") }} {{ text|safe|truncate(9, end="<>") }} {{ text|safe|truncate(9, true, "<>") }} {{ "<b>"|safe|truncate(9) }}
+indent: {{ "<a>\n<b>"|indent(2, first=true) }} {{ "<a>\n<b>"|safe|indent("<>") }}
+format: {{ "<%s>"|format(text) }} {{ "<%s>"|safe|format(text) }} {{ "<%(a)s>"|safe|format(a=text) }}
+replace: {{ text|replace("<b>", "<i>") }} {{ text|safe|replace("<b>", "<i>") }} {{ text|replace("<b>", "<i>"|safe) }} {{ text|replace("<b>"|safe, "<i>") }} {{ text|safe|replace("<b>"|safe, "<i>"|safe) }}
+join: {{ items|join("<br>") }} {{ items|join("<br>"|safe) }} {{ [items[0]|safe, "<c>"]|join("<br>") }} {{ [items[0]|safe, "<c>"]|join("<br>"|safe) }}
+xmlattr: <p{{ attrs|xmlattr }}>
+tojson: {{ text|tojson }} {{ items|tojson }}
+urlencode: {{ text|safe|urlencode }}
+pprint: {{ [text|safe]|pprint }}
+length: {{ text|safe|length }} {{ text|safe|wordcount }}
+default: {{ missing|default("<d>") }} {{ missing|default("<d>"|safe) }}
+map: {{ items|map("safe")|join(", ") }} {{ items|map("upper")|join(", ") }}
+escaped: {{ text is escaped }} {{ text|safe is escaped }} {{ text|e is escaped }} {{ text|tojson is escaped }} {{ text|safe is string }}
