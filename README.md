@@ -4,7 +4,7 @@ Otera (お寺, "temple") renders [Jinja](https://jinja.palletsprojects.com) temp
 
 The first goal is the chat templates of Hugging Face models. Otera renders them like `apply_chat_template` of Python transformers, byte for byte. The tests compare Otera with Python Jinja2 on 112 chat templates and on the core semantics of Jinja2.
 
-The name follows Jinja. Jinja (神社) is a Japanese shrine, and a temple holds templates.
+The name follows Jinja. Jinja (神社) is a Shinto shrine. Otera (お寺) is a Buddhist temple, and a temple holds templates.
 
 Otera is in development and is not on Hex yet.
 
