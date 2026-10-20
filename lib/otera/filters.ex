@@ -2,12 +2,24 @@ defmodule Otera.Filters do
   @moduledoc """
   The builtin filters of Jinja2, with their Python behavior.
 
-  The filters are `abs`, `attr`, `batch`, `capitalize`, `center`, `count`, `default` (`d`), `dictsort`, `escape` (`e`), `first`, `float`, `format`, `indent`, `int`, `items`, `join`, `last`, `length`, `list`, `lower`, `map`, `max`, `min`, `reject`, `rejectattr`, `replace`, `reverse`, `round`, `safe`, `select`, `selectattr`, `slice`, `sort`, `string`, `sum`, `title`, `tojson`, `trim`, `truncate`, `unique`, `upper` and `wordcount`.
+  The filters are `abs`, `attr`, `batch`, `capitalize`, `center`, `count`, `default` (`d`), `dictsort`, `escape` (`e`), `filesizeformat`, `first`, `float`, `format`, `groupby`, `indent`, `int`, `items`, `join`, `last`, `length`, `list`, `lower`, `map`, `max`, `min`, `pprint`, `random`, `reject`, `rejectattr`, `replace`, `reverse`, `round`, `safe`, `select`, `selectattr`, `slice`, `sort`, `string`, `striptags`, `sum`, `title`, `tojson`, `trim`, `truncate`, `unique`, `upper`, `urlencode`, `wordcount`, `wordwrap` and `xmlattr`.
 
   Without autoescape, `safe` only converts its value to a string. `escape` always escapes HTML, as in Jinja2. The filters that give a generator in Jinja2, such as `map` and `select`, give a list.
   """
 
-  alias Otera.{Dict, Evaluator, Iterable, JSON, Loop, Macro, Methods, Namespace, Undefined, Value}
+  alias Otera.{
+    Dict,
+    Evaluator,
+    HTML,
+    Iterable,
+    JSON,
+    Loop,
+    Macro,
+    Methods,
+    Namespace,
+    Undefined,
+    Value
+  }
 
   @generators ~w(map select reject selectattr rejectattr unique items batch slice)
 
@@ -53,15 +65,111 @@ defmodule Otera.Filters do
 
   defp filter(name, value, args, kwargs, _env) when name in ["escape", "e"] do
     bind("escape", args, kwargs, [])
+    value |> Value.to_str() |> HTML.escape()
+  end
+
+  defp filter("striptags", value, args, kwargs, _env) do
+    bind("do_striptags", args, kwargs, [])
+    value |> Value.to_str() |> HTML.striptags()
+  end
+
+  defp filter("pprint", value, args, kwargs, _env) do
+    bind("do_pprint", args, kwargs, [])
+    Otera.Pretty.format(value)
+  end
+
+  defp filter("wordwrap", value, args, kwargs, _env) do
+    params = [
+      {"width", 79},
+      {"break_long_words", true},
+      {"wrapstring", nil},
+      {"break_on_hyphens", true}
+    ]
+
+    [width, break_long, wrapstring, break_hyphens] = bind("do_wordwrap", args, kwargs, params)
+    wrapstring = wrapstring || "\n"
 
     value
-    |> Value.to_str()
-    |> String.replace(["&", "<", ">", "'", "\""], fn
-      "&" -> "&amp;"
-      "<" -> "&lt;"
-      ">" -> "&gt;"
-      "'" -> "&#39;"
-      "\"" -> "&#34;"
+    |> string_method("splitlines", [])
+    |> Enum.map_join(wrapstring, fn line ->
+      line
+      |> Otera.TextWrap.wrap(width, Value.truthy?(break_long), Value.truthy?(break_hyphens))
+      |> Enum.join(wrapstring)
+    end)
+  end
+
+  defp filter("urlencode", value, args, kwargs, _env) do
+    bind("do_urlencode", args, kwargs, [])
+
+    if is_binary(value) or not Value.iterable?(value) do
+      url_quote(value, false)
+    else
+      value
+      |> url_items()
+      |> Enum.map_join("&", fn pair ->
+        [key, item] = Value.to_list(pair)
+        url_quote(key, true) <> "=" <> url_quote(item, true)
+      end)
+    end
+  end
+
+  defp filter("xmlattr", value, args, kwargs, _env) do
+    [autospace] = bind("do_xmlattr", args, kwargs, [{"autospace", true}])
+
+    text =
+      value
+      |> dict_items()
+      |> Enum.reject(fn {_key, item} -> item == nil or is_struct(item, Undefined) end)
+      |> Enum.map_join(" ", fn {key, item} ->
+        if Regex.match?(~r/[ \t\n\r\f\v\/>=]/, key) do
+          raise Otera.Error,
+            kind: :value_error,
+            message: "Invalid character in attribute name: #{Value.repr(key)}"
+        end
+
+        "#{HTML.escape(key)}=\"#{HTML.escape(Value.to_str(item))}\""
+      end)
+
+    if Value.truthy?(autospace) and text != "", do: " " <> text, else: text
+  end
+
+  defp filter("filesizeformat", value, args, kwargs, _env) do
+    [binary] = bind("do_filesizeformat", args, kwargs, [{"binary", false}])
+    file_size(python_float(value), Value.truthy?(binary))
+  end
+
+  defp filter("random", value, args, kwargs, _env) do
+    bind("do_random", args, kwargs, [])
+
+    case Value.to_list(value) do
+      [] -> %Undefined{hint: "No random item, sequence was empty."}
+      items -> Enum.random(items)
+    end
+  end
+
+  defp filter("groupby", value, args, kwargs, _env) do
+    params = ["attribute", {"default", nil}, {"case_sensitive", false}]
+    [attribute, default, case_sensitive] = bind("do_groupby", args, kwargs, params)
+    getter = attrgetter(attribute, default)
+    key = &postprocess(getter.(&1), case_sensitive)
+
+    value
+    |> Value.to_list()
+    |> sort_by(key, false)
+    |> Enum.chunk_while(
+      [],
+      fn item, chunk ->
+        if chunk == [] or Value.equal?(key.(hd(chunk)), key.(item)),
+          do: {:cont, [item | chunk]},
+          else: {:cont, Enum.reverse(chunk), [item]}
+      end,
+      &if(&1 == [], do: {:cont, []}, else: {:cont, Enum.reverse(&1), []})
+    )
+    |> Enum.map(fn [first | _] = items ->
+      %Otera.GroupTuple{
+        grouper: if(Value.truthy?(case_sensitive), do: key.(first), else: getter.(first)),
+        list: items
+      }
     end)
   end
 
@@ -442,7 +550,77 @@ defmodule Otera.Filters do
   """
   @spec builtin?(String.t()) :: boolean
   def builtin?(name) do
-    name in ~w(abs attr batch capitalize center count d default dictsort e escape first float format indent int items join last length list lower map max min reject rejectattr replace reverse round safe select selectattr slice sort string sum title tojson trim truncate unique upper wordcount)
+    name in ~w(abs attr batch capitalize center count d default dictsort e escape filesizeformat first float format groupby indent int items join last length list lower map max min pprint random reject rejectattr replace reverse round safe select selectattr slice sort string striptags sum title tojson trim truncate unique upper urlencode wordcount wordwrap xmlattr)
+  end
+
+  defp string_method(%Undefined{} = undefined, _name, _args), do: Undefined.fail(undefined)
+
+  defp string_method(value, name, args) when is_binary(value),
+    do: Methods.call(value, name, args, %Dict{})
+
+  defp string_method(value, name, _args),
+    do:
+      raise(Otera.Error,
+        kind: :attribute_error,
+        message: "'#{Value.type_name(value)}' object has no attribute '#{name}'"
+      )
+
+  defp url_items(%Dict{pairs: pairs}), do: pairs
+  defp url_items(value), do: Value.to_list(value)
+
+  # Python urllib.parse.quote: letters, digits, "_.-~" and the safe "/" stay, other bytes become %XX.
+  defp url_quote(value, query?) do
+    text = for <<byte <- Value.to_str(value)>>, into: "", do: quote_byte(byte, query?)
+    if query?, do: String.replace(text, "%20", "+"), else: text
+  end
+
+  defp quote_byte(byte, query?) do
+    if byte in ?a..?z or byte in ?A..?Z or byte in ?0..?9 or byte in ~c"_.-~" or
+         (byte == ?/ and not query?),
+       do: <<byte>>,
+       else: "%" <> String.pad_leading(Integer.to_string(byte, 16), 2, "0")
+  end
+
+  defp file_size(1.0, _binary), do: "1 Byte"
+
+  defp file_size(bytes, binary) do
+    base = if binary, do: 1024, else: 1000
+
+    prefixes =
+      if binary, do: ~w(KiB MiB GiB TiB PiB EiB ZiB YiB), else: ~w(kB MB GB TB PB EB ZB YB)
+
+    if bytes < base do
+      "#{trunc(bytes)} Bytes"
+    else
+      units =
+        for {prefix, power} <- Enum.with_index(prefixes, 2),
+            do: {prefix, Integer.pow(base, power)}
+
+      {prefix, unit} = Enum.find(units, List.last(units), fn {_, unit} -> bytes < unit end)
+
+      size = base * bytes / unit
+      sign = if size < 0, do: "-", else: ""
+      "#{sign}#{Otera.Format.fixed(abs(size), 1)} #{prefix}"
+    end
+  end
+
+  # Python float(value), with its errors.
+  defp python_float(value) do
+    case to_float(value) do
+      nil when is_binary(value) ->
+        raise Otera.Error,
+          kind: :value_error,
+          message: "could not convert string to float: #{Value.repr(value)}"
+
+      nil ->
+        raise Otera.Error,
+          kind: :type_error,
+          message:
+            "float() argument must be a string or a real number, not '#{Value.type_name(value)}'"
+
+      float ->
+        float
+    end
   end
 
   defp map_function([name | rest], kwargs, env),

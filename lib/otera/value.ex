@@ -23,34 +23,24 @@ defmodule Otera.Value do
 
   alias Otera.{Dict, Iterable, Loop, Macro, Method, Methods, Namespace, Undefined}
 
-  @internal [Dict, Iterable, Undefined, Namespace, Macro, Loop, Method]
+  @internal [
+    Dict,
+    Iterable,
+    Undefined,
+    Namespace,
+    Macro,
+    Loop,
+    Method,
+    Otera.Function,
+    Otera.Bytes,
+    Otera.Cycler,
+    Otera.Joiner,
+    Otera.GroupTuple
+  ]
 
   # The characters for which Python `str.isspace()` is true.
   @whitespace [?\t, ?\n, ?\v, ?\f, ?\r, 0x1C, 0x1D, 0x1E, 0x1F, ?\s, 0x85, 0xA0, 0x1680] ++
                 Enum.to_list(0x2000..0x200A) ++ [0x2028, 0x2029, 0x202F, 0x205F, 0x3000]
-
-  # Python repr() escapes the characters of the categories Cc, Cf, Cs, Co, Zl, Zp, and Zs other than space.
-  @unprintable [
-    0x80..0xA0,
-    0xAD..0xAD,
-    0x600..0x605,
-    0x61C..0x61C,
-    0x6DD..0x6DD,
-    0x70F..0x70F,
-    0x1680..0x1680,
-    0x180E..0x180E,
-    0x2000..0x200F,
-    0x2028..0x202F,
-    0x205F..0x2064,
-    0x2066..0x206F,
-    0x3000..0x3000,
-    0xD800..0xF8FF,
-    0xFEFF..0xFEFF,
-    0xFFF9..0xFFFB,
-    0xE0001..0xE0001,
-    0xE0020..0xE007F,
-    0xF0000..0x10FFFF
-  ]
 
   @doc """
   Converts an Elixir value to a template value. See the module documentation.
@@ -86,6 +76,7 @@ defmodule Otera.Value do
   def truthy?(value) when is_number(value), do: value != 0
   def truthy?(%Dict{pairs: pairs}), do: pairs != []
   def truthy?(%Undefined{}), do: false
+  def truthy?(%Otera.Bytes{data: data}), do: data != ""
   def truthy?(%Iterable{items: items} = iterable), do: not Iterable.view?(iterable) or items != []
   def truthy?(_value), do: true
 
@@ -101,6 +92,10 @@ defmodule Otera.Value do
   def type_name(value) when is_list(value), do: "list"
   def type_name(value) when is_tuple(value), do: "tuple"
   def type_name(%Dict{}), do: "dict"
+  def type_name(%Otera.Cycler{}), do: "Cycler"
+  def type_name(%Otera.Joiner{}), do: "Joiner"
+  def type_name(%Otera.GroupTuple{}), do: "_GroupTuple"
+  def type_name(%Otera.Bytes{}), do: "bytes"
   def type_name(%Iterable{type: type}), do: type
   def type_name(%Undefined{}), do: "Undefined"
   def type_name(%Namespace{}), do: "Namespace"
@@ -110,7 +105,7 @@ defmodule Otera.Value do
 
   def type_name(%Method{receiver: :builtins}), do: "type"
   def type_name(%Method{}), do: "builtin_function_or_method"
-  def type_name(value) when is_function(value), do: "function"
+  def type_name(value) when is_function(value) or is_struct(value, Otera.Function), do: "function"
 
   @doc """
   Describes the type of `value` as Jinja2 does in undefined messages, for example `dict object`.
@@ -121,6 +116,10 @@ defmodule Otera.Value do
   def object_type_repr(%Undefined{}), do: "jinja2.runtime.Undefined object"
   def object_type_repr(%Macro{}), do: "jinja2.runtime.Macro object"
   def object_type_repr(%Loop{}), do: "jinja2.runtime.LoopContext object"
+
+  def object_type_repr(%module{} = value) when module in [Otera.Cycler, Otera.Joiner],
+    do: "jinja2.utils.#{type_name(value)} object"
+
   def object_type_repr(value), do: "#{type_name(value)} object"
 
   ## str() and repr()
@@ -137,6 +136,11 @@ defmodule Otera.Value do
   Returns the Python `repr()` of `value`.
   """
   @spec repr(term) :: String.t()
+  def repr(%Otera.GroupTuple{} = group), do: group |> Otera.GroupTuple.to_tuple() |> repr()
+
+  def repr(%module{} = value) when module in [Otera.Cycler, Otera.Joiner],
+    do: "<#{object_type_repr(value)}>"
+
   def repr(nil), do: "None"
   def repr(true), do: "True"
   def repr(false), do: "False"
@@ -155,6 +159,7 @@ defmodule Otera.Value do
         Enum.map_join(pairs, ", ", fn {key, value} -> repr(key) <> ": " <> repr(value) end) <> "}"
 
   def repr(%Undefined{}), do: "Undefined"
+  def repr(%Otera.Bytes{} = bytes), do: Otera.Bytes.repr(bytes)
 
   def repr(%Iterable{type: type, items: items} = iterable),
     do: if(Iterable.view?(iterable), do: "#{type}(#{repr(items)})", else: "<#{type} object>")
@@ -175,6 +180,7 @@ defmodule Otera.Value do
   def repr(%Method{name: name, receiver: receiver}),
     do: "<built-in method #{name} of #{type_name(receiver)} object>"
 
+  def repr(%Otera.Function{name: name}), do: "<function #{name}>"
   def repr(value) when is_function(value), do: "<function #{inspect(value)}>"
 
   defp repr_string(string) do
@@ -193,15 +199,8 @@ defmodule Otera.Value do
   defp escape_char(char, _quote) when char < 0x7F, do: <<char>>
 
   defp escape_char(char, _quote) do
-    if printable?(char), do: <<char::utf8>>, else: hex_escape(char)
+    if Otera.Unicode.printable?(char), do: <<char::utf8>>, else: hex_escape(char)
   end
-
-  @doc """
-  Returns true if Python `repr()` prints the character `char` as it is, like `str.isprintable()`.
-  """
-  @spec printable?(char) :: boolean
-  def printable?(char) when char < 0x20 or char == 0x7F, do: false
-  def printable?(char), do: not Enum.any?(@unprintable, &(char in &1))
 
   defp hex_escape(char) when char <= 0xFF, do: "\\x" <> hex(char, 2)
   defp hex_escape(char) when char <= 0xFFFF, do: "\\u" <> hex(char, 4)
@@ -309,6 +308,12 @@ defmodule Otera.Value do
   Returns true if `left == right` in Python.
   """
   @spec equal?(term, term) :: boolean
+  def equal?(%Otera.GroupTuple{} = left, right),
+    do: equal?(Otera.GroupTuple.to_tuple(left), right)
+
+  def equal?(left, %Otera.GroupTuple{} = right),
+    do: equal?(left, Otera.GroupTuple.to_tuple(right))
+
   def equal?(left, right) when is_number(left) and is_number(right), do: left == right
 
   def equal?(left, right) when is_boolean(left) or is_boolean(right),
@@ -369,6 +374,9 @@ defmodule Otera.Value do
 
   # Returns :lt, :eq or :gt for values that Python can order. For sequences, Python compares
   # the first items that differ, so an error names the types of those items.
+  defp order(%Otera.GroupTuple{} = left, right), do: order(Otera.GroupTuple.to_tuple(left), right)
+  defp order(left, %Otera.GroupTuple{} = right), do: order(left, Otera.GroupTuple.to_tuple(right))
+
   defp order(left, right)
        when (is_number(left) or is_boolean(left)) and (is_number(right) or is_boolean(right)),
        do: order_terms(number(left), number(right))
@@ -556,11 +564,13 @@ defmodule Otera.Value do
   Returns the items of `value` as a list, like Python `iter()`. A dict gives its keys, and a string its characters.
   """
   @spec to_list(term) :: list
+  def to_list(%Otera.GroupTuple{grouper: grouper, list: list}), do: [grouper, list]
   def to_list(value) when is_list(value), do: value
   def to_list(value) when is_tuple(value), do: Tuple.to_list(value)
   def to_list(value) when is_binary(value), do: String.codepoints(value)
   def to_list(%Dict{} = dict), do: Dict.keys(dict)
   def to_list(%Undefined{}), do: []
+  def to_list(%Otera.Bytes{data: data}), do: :binary.bin_to_list(data)
   def to_list(%Iterable{items: items}), do: items
   def to_list(%Loop{} = loop), do: Loop.remaining(loop)
 
@@ -578,17 +588,20 @@ defmodule Otera.Value do
   def iterable?(value),
     do:
       is_list(value) or is_tuple(value) or is_binary(value) or is_struct(value, Dict) or
-        is_struct(value, Undefined) or is_struct(value, Iterable) or is_struct(value, Loop)
+        is_struct(value, Undefined) or is_struct(value, Iterable) or is_struct(value, Loop) or
+        is_struct(value, Otera.Bytes) or is_struct(value, Otera.GroupTuple)
 
   @doc """
   Returns the length of `value`, like Python `len()`.
   """
   @spec length(term) :: non_neg_integer
+  def length(%Otera.GroupTuple{}), do: 2
   def length(value) when is_binary(value), do: str_length(value)
   def length(value) when is_list(value), do: Kernel.length(value)
   def length(value) when is_tuple(value), do: tuple_size(value)
   def length(%Dict{pairs: pairs}), do: Kernel.length(pairs)
   def length(%Undefined{}), do: 0
+  def length(%Otera.Bytes{data: data}), do: byte_size(data)
 
   def length(%Iterable{items: items} = iterable) do
     if Iterable.view?(iterable),
@@ -611,6 +624,9 @@ defmodule Otera.Value do
   Returns true if `item in container` in Python.
   """
   @spec contains?(term, term) :: boolean
+  def contains?(%Otera.GroupTuple{} = group, item),
+    do: contains?(Otera.GroupTuple.to_tuple(group), item)
+
   def contains?(container, item) when is_binary(container) and is_binary(item),
     do: String.contains?(container, item)
 
@@ -648,6 +664,13 @@ defmodule Otera.Value do
   def getattr(%Namespace{} = namespace, name), do: Namespace.get(namespace, name)
   def getattr(%Loop{} = loop, name), do: Loop.get(loop, name)
   def getattr(%Macro{} = macro, name), do: Macro.get(macro, name)
+  def getattr(%Otera.Cycler{} = cycler, name), do: Otera.Cycler.get(cycler, name)
+  def getattr(%Otera.Joiner{} = joiner, name), do: Otera.Joiner.get(joiner, name)
+  def getattr(%Otera.GroupTuple{grouper: grouper}, "grouper"), do: grouper
+  def getattr(%Otera.GroupTuple{list: list}, "list"), do: list
+
+  def getattr(%Otera.GroupTuple{} = group, name),
+    do: getattr(Otera.GroupTuple.to_tuple(group), name)
 
   def getattr(number, name)
       when (is_integer(number) or is_boolean(number)) and name in ["real", "numerator"],
@@ -680,6 +703,9 @@ defmodule Otera.Value do
   """
   @spec getitem(term, term) :: term
   def getitem(%Undefined{} = undefined, _key), do: Undefined.fail(undefined)
+
+  def getitem(%Otera.GroupTuple{} = group, key),
+    do: getitem(Otera.GroupTuple.to_tuple(group), key)
 
   def getitem(object, key) do
     case fetch_item(object, key) do
@@ -736,6 +762,9 @@ defmodule Otera.Value do
   """
   @spec slice(term, term, term, term) :: term
   def slice(%Undefined{} = undefined, _start, _stop, _step), do: Undefined.fail(undefined)
+
+  def slice(%Otera.GroupTuple{} = group, start, stop, step),
+    do: slice(Otera.GroupTuple.to_tuple(group), start, stop, step)
 
   def slice(sequence, start, stop, step)
       when is_list(sequence) or is_tuple(sequence) or is_binary(sequence) do

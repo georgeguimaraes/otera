@@ -453,6 +453,9 @@
    "message": "bad operand type for abs(): 'Undefined'"
   }
  },
+ "otera/builtins_more.txt": {
+  "output": "groupby: [berlin: bob][Paris: ann,cy][Rome: di] [('ann', [{'name': 'ann', 'city': 'Paris'}]), ('bob', [{'name': 'bob', 'city': 'berlin'}])] a=1;none=1;\nstriptags: [Tom & Jerry ©©A x ¬it; &] [a <b c] [no tags here x]\nurlencode: a%20b/c%3Fd%3D%C3%A9%26e q=a+b&n=1&x%2Fy=%C3%BC k=v+w&z=2 42\nxmlattr: <a href=\"/x?a=1&amp;b=2\" title=\"it&#39;s &#34;q&#34;\" n=\"3\"> [a=\"1\"] []\nfilesize: 1 Byte 999 Bytes 1.0 kB 1.5 KiB 123.5 MB 2.0 KiB 1000000.0 YB -5 Bytes\nwordwrap:\nThe quick brown fox\njumps over the lazy\ndog. Pack my box\nwith five dozen\nliquor jugs. How\nvexingly quick daft\nzebras jump!\na super-\nlong-hyphe\nnated-word\nhere and\nmore\nabcdefg\nhijklmn\nopqrstu\nvwxyz\nabcdefghijklmnopqrstuvwxyz\nrest\nline one|line two|is longer|than ten||last\nwell--\nknown\nem-dash\n--style\nwords\npprint:\n{'alpha': 'short',\n 'mid': {'k': 'v'},\n 'zeta': [1,\n          2,\n          3,\n          {'deep': ['a very long string value that keeps going',\n                    'another long string value here']}]}\n[{'city': 'Paris', 'name': 'ann'},\n {'city': 'berlin', 'name': 'bob'},\n {'city': 'paris', 'name': 'cy'},\n {'city': 'Rome', 'name': 'di'}]\n('The quick brown fox jumps over the lazy dog. Pack my box with five dozen '\n 'liquor jugs. How vexingly quick daft zebras jump!')\n(1, 'two') ['The quick brown fox jumps over the lazy dog. Pack my box with five dozen '\n 'liquor jugs. How vexingly quick daft zebras jump!',\n 'The quick brown fox jumps over the lazy dog. Pack my box with five dozen '\n 'liquor jugs. How vexingly quick daft zebras jump!']\ncycler: odd even odd even odd ('odd', 'even')\njoiner: ann | bob | cy | di , , \nbytes: b'caf\\xc3\\xa9' b\"a'b\" b'\\xe9' 5 café [120] b'ab'"
+ },
  "otera/casing.txt": {
   "output": "ÜNÏCÖDÉ STRASSE Ǆ|ünïcödé straße ǆ|Ünïcödé Straße ǅ|Ünïcödé straße ǆ|ÜNÏCÖDÉ STRASSE ǅ|ünïcödé strasse ǆ\nσας οδος|Σας οδος|Σας Οδος|σας οδος\nSsa|Ssa|Ssa|SSa|SSA\nΑΙB|ᾼb|ΑΙb|ᾼb\nFalse False True i̇"
  },
@@ -479,6 +482,18 @@
  },
  "otera/crlf_newlines.txt": {
   "output": "first\n\nsecond\n\nthird\nfourth\na\nb"
+ },
+ "otera/cycler_empty_error.txt": {
+  "error": {
+   "type": "RuntimeError",
+   "message": "at least one item has to be provided"
+  }
+ },
+ "otera/dict_get_argument_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "get expected at least 1 argument, got 0"
+  }
  },
  "otera/dict_methods.txt": {
   "output": "attr-vs-item: [True] [an item key] [2] [2]\nmethods: dict_keys(['items', 'b', 'a']) dict_values(['an item key', 2, 1]) dict_items([('items', 'an item key'), ('b', 2), ('a', 1)]) 2 0\nloop: items:an item key b:2 a:1 \nliteral: {'b': 3, 'a': 2} {'z': 1, 'y': 2} {'k': 'v'}\nkeys-order: ['z', 'a']"
@@ -508,6 +523,24 @@
   "error": {
    "type": "SecurityError",
    "message": "access to attribute '__len__' of 'list' object is unsafe."
+  }
+ },
+ "otera/encode_ascii_error.txt": {
+  "error": {
+   "type": "UnicodeEncodeError",
+   "message": "'ascii' codec can't encode character '\\xe9' in position 0: ordinal not in range(128)"
+  }
+ },
+ "otera/encode_lookup_error.txt": {
+  "error": {
+   "type": "LookupError",
+   "message": "unknown encoding: rot13x"
+  }
+ },
+ "otera/filesizeformat_value_error.txt": {
+  "error": {
+   "type": "ValueError",
+   "message": "could not convert string to float: 'abc'"
   }
  },
  "otera/filters_sequences.txt": {
@@ -585,6 +618,24 @@
  },
  "otera/macros.txt": {
   "output": "\nHello, A!!!!!|Hi, B!!|Hello, C!|Hello, !!!!!\n1:(2, 3):{'x': 4}\n<p>inside call</p>\n[1:x][2:y]\n321\n<Macro 'greet'> greet ('name', 'greeting', 'punct')\nHELLO, FILTERED!!!!!"
+ },
+ "otera/method_argument_count_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "strip expected at most 1 argument, got 2"
+  }
+ },
+ "otera/method_keyword_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'x' is an invalid keyword argument for split()"
+  }
+ },
+ "otera/method_no_keyword_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "str.strip() takes no keyword arguments"
+  }
  },
  "otera/none_attribute_error.txt": {
   "error": {
@@ -815,5 +866,23 @@
  },
  "otera/whitespace_default_settings.txt": {
   "output": "<start>\n  \n    1\n  \n    2\n  \n    3\n  [1][2][3]left   rightdone\n  {% not a tag %}{{ nor this }}<end>\n"
+ },
+ "otera/wordwrap_int_error.txt": {
+  "error": {
+   "type": "AttributeError",
+   "message": "'int' object has no attribute 'splitlines'"
+  }
+ },
+ "otera/wordwrap_width_error.txt": {
+  "error": {
+   "type": "ValueError",
+   "message": "invalid width 0 (must be > 0)"
+  }
+ },
+ "otera/xmlattr_key_error.txt": {
+  "error": {
+   "type": "ValueError",
+   "message": "Invalid character in attribute name: 'a b'"
+  }
  }
 }

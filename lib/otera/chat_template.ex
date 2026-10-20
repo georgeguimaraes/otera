@@ -33,16 +33,33 @@ defmodule Otera.ChatTemplate do
   def options(opts \\ []) do
     now = Keyword.get(opts, :now)
 
+    tojson_params = [
+      "x",
+      {"ensure_ascii", false},
+      {"indent", nil},
+      {"separators", nil},
+      {"sort_keys", false}
+    ]
+
     [
       trim_blocks: true,
       lstrip_blocks: true,
-      filters: %{"tojson" => &tojson/2},
+      filters: %{"tojson" => local_function("tojson", tojson_params, &tojson/5)},
       globals: %{
-        "raise_exception" => &raise_exception/1,
-        "strftime_now" => &strftime_now(&1, now || NaiveDateTime.local_now())
+        "raise_exception" => local_function("raise_exception", ["message"], &raise_exception/1),
+        "strftime_now" =>
+          local_function(
+            "strftime_now",
+            ["format"],
+            &Calendar.strftime(now || NaiveDateTime.local_now(), &1)
+          )
       }
     ]
   end
+
+  # transformers defines these functions inside _cached_compile_jinja_template, and Python names them so in errors.
+  defp local_function(name, params, fun),
+    do: Otera.Function.new("_cached_compile_jinja_template.<locals>.#{name}", params, fun)
 
   @doc """
   Renders `messages` with a chat template, given as source or as a template that `Otera.parse/2` made with `options/0`.
@@ -177,45 +194,10 @@ defmodule Otera.ChatTemplate do
 
   defp value_error(message), do: {:error, %Otera.Error{kind: :value_error, message: message}}
 
-  # These functions get either their last positional argument, or the keyword arguments as a plain
-  # map, which a template value never is. Errors name them like the local functions of transformers.
-  defp bind(args, params, name) do
-    {args, kwargs} =
-      case List.last(args) do
-        %{} = kwargs when not is_struct(kwargs) ->
-          {Enum.drop(args, -1), Dict.new(Map.to_list(kwargs))}
+  defp raise_exception(message),
+    do: raise(Otera.Error, kind: :template_error, message: Value.to_str(message))
 
-        _argument ->
-          {args, %Dict{}}
-      end
-
-    Otera.Methods.bind(args, kwargs, params, "_cached_compile_jinja_template.<locals>.#{name}")
-  end
-
-  defp raise_exception(argument) do
-    [message] = bind([argument], ["message"], "raise_exception")
-    raise Otera.Error, kind: :template_error, message: Value.to_str(message)
-  end
-
-  defp strftime_now(argument, now) do
-    [format] = bind([argument], ["format"], "strftime_now")
-    Calendar.strftime(now, format)
-  end
-
-  defp tojson(value, argument) do
-    [_value, ensure_ascii, indent, separators, sort_keys] =
-      bind(
-        [value, argument],
-        [
-          "x",
-          {"ensure_ascii", false},
-          {"indent", nil},
-          {"separators", nil},
-          {"sort_keys", false}
-        ],
-        "tojson"
-      )
-
+  defp tojson(value, ensure_ascii, indent, separators, sort_keys) do
     Otera.JSON.dumps(value,
       ensure_ascii: Value.truthy?(ensure_ascii),
       indent: indent,

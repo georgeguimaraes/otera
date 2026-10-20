@@ -97,6 +97,9 @@ defmodule Otera.JSON do
   defp encode(value, options, _level) when is_binary(value),
     do: encode_string(value, options.ascii)
 
+  defp encode(%Otera.GroupTuple{} = group, options, level),
+    do: encode(Value.to_list(group), options, level)
+
   defp encode(value, options, level) when is_tuple(value),
     do: encode(Tuple.to_list(value), options, level)
 

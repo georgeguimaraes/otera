@@ -1,0 +1,22 @@
+{"users": [{"name": "ann", "city": "Paris"}, {"name": "bob", "city": "berlin"}, {"name": "cy", "city": "paris"}, {"name": "di", "city": "Rome"}], "partial": [{"name": "x", "city": "a"}, {"name": "y"}], "html": "<p class='x'>Tom &amp; <b>Jerry</b></p> <!-- note <i>hidden</i> --> &copy;&#169;&#x41;&nbsp;x &notit; &amp", "nested": {"zeta": [1, 2, 3, {"deep": ["a very long string value that keeps going", "another long string value here"]}], "alpha": "short", "mid": {"k": "v"}}, "long": "The quick brown fox jumps over the lazy dog. Pack my box with five dozen liquor jugs. How vexingly quick daft zebras jump!"}
+---
+groupby: {% for group in users|groupby("city") %}[{{ group.grouper }}: {{ group.list|map(attribute="name")|join(",") }}]{% endfor %} {{ users[:2]|groupby("name") }} {% for city, items in partial|groupby("city", default="none", case_sensitive=true) %}{{ city }}={{ items|length }};{% endfor %}
+striptags: [{{ html|striptags }}] [{{ "a <b c"|striptags }}] [{{ "no tags   here\n x"|striptags }}]
+urlencode: {{ "a b/c?d=é&e"|urlencode }} {{ {"q": "a b", "n": 1, "x/y": "ü"}|urlencode }} {{ [("k", "v w"), ("z", 2)]|urlencode }} {{ 42|urlencode }}
+xmlattr: <a{{ {"href": "/x?a=1&b=2", "title": "it's \"q\"", "skip": none, "n": 3}|xmlattr }}> [{{ {"a": 1}|xmlattr(false) }}] [{{ {}|xmlattr }}]
+filesize: {{ 1|filesizeformat }} {{ 999|filesizeformat }} {{ 1000|filesizeformat }} {{ 1536|filesizeformat(true) }} {{ 123456789|filesizeformat }} {{ "2048"|filesizeformat(true) }} {{ (10**30)|filesizeformat }} {{ -5|filesizeformat }}
+wordwrap:
+{{ long|wordwrap(20) }}
+{{ "a super-long-hyphenated-word here and more"|wordwrap(10) }}
+{{ "abcdefghijklmnopqrstuvwxyz"|wordwrap(7) }}
+{{ "abcdefghijklmnopqrstuvwxyz rest"|wordwrap(7, false) }}
+{{ "line one\nline two is longer than ten\n\nlast"|wordwrap(10, wrapstring="|") }}
+{{ "well--known em-dash--style words"|wordwrap(8) }}
+pprint:
+{{ nested|pprint }}
+{{ users|pprint }}
+{{ long|pprint }}
+{{ (1, "two")|pprint }} {{ [long, long]|pprint }}
+cycler: {% set c = cycler("odd", "even") %}{{ c.next() }} {{ c.next() }} {{ c.next() }} {{ c.current }}{% set _ = c.reset() %} {{ c.next() }} {{ c.items }}
+joiner: {% set j = joiner(" | ") %}{% for u in users %}{{ j() }}{{ u.name }}{% endfor %} {% set j2 = joiner() %}{{ j2() }}{{ j2() }}{{ j2.sep }}
+bytes: {{ "café".encode() }} {{ "a'b".encode() }} {{ "é".encode("latin-1") }} {{ "café".encode()|length }} {{ "café".encode().decode() }} {{ "x".encode()|list }} {{ "ab".encode("ascii") }}

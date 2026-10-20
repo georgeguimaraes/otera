@@ -18,7 +18,7 @@ defmodule Otera do
     * `:filters` - a map of names to Elixir functions, called with the value and the filter arguments.
     * `:tests` - a map of names to Elixir functions, called with the value and the test arguments.
 
-  A function gets the positional arguments of the call. When it takes one more argument, it also gets the keyword arguments as a map with string keys. Values that a function returns become template values, like variables.
+  A plain Elixir function gets the positional arguments of the call. For keyword arguments and defaults, give an `Otera.Function`, which has a Python signature. Values that a function returns become template values, like variables.
 
   The `break` and `continue` statements of the `loopcontrols` extension and the `{% generation %}` block of transformers are always available.
   """

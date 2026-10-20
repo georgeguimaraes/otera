@@ -31,7 +31,13 @@ Otera.render("{{ name|shout }}", %{name: "otera"}, filters: %{"shout" => &String
 #=> {:ok, "OTERA"}
 ```
 
-A function gets the positional arguments of the call. When it takes one more argument, it also gets the keyword arguments as a map with string keys.
+A plain Elixir function gets the positional arguments of the call. For keyword arguments and defaults, give an `Otera.Function`, which binds the arguments to a Python signature:
+
+```elixir
+shout = Otera.Function.new("shout", ["value", {"times", 1}], fn value, times -> value <> String.duplicate("!", times) end)
+Otera.render("{{ 'hi'|shout(times=2) }}", %{}, filters: %{"shout" => shout})
+#=> {:ok, "hi!!"}
+```
 
 ## Chat templates
 
@@ -68,20 +74,19 @@ To get the same prompt as transformers for messages and tool definitions that co
 
 Otera follows Python Jinja2 3.1: the lexer and its whitespace control, the operators and their precedence, scoping, macros and call blocks, loops with `loop` and `break` and `continue`, namespaces, the builtin filters and tests, and the Python methods of strings, lists and dicts. Values print like Python values, for example `True`, `None` and `['a', 1.5]`. Like transformers, Otera renders in the immutable sandbox of Jinja2, so `list.append` and `dict.update` raise a security error.
 
-These features are not in Otera yet:
-
-* The tags `extends`, `block`, `include`, `import` and `autoescape`. Without autoescape, `safe` gives a plain string.
-* The filters `filesizeformat`, `groupby`, `pprint`, `random`, `striptags`, `urlencode`, `wordwrap` and `xmlattr`, and the functions `lipsum`, `cycler` and `joiner`.
+The tags `extends`, `block`, `include`, `import` and `autoescape` are not in Otera yet. Without autoescape, `safe` gives a plain string.
 
 Known differences from Python:
 
-* Elixir floats have no inf, nan or complex values. Where Python gives one of them, Otera raises an `Otera.Error`.
+* Elixir floats have no inf, nan or complex values. Where Python gives one of them, Otera raises an `Otera.Error` with the kind `:not_implemented_error`. Where Python raises an `OverflowError`, Otera raises one too.
+* An Elixir string cannot hold a lone surrogate such as `\ud800`, and Otera has no table of Unicode character names for `\N{...}` escapes.
+* Otera values have no identity, so `x is sameas y` compares two equal lists or dicts as the same object.
 * `range()` gives a list, so it prints as a list.
 * Otera does not model the single pass of a Python generator, such as the result of `map` or `select`.
 * A macro that a template defines inside a loop reads the variables of the loop as they were when the template defined it.
-* Some rare parts of Python strings are missing: bytes and `str.encode`, `\N{...}` escapes, the Unicode digits that are not decimal digits in `isdigit` and `isnumeric`, and the escapes of unassigned code points in `repr()`.
-* A wrong number of arguments to a method of a string or a dict raises a `TypeError` with another message than Python, and `break` outside a loop raises an `Otera.SyntaxError` instead of a Python `SyntaxError`.
+* `break` outside a loop raises an `Otera.SyntaxError` instead of a Python `SyntaxError`.
 * Python prints functions and generators with their memory address, and Otera prints them without one.
+* The character properties come from the Unicode version of Erlang/OTP, which can be newer than the version of Python.
 
 ## Tests
 

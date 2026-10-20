@@ -24,17 +24,25 @@ defmodule OteraTest do
     end
   end
 
-  test "functions get keyword arguments as a map when they take one more argument" do
+  test "a plain function takes positional arguments, and an Otera.Function binds keyword arguments" do
+    shout = fn name, times -> String.duplicate("!", times) <> name end
+
     globals = %{
       "greet" => fn name -> "hello " <> name end,
-      "shout" => fn name, opts -> String.duplicate("!", opts["times"] || 1) <> name end
+      "shout" => Otera.Function.new("shout", ["name", {"times", 1}], shout)
     }
 
     cases = [
       {"positional", "{{ greet('a') }}", {:ok, "hello a"}},
-      {"no keywords", "{{ shout('a') }}", {:ok, "!a"}},
-      {"keywords", "{{ shout('a', times=3) }}", {:ok, "!!!a"}},
-      {"filter", "{{ 'a'|shout(times=2) }}", {:ok, "!!a"}}
+      {"default", "{{ shout('a') }}", {:ok, "!a"}},
+      {"keyword", "{{ shout('a', times=3) }}", {:ok, "!!!a"}},
+      {"filter", "{{ 'a'|shout(times=2) }}", {:ok, "!!a"}},
+      {"missing", "{{ shout() }}",
+       {:error,
+        %Otera.Error{
+          kind: :type_error,
+          message: "shout() missing 1 required positional argument: 'name'"
+        }}}
     ]
 
     for {name, template, expected} <- cases do
@@ -47,6 +55,9 @@ defmodule OteraTest do
 
     assert {:error, %Otera.Error{kind: :type_error}} =
              Otera.render("{{ greet('a', b=1) }}", %{}, globals: globals)
+
+    assert {:error, %Otera.Error{kind: :type_error}} =
+             Otera.render("{{ greet('a', 'b') }}", %{}, globals: globals)
   end
 
   test "a parsed template keeps its options, and render options add to them" do
@@ -62,5 +73,21 @@ defmodule OteraTest do
 
     assert Otera.render("{{ x|twice }}", %{x: "y"}) ==
              {:error, %Otera.SyntaxError{message: "No filter named 'twice'.", line: 1}}
+  end
+
+  # Python gives random output for these, so the test checks only its shape.
+  test "random picks an item and lipsum makes paragraphs of lorem ipsum" do
+    {:ok, item} = Otera.render("{{ ['a', 'b', 'c']|random }}")
+    assert item in ["a", "b", "c"]
+    assert Otera.render("{{ []|random is undefined }}") == {:ok, "True"}
+
+    {:ok, html} = Otera.render("{{ lipsum() }}")
+    assert length(String.split(html, "\n")) == 5
+
+    assert Enum.all?(String.split(html, "\n"), &(&1 =~ ~r/\A<p>[A-Z][^<]*\.<\/p>\z/))
+
+    {:ok, text} = Otera.render("{{ lipsum(2, false, 3, 6) }}")
+    [first, second] = String.split(text, "\n\n")
+    for paragraph <- [first, second], do: assert(length(String.split(paragraph)) in 3..5)
   end
 end

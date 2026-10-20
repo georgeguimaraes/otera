@@ -85,7 +85,9 @@ defmodule Otera.Tests do
 
   defp test("callable", value, [], _env),
     do:
-      is_function(value) or is_struct(value, Macro) or is_struct(value, Method) or
+      is_function(value) or is_struct(value, Otera.Function) or is_struct(value, Otera.Joiner) or
+        is_struct(value, Macro) or
+        is_struct(value, Method) or
         is_struct(value, Loop) or is_struct(value, Undefined)
 
   defp test("escaped", _value, [], _env), do: false

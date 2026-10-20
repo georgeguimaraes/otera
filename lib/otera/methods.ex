@@ -5,7 +5,7 @@ defmodule Otera.Methods do
   `has?/2` knows every method of the Python types `str`, `list`, `tuple`, `dict`, `int` and `float`, because a method name hides a dict key of the same name in `x.name`. `call/4` runs the methods that chat templates use. As in the immutable sandbox of transformers, the methods that change a list or a dict are unsafe.
   """
 
-  alias Otera.{Dict, Format, Iterable, Loop, Value}
+  alias Otera.{Dict, Format, Iterable, Loop, Unicode, Value}
 
   @str ~w(capitalize casefold center count encode endswith expandtabs find format format_map index isalnum isalpha isascii isdecimal isdigit isidentifier islower isnumeric isprintable isspace istitle isupper join ljust lower lstrip maketrans partition removeprefix removesuffix replace rfind rindex rjust rpartition rsplit rstrip split splitlines startswith strip swapcase title translate upper zfill)
   @list ~w(append clear copy count extend index insert pop remove reverse sort)
@@ -34,6 +34,7 @@ defmodule Otera.Methods do
   defp methods(%Dict{}), do: @dict
   defp methods(value) when is_integer(value) or is_boolean(value), do: @int
   defp methods(value) when is_float(value), do: @float
+  defp methods(%Otera.Bytes{}), do: ["decode"]
   defp methods(_value), do: []
 
   @doc """
@@ -52,10 +53,6 @@ defmodule Otera.Methods do
   def call(receiver, "format", args, kwargs) when is_binary(receiver),
     do: Format.format(receiver, args, kwargs)
 
-  def call(receiver, "format_map", [%Dict{} = mapping], %Dict{pairs: []})
-      when is_binary(receiver),
-      do: Format.format(receiver, [], mapping)
-
   def call(%Loop{} = loop, "cycle", args, _kwargs) do
     if args == [],
       do: raise(Otera.Error, kind: :type_error, message: "no items for cycling given")
@@ -65,9 +62,82 @@ defmodule Otera.Methods do
 
   def call(%Loop{} = loop, "changed", args, _kwargs), do: Loop.changed?(loop, args)
 
-  def call(receiver, name, args, kwargs) do
-    method(receiver, name, bind(args, kwargs, params(receiver, name), name))
+  def call(%Otera.Cycler{} = cycler, name, args, kwargs) do
+    check_call(:noargs, "Cycler.#{name}", name, [], args, kwargs)
+    Otera.Cycler.call(cycler, name)
   end
+
+  def call(%Otera.GroupTuple{} = group, name, args, kwargs),
+    do: call(Otera.GroupTuple.to_tuple(group), name, args, kwargs)
+
+  def call(receiver, name, args, kwargs) do
+    {style, params} = signature(receiver, name)
+    check_call(style, "#{Value.type_name(receiver)}.#{name}", name, params, args, kwargs)
+    method(receiver, name, bind(args, kwargs, params, name))
+  end
+
+  # CPython checks the arguments of its builtin methods in a few styles, each with its own messages.
+  defp check_call(style, qualified, name, params, args, %Dict{pairs: kwargs}) do
+    if message = call_error(style, qualified, name, params, length(args), kwargs),
+      do: type_error(message)
+  end
+
+  defp call_error(:keywords, _qualified, name, params, given, kwargs) do
+    max = length(params)
+    unexpected = Enum.find(kwargs, &(elem(&1, 0) not in param_names(params)))
+
+    cond do
+      given > max ->
+        "#{name}() takes at most #{max} argument#{plural(max)} (#{given} given)"
+
+      unexpected ->
+        "#{Value.repr(elem(unexpected, 0))} is an invalid keyword argument for #{name}()"
+
+      true ->
+        nil
+    end
+  end
+
+  defp call_error(:old, _qualified, name, _params, _given, [_ | _]),
+    do: "#{name}() takes no keyword arguments"
+
+  defp call_error(_style, qualified, _name, _params, _given, [_ | _]),
+    do: "#{qualified}() takes no keyword arguments"
+
+  defp call_error(:noargs, qualified, _name, _params, given, []) when given > 0,
+    do: "#{qualified}() takes no arguments (#{given} given)"
+
+  defp call_error(:one, qualified, _name, _params, given, []) when given != 1,
+    do: "#{qualified}() takes exactly one argument (#{given} given)"
+
+  defp call_error(style, _qualified, name, params, given, []) when style in [:clinic, :old] do
+    min = Enum.count(params, &is_binary/1)
+    max = length(params)
+
+    cond do
+      given < min and style == :clinic ->
+        "#{name} expected at least #{min} argument#{plural(min)}, got #{given}"
+
+      given > max and style == :clinic ->
+        "#{name} expected at most #{max} argument#{plural(max)}, got #{given}"
+
+      given < min ->
+        "#{name}() takes at least #{min} argument#{plural(min)} (#{given} given)"
+
+      given > max ->
+        "#{name}() takes at most #{max} argument#{plural(max)} (#{given} given)"
+
+      true ->
+        nil
+    end
+  end
+
+  defp call_error(_style, _qualified, _name, _params, _given, _kwargs), do: nil
+
+  defp param_names(params), do: Enum.map(params, &if(is_tuple(&1), do: elem(&1, 0), else: &1))
+
+  defp plural(1), do: ""
+  defp plural(_count), do: "s"
 
   @doc """
   Binds positional and keyword arguments to `params`, like a call of a Python function, and returns the values in order. The errors have the messages of Python.
@@ -143,59 +213,69 @@ defmodule Otera.Methods do
 
   defp type_error(message), do: raise(Otera.Error, kind: :type_error, message: message)
 
-  defp params(receiver, name) when is_binary(receiver) do
+  # The style of argument checks of CPython, and the params of each method.
+  defp signature(receiver, name) when is_binary(receiver) do
     case name do
       name when name in ~w(strip lstrip rstrip) ->
-        [{"chars", nil}]
+        {:clinic, [{"chars", nil}]}
 
       name when name in ~w(split rsplit) ->
-        [{"sep", nil}, {"maxsplit", -1}]
+        {:keywords, [{"sep", nil}, {"maxsplit", -1}]}
 
       name when name in ~w(startswith endswith find rfind index rindex count) ->
-        ["sub", {"start", nil}, {"end", nil}]
+        {:old, ["sub", {"start", nil}, {"end", nil}]}
 
       "replace" ->
-        ["old", "new", {"count", -1}]
+        {:clinic, ["old", "new", {"count", -1}]}
 
       name when name in ~w(center ljust rjust) ->
-        ["width", {"fillchar", " "}]
+        {:clinic, ["width", {"fillchar", " "}]}
 
-      name when name in ~w(join zfill partition rpartition removeprefix removesuffix) ->
-        ["arg"]
+      name
+      when name in ~w(join zfill partition rpartition removeprefix removesuffix format_map) ->
+        {:one, ["arg"]}
 
       "splitlines" ->
-        [{"keepends", false}]
+        {:keywords, [{"keepends", false}]}
 
       "expandtabs" ->
-        [{"tabsize", 8}]
+        {:keywords, [{"tabsize", 8}]}
+
+      "encode" ->
+        {:keywords, [{"encoding", "utf-8"}, {"errors", "strict"}]}
 
       _ ->
-        []
+        {:noargs, []}
     end
   end
 
-  defp params(%Dict{}, "get"), do: ["key", {"default", nil}]
+  defp signature(%Dict{}, "get"), do: {:clinic, ["key", {"default", nil}]}
 
-  defp params(sequence, name)
-       when name in ["count", "index"] and (is_list(sequence) or is_tuple(sequence)),
-       do: ["value"]
+  defp signature(sequence, "count") when is_list(sequence) or is_tuple(sequence),
+    do: {:one, ["value"]}
 
-  defp params(_receiver, _name), do: []
+  defp signature(sequence, "index") when is_list(sequence) or is_tuple(sequence),
+    do: {:clinic, ["value", {"start", 0}, {"stop", nil}]}
+
+  defp signature(%Otera.Bytes{}, "decode"),
+    do: {:keywords, [{"encoding", "utf-8"}, {"errors", "strict"}]}
+
+  defp signature(_receiver, _name), do: {:noargs, []}
 
   ## str
 
-  defp method(string, name, [chars]) when name in ~w(strip lstrip rstrip) do
+  defp str_method(string, name, [chars]) when name in ~w(strip lstrip rstrip) do
     side = %{"strip" => :both, "lstrip" => :leading, "rstrip" => :trailing}[name]
     Value.strip(string, chars && string_arg(chars, name), side)
   end
 
-  defp method(string, "split", [nil, maxsplit]),
+  defp str_method(string, "split", [nil, maxsplit]),
     do: string |> String.to_charlist() |> split_whitespace(int_arg(maxsplit), [])
 
-  defp method(string, "split", [sep, maxsplit]), do: split(string, sep, maxsplit)
+  defp str_method(string, "split", [sep, maxsplit]), do: split(string, sep, maxsplit)
 
   # Splitting the reversed string from the left splits the string from the right.
-  defp method(string, "rsplit", [nil, maxsplit]) do
+  defp str_method(string, "rsplit", [nil, maxsplit]) do
     string
     |> String.to_charlist()
     |> Enum.reverse()
@@ -204,7 +284,7 @@ defmodule Otera.Methods do
     |> Enum.reverse()
   end
 
-  defp method(string, "rsplit", [sep, maxsplit]) do
+  defp str_method(string, "rsplit", [sep, maxsplit]) do
     string
     |> reverse_bytes()
     |> split(reverse_bytes(string_arg(sep, "rsplit")), maxsplit)
@@ -212,7 +292,7 @@ defmodule Otera.Methods do
     |> Enum.reverse()
   end
 
-  defp method(string, name, [prefix, start, stop]) when name in ["startswith", "endswith"] do
+  defp str_method(string, name, [prefix, start, stop]) when name in ["startswith", "endswith"] do
     string = Value.slice(string, start, stop, nil)
 
     prefixes =
@@ -234,7 +314,7 @@ defmodule Otera.Methods do
     Enum.any?(prefixes, &check.(string, &1))
   end
 
-  defp method(string, name, [sub, start, stop])
+  defp str_method(string, name, [sub, start, stop])
        when name in ["find", "rfind", "index", "rindex"] do
     sub = string_arg(sub, name)
     length = Value.str_length(string)
@@ -254,7 +334,7 @@ defmodule Otera.Methods do
     end
   end
 
-  defp method(string, "count", [sub, start, stop]) do
+  defp str_method(string, "count", [sub, start, stop]) do
     haystack = Value.slice(string, start, stop, nil)
 
     if sub == "",
@@ -262,7 +342,7 @@ defmodule Otera.Methods do
       else: length(:binary.matches(haystack, string_arg(sub, "count")))
   end
 
-  defp method(string, "replace", [old, new, count]) do
+  defp str_method(string, "replace", [old, new, count]) do
     old = string_arg(old, "replace")
     new = string_arg(new, "replace")
 
@@ -274,25 +354,25 @@ defmodule Otera.Methods do
     end
   end
 
-  defp method(string, "lower", []), do: String.downcase(string, :greek)
-  defp method(string, "casefold", []), do: :string.casefold(string)
-  defp method(string, "upper", []), do: String.upcase(string)
-  defp method(string, "capitalize", []), do: capitalize(string)
-  defp method(string, "title", []), do: title(string)
+  defp str_method(string, "lower", []), do: String.downcase(string, :greek)
+  defp str_method(string, "casefold", []), do: :string.casefold(string)
+  defp str_method(string, "upper", []), do: String.upcase(string)
+  defp str_method(string, "capitalize", []), do: capitalize(string)
+  defp str_method(string, "title", []), do: title(string)
 
   # Runs of upper case letters lower together, for the final sigma of Greek.
-  defp method(string, "swapcase", []) do
+  defp str_method(string, "swapcase", []) do
     string
     |> String.codepoints()
-    |> Enum.chunk_by(&upper?/1)
+    |> Enum.chunk_by(&uppercase?/1)
     |> Enum.map_join(fn [char | _] = run ->
-      if upper?(char),
+      if uppercase?(char),
         do: String.downcase(Enum.join(run), :greek),
         else: Enum.map_join(run, &swapcase/1)
     end)
   end
 
-  defp method(string, "expandtabs", [tabsize]) do
+  defp str_method(string, "expandtabs", [tabsize]) do
     {chars, _column} =
       string
       |> String.codepoints()
@@ -311,7 +391,7 @@ defmodule Otera.Methods do
     Enum.join(chars)
   end
 
-  defp method(string, "join", [items]) do
+  defp str_method(string, "join", [items]) do
     items
     |> Value.to_list()
     |> Enum.with_index()
@@ -326,11 +406,11 @@ defmodule Otera.Methods do
     end)
   end
 
-  defp method(string, "splitlines", [keepends]) do
+  defp str_method(string, "splitlines", [keepends]) do
     string |> String.to_charlist() |> splitlines([], [], Value.truthy?(keepends))
   end
 
-  defp method(string, name, [width, fill]) when name in ["center", "ljust", "rjust"] do
+  defp str_method(string, name, [width, fill]) when name in ["center", "ljust", "rjust"] do
     width = int_arg(width)
     count = max(width - Value.str_length(string), 0)
 
@@ -347,7 +427,7 @@ defmodule Otera.Methods do
     end
   end
 
-  defp method(string, "zfill", [width]) do
+  defp str_method(string, "zfill", [width]) do
     {sign, digits} =
       case string do
         <<sign, rest::binary>> when sign in [?+, ?-] -> {<<sign>>, rest}
@@ -357,14 +437,14 @@ defmodule Otera.Methods do
     sign <> String.duplicate("0", max(int_arg(width) - Value.str_length(string), 0)) <> digits
   end
 
-  defp method(string, "partition", [sep]) do
+  defp str_method(string, "partition", [sep]) do
     case String.split(string, string_arg(sep, "partition"), parts: 2) do
       [before, rest] -> {before, sep, rest}
       [string] -> {string, "", ""}
     end
   end
 
-  defp method(string, "rpartition", [sep]) do
+  defp str_method(string, "rpartition", [sep]) do
     case :binary.matches(string, string_arg(sep, "rpartition")) do
       [] ->
         {"", "", string}
@@ -377,68 +457,87 @@ defmodule Otera.Methods do
     end
   end
 
-  defp method(string, "removeprefix", [prefix]) do
+  defp str_method(string, "removeprefix", [prefix]) do
     if String.starts_with?(string, prefix),
       do: binary_part(string, byte_size(prefix), byte_size(string) - byte_size(prefix)),
       else: string
   end
 
-  defp method(string, "removesuffix", [suffix]) do
+  defp str_method(string, "removesuffix", [suffix]) do
     if suffix != "" and String.ends_with?(string, suffix),
       do: binary_part(string, 0, byte_size(string) - byte_size(suffix)),
       else: string
   end
 
-  defp method(string, "isspace", []),
+  defp str_method(string, "isspace", []),
     do: string != "" and string |> String.to_charlist() |> Enum.all?(&Value.whitespace?/1)
 
-  defp method(string, "isdigit", []), do: string =~ ~r/\A\p{Nd}+\z/u
-  defp method(string, "isdecimal", []), do: string =~ ~r/\A\p{Nd}+\z/u
-  defp method(string, "isnumeric", []), do: string =~ ~r/\A\p{N}+\z/u
-  defp method(string, "isalpha", []), do: string =~ ~r/\A\p{L}+\z/u
-  defp method(string, "isalnum", []), do: string =~ ~r/\A[\p{L}\p{N}]+\z/u
-  defp method(string, "isascii", []), do: string =~ ~r/\A[\x00-\x7F]*\z/
+  defp str_method(string, "isdigit", []), do: all_chars?(string, &Unicode.digit?/1)
+  defp str_method(string, "isdecimal", []), do: all_chars?(string, &Unicode.decimal?/1)
+  defp str_method(string, "isnumeric", []), do: all_chars?(string, &Unicode.numeric?/1)
+  defp str_method(string, "isalpha", []), do: all_chars?(string, &Unicode.alpha?/1)
 
-  defp method(string, "isidentifier", []),
+  defp str_method(string, "isalnum", []),
+    do: all_chars?(string, &(Unicode.alpha?(&1) or Unicode.numeric?(&1)))
+
+  defp str_method(string, "isascii", []), do: string =~ ~r/\A[\x00-\x7F]*\z/
+  defp str_method(string, "format_map", [mapping]), do: Format.format(string, [], mapping)
+
+  defp str_method(string, "encode", [encoding, _errors]),
+    do: Otera.Bytes.encode(string, string_arg(encoding, "encode"))
+
+  defp str_method(string, "isidentifier", []),
     do: string =~ ~r/\A[\p{L}\p{Nl}_][\p{L}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}]*\z/u
 
-  defp method(string, "isprintable", []),
-    do: string |> String.to_charlist() |> Enum.all?(&Value.printable?/1)
+  defp str_method(string, "isprintable", []),
+    do: string |> String.to_charlist() |> Enum.all?(&Unicode.printable?/1)
 
   # Python: upper and title case letters only after uncased characters, lower case letters only
   # after cased ones, and at least one cased letter.
-  defp method(string, "istitle", []) do
+  defp str_method(string, "istitle", []) do
     {title?, _previous_cased, any_cased} =
       string
       |> String.codepoints()
       |> Enum.reduce({true, false, false}, fn char, {title?, previous_cased, any_cased} ->
         cond do
           not cased?(char) -> {title?, false, any_cased}
-          String.downcase(char) != char -> {title? and not previous_cased, true, true}
-          true -> {title? and previous_cased, true, true}
+          lowercase?(char) -> {title? and previous_cased, true, true}
+          true -> {title? and not previous_cased, true, true}
         end
       end)
 
     title? and any_cased
   end
 
-  defp method(string, "islower", []), do: cased?(string) and String.downcase(string) == string
-  defp method(string, "isupper", []), do: cased?(string) and String.upcase(string) == string
+  # Python: at least one cased character, and no cased character of the other cases.
+  defp str_method(string, "islower", []), do: cases(string) == [:lower]
+  defp str_method(string, "isupper", []), do: cases(string) == [:upper]
 
-  ## list, tuple and dict
+  defp str_method(string, name, args), do: not_supported(string, name, args)
+
+  ## Other types
+
+  defp method(string, name, args) when is_binary(string), do: str_method(string, name, args)
+
+  defp method(%Otera.Bytes{} = bytes, "decode", [encoding, _errors]),
+    do: Otera.Bytes.decode(bytes, encoding)
 
   defp method(sequence, "count", [value]) when is_list(sequence) or is_tuple(sequence),
     do: sequence |> Value.to_list() |> Enum.count(&Value.equal?(&1, value))
 
-  defp method(sequence, "index", [value]) when is_list(sequence) or is_tuple(sequence) do
-    case Enum.find_index(Value.to_list(sequence), &Value.equal?(&1, value)) do
+  defp method(sequence, "index", [value, start, stop])
+       when is_list(sequence) or is_tuple(sequence) do
+    items = Value.to_list(sequence)
+    offset = if start < 0, do: max(length(items) + start, 0), else: start
+
+    case items |> Value.slice(start, stop, nil) |> Enum.find_index(&Value.equal?(&1, value)) do
       nil ->
         raise Otera.Error,
           kind: :value_error,
           message: "#{Value.repr(value)} is not in #{Value.type_name(sequence)}"
 
       index ->
-        index
+        offset + index
     end
   end
 
@@ -468,7 +567,9 @@ defmodule Otera.Methods do
   defp method(%Dict{} = dict, "values", []),
     do: %Iterable{type: "dict_values", items: Dict.values(dict)}
 
-  defp method(receiver, name, _args) do
+  defp method(receiver, name, args), do: not_supported(receiver, name, args)
+
+  defp not_supported(receiver, name, _args) do
     raise Otera.Error,
       kind: :not_implemented_error,
       message: "Otera does not support the method #{Value.type_name(receiver)}.#{name}()"
@@ -619,13 +720,26 @@ defmodule Otera.Methods do
     end)
   end
 
-  defp swapcase(char) do
-    if String.upcase(char) != char and String.downcase(char) == char,
-      do: String.upcase(char),
-      else: char
+  defp swapcase(char), do: if(lowercase?(char), do: String.upcase(char), else: char)
+
+  defp all_chars?(string, check),
+    do: string != "" and string |> String.to_charlist() |> Enum.all?(check)
+
+  defp cases(string) do
+    string
+    |> String.to_charlist()
+    |> Enum.filter(&Unicode.cased?/1)
+    |> Enum.map(fn char ->
+      cond do
+        Unicode.lowercase?(char) -> :lower
+        Unicode.uppercase?(char) -> :upper
+        true -> :title
+      end
+    end)
+    |> Enum.uniq()
   end
 
-  defp upper?(char), do: String.downcase(char) != char and String.upcase(char) == char
-
-  defp cased?(string), do: String.upcase(string) != String.downcase(string)
+  defp cased?(<<char::utf8>>), do: Unicode.cased?(char)
+  defp lowercase?(<<char::utf8>>), do: Unicode.lowercase?(char)
+  defp uppercase?(<<char::utf8>>), do: Unicode.uppercase?(char)
 end

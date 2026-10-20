@@ -23,7 +23,7 @@ defmodule Otera.Evaluator do
 
   defstruct frames: [], filters: %{}, tests: %{}, globals: %{}
 
-  @builtins ["range", "dict", "namespace"]
+  @builtins ["range", "dict", "namespace", "cycler", "joiner", "lipsum"]
   @max_range 100_000
 
   @doc """
@@ -425,8 +425,14 @@ defmodule Otera.Evaluator do
 
   defp call_value(%Undefined{} = undefined, _args, _kwargs, _ctx), do: Undefined.fail(undefined)
 
-  defp call_value(fun, args, kwargs, _ctx) when is_function(fun),
-    do: call_function(fun, args, kwargs)
+  defp call_value(%Otera.Joiner{} = joiner, args, kwargs, _ctx) do
+    Methods.bind(args, kwargs, [], "Joiner.__call__")
+    Otera.Joiner.call(joiner)
+  end
+
+  defp call_value(fun, args, kwargs, _ctx)
+       when is_function(fun) or is_struct(fun, Otera.Function),
+       do: call_function(fun, args, kwargs)
 
   defp call_value(value, _args, _kwargs, _ctx),
     do:
@@ -435,21 +441,30 @@ defmodule Otera.Evaluator do
         message: "'#{Value.type_name(value)}' object is not callable"
       )
 
-  # An Elixir function gets the keyword arguments as a final map when it takes one more argument.
+  defp call_function(%Otera.Function{} = function, args, kwargs) do
+    values = Methods.bind(args, kwargs, function.params, function.name)
+    function.fun |> apply(values) |> Value.from_elixir()
+  end
+
+  # A plain Elixir function takes positional arguments only.
   defp call_function(fun, args, %Dict{pairs: pairs}) do
     {:arity, arity} = Function.info(fun, :arity)
 
     cond do
-      arity == length(args) and pairs == [] ->
-        fun |> apply(args) |> Value.from_elixir()
+      pairs != [] ->
+        {name, _} = hd(pairs)
 
-      arity == length(args) + 1 ->
-        fun |> apply(args ++ [Map.new(pairs)]) |> Value.from_elixir()
-
-      true ->
         raise Otera.Error,
           kind: :type_error,
-          message: "the function takes #{arity} arguments, but the template gave #{length(args)}"
+          message: "function got an unexpected keyword argument #{Value.repr(name)}"
+
+      arity != length(args) ->
+        raise Otera.Error,
+          kind: :type_error,
+          message: "function takes #{arity} positional arguments but #{length(args)} were given"
+
+      true ->
+        fun |> apply(args) |> Value.from_elixir()
     end
   end
 
@@ -583,6 +598,22 @@ defmodule Otera.Evaluator do
   end
 
   defp builtin("namespace", args, kwargs), do: Namespace.new(builtin("dict", args, kwargs))
+
+  defp builtin("cycler", args, kwargs) do
+    Methods.bind([], kwargs, [], "Cycler.__init__")
+    Otera.Cycler.new(args)
+  end
+
+  defp builtin("joiner", args, kwargs) do
+    [sep] = Methods.bind(args, kwargs, [{"sep", ", "}], "Joiner.__init__")
+    Otera.Joiner.new(sep)
+  end
+
+  defp builtin("lipsum", args, kwargs) do
+    params = [{"n", 5}, {"html", true}, {"min", 20}, {"max", 100}]
+    [count, html, min, max] = Methods.bind(args, kwargs, params, "generate_lorem_ipsum")
+    Otera.Lipsum.generate(count, Value.truthy?(html), min, max)
+  end
 
   defp range_integer(value) when is_integer(value), do: value
   defp range_integer(value) when is_boolean(value), do: if(value, do: 1, else: 0)
