@@ -196,14 +196,19 @@ defmodule Otera.Value do
     if printable?(char), do: <<char::utf8>>, else: hex_escape(char)
   end
 
+  @doc """
+  Returns true if Python `repr()` prints the character `char` as it is, like `str.isprintable()`.
+  """
+  @spec printable?(char) :: boolean
+  def printable?(char) when char < 0x20 or char == 0x7F, do: false
+  def printable?(char), do: not Enum.any?(@unprintable, &(char in &1))
+
   defp hex_escape(char) when char <= 0xFF, do: "\\x" <> hex(char, 2)
   defp hex_escape(char) when char <= 0xFFFF, do: "\\u" <> hex(char, 4)
   defp hex_escape(char), do: "\\U" <> hex(char, 8)
 
   defp hex(char, size),
     do: char |> Integer.to_string(16) |> String.downcase() |> String.pad_leading(size, "0")
-
-  defp printable?(char), do: not Enum.any?(@unprintable, &(char in &1))
 
   @doc """
   Formats a float like Python `repr()`: the shortest digits that give the same float, in fixed notation from `1e-4` to below `1e16`, else in scientific notation.

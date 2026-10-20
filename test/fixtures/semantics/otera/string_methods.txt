@@ -16,3 +16,4 @@ prefix: {{ "prefix_name".removeprefix("prefix_") }} {{ "file.txt".removesuffix("
 predicates: {{ "123".isdigit() }} {{ "abc".isalpha() }} {{ "ab1".isalnum() }} {{ " \t".isspace() }} {{ "abc".islower() }} {{ "ABC".isupper() }} {{ "".isdigit() }}
 format: {{ "{} and {}".format("a", "b") }} {{ "{1}{0}".format("a", "b") }} {{ "{name}!".format(name="hi") }} {{ "{:>5}|{:<5}|{:^5}".format("a", "b", "c") }} {{ "{:.2f}".format(3.14159) }} {{ "{{literal}}".format() }}
 percent: {{ "%s-%d-%.1f" % ("a", 42, 2.25) }} {{ "%05d|%-4s|%r" % (7, "x", "y") }} {{ "%(a)s" % {"a": 1} }}
+more: {{ "Hello World".istitle() }} {{ "Hello world".istitle() }} {{ "ǅungla".istitle() }} {{ "123".istitle() }} {{ "a_b1".isidentifier() }} {{ "1a".isidentifier() }} {{ "tab\t".isprintable() }} {{ "é ok".isprintable() }} {{ "".isprintable() }} {{ "{a}-{b}".format_map({"a": 1, "b": 2}) }}

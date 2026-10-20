@@ -52,6 +52,10 @@ defmodule Otera.Methods do
   def call(receiver, "format", args, kwargs) when is_binary(receiver),
     do: Format.format(receiver, args, kwargs)
 
+  def call(receiver, "format_map", [%Dict{} = mapping], %Dict{pairs: []})
+      when is_binary(receiver),
+      do: Format.format(receiver, [], mapping)
+
   def call(%Loop{} = loop, "cycle", args, _kwargs) do
     if args == [],
       do: raise(Otera.Error, kind: :type_error, message: "no items for cycling given")
@@ -356,6 +360,30 @@ defmodule Otera.Methods do
   defp method(string, "isalpha", []), do: string =~ ~r/\A\p{L}+\z/u
   defp method(string, "isalnum", []), do: string =~ ~r/\A[\p{L}\p{N}]+\z/u
   defp method(string, "isascii", []), do: string =~ ~r/\A[\x00-\x7F]*\z/
+
+  defp method(string, "isidentifier", []),
+    do: string =~ ~r/\A[\p{L}\p{Nl}_][\p{L}\p{Nl}\p{Mn}\p{Mc}\p{Nd}\p{Pc}]*\z/u
+
+  defp method(string, "isprintable", []),
+    do: string |> String.to_charlist() |> Enum.all?(&Value.printable?/1)
+
+  # Python: upper and title case letters only after uncased characters, lower case letters only
+  # after cased ones, and at least one cased letter.
+  defp method(string, "istitle", []) do
+    {title?, _previous_cased, any_cased} =
+      string
+      |> String.codepoints()
+      |> Enum.reduce({true, false, false}, fn char, {title?, previous_cased, any_cased} ->
+        cond do
+          not cased?(char) -> {title?, false, any_cased}
+          String.downcase(char) != char -> {title? and not previous_cased, true, true}
+          true -> {title? and previous_cased, true, true}
+        end
+      end)
+
+    title? and any_cased
+  end
+
   defp method(string, "islower", []), do: cased?(string) and String.downcase(string) == string
   defp method(string, "isupper", []), do: cased?(string) and String.upcase(string) == string
 
