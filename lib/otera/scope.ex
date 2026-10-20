@@ -10,13 +10,14 @@ defmodule Otera.Scope do
   @typedoc """
   `unset` lists the names that are missing at the start of the scope. `exit` gives the value of each name of the scope after the scope ends: `:missing` for a parameter, such as the target of a loop, which prints as `missing`, and `:unset` for the others, which are undefined.
 
-  `self` is true when the root of a template or a block reads `self`, and `super` when a block reads `super`, which Jinja2 then sets at the start of the scope.
+  `self` is true when the root of a template or a block reads `self`, and `super` when a block reads `super`, which Jinja2 then sets at the start of the scope. `captured` is true when the scope defines a macro or a call block, which can read the scope after it ends.
   """
   @type t :: %{
           unset: [String.t()],
           exit: %{String.t() => :missing | :unset},
           self: boolean,
-          super: boolean
+          super: boolean,
+          captured: boolean
         }
 
   defstruct refs: %{}, stores: MapSet.new(), parent: nil
@@ -27,7 +28,7 @@ defmodule Otera.Scope do
   @spec annotate(list) :: {list, t}
   def annotate(body) do
     symbols = function_body(body, ["self"])
-    {annotate_nodes(body, symbols), scope(symbols)}
+    {annotate_nodes(body, symbols), scope(symbols, body)}
   end
 
   # The root of a template and a block are functions without outer scopes, which declare the
@@ -37,14 +38,23 @@ defmodule Otera.Scope do
     %__MODULE__{} |> declare(references) |> visit(body)
   end
 
-  defp scope(symbols) do
+  defp scope(symbols, body) do
     %{
       unset: for({name, :undefined} <- symbols.refs, do: name),
       exit: Map.new(symbols.refs, fn {name, kind} -> {name, exit_value(kind)} end),
       self: symbols.refs["self"] == :param,
-      super: symbols.refs["super"] == :param
+      super: symbols.refs["super"] == :param,
+      captured: closure?(body)
     }
   end
+
+  # A macro, a call block or a generation block, also in a nested scope, is a closure over the scope.
+  defp closure?({:block, _name, _scoped, _required, _body, _line, _scope}), do: false
+  defp closure?({tag, _, _, _, _, _, _}) when tag in [:macro, :call_block], do: true
+  defp closure?({:generation, _body, _scope}), do: true
+  defp closure?(node) when is_tuple(node), do: closure?(Tuple.to_list(node))
+  defp closure?(nodes) when is_list(nodes), do: Enum.any?(nodes, &closure?/1)
+  defp closure?(_leaf), do: false
 
   defp exit_value(:param), do: :missing
   defp exit_value(_kind), do: :unset
@@ -61,7 +71,7 @@ defmodule Otera.Scope do
 
   defp annotate_node({:block, name, scoped?, required?, body, line, nil}, _parent) do
     symbols = function_body(body, ["self", "super"])
-    {:block, name, scoped?, required?, annotate_nodes(body, symbols), line, scope(symbols)}
+    {:block, name, scoped?, required?, annotate_nodes(body, symbols), line, scope(symbols, body)}
   end
 
   defp annotate_node({:for, target, iter, test, body, else_body, recursive?, line, nil}, parent) do
@@ -74,45 +84,47 @@ defmodule Otera.Scope do
 
     {:for, target, iter, test, annotate_nodes(body, body_symbols),
      annotate_nodes(else_body, else_symbols), recursive?, line,
-     {scope(body_symbols), scope(else_symbols)}}
+     {scope(body_symbols, body), scope(else_symbols, else_body)}}
   end
 
   defp annotate_node({:with, assignments, body, line, nil}, parent) do
     targets = Enum.map(assignments, &elem(&1, 0))
     symbols = %__MODULE__{parent: parent} |> declare(targets) |> visit(body)
-    {:with, assignments, annotate_nodes(body, symbols), line, scope(symbols)}
+    {:with, assignments, annotate_nodes(body, symbols), line, scope(symbols, body)}
   end
 
   defp annotate_node({:macro, name, params, body, special_names, line, nil}, parent) do
     symbols = function_symbols(params, special_names, body, parent)
-    {:macro, name, params, annotate_nodes(body, symbols), special_names, line, scope(symbols)}
+
+    {:macro, name, params, annotate_nodes(body, symbols), special_names, line,
+     scope(symbols, body)}
   end
 
   defp annotate_node({:call_block, call, params, body, special_names, line, nil}, parent) do
     symbols = function_symbols(params, special_names, body, parent)
 
     {:call_block, call, params, annotate_nodes(body, symbols), special_names, line,
-     scope(symbols)}
+     scope(symbols, body)}
   end
 
   defp annotate_node({:set_block, target, filter, body, line, nil}, parent) do
     symbols = visit(%__MODULE__{parent: parent}, body)
-    {:set_block, target, filter, annotate_nodes(body, symbols), line, scope(symbols)}
+    {:set_block, target, filter, annotate_nodes(body, symbols), line, scope(symbols, body)}
   end
 
   defp annotate_node({:filter_block, filter, body, line, nil}, parent) do
     symbols = %__MODULE__{parent: parent} |> visit(body) |> visit_expr(filter)
-    {:filter_block, filter, annotate_nodes(body, symbols), line, scope(symbols)}
+    {:filter_block, filter, annotate_nodes(body, symbols), line, scope(symbols, body)}
   end
 
   defp annotate_node({:autoescape, expr, body, line, nil}, parent) do
     symbols = %__MODULE__{parent: parent} |> visit_expr(expr) |> visit(body)
-    {:autoescape, expr, annotate_nodes(body, symbols), line, scope(symbols)}
+    {:autoescape, expr, annotate_nodes(body, symbols), line, scope(symbols, body)}
   end
 
   defp annotate_node({:generation, body, nil}, parent) do
     symbols = visit(%__MODULE__{parent: parent}, body)
-    {:generation, annotate_nodes(body, symbols), scope(symbols)}
+    {:generation, annotate_nodes(body, symbols), scope(symbols, body)}
   end
 
   defp annotate_node(node, _parent), do: node

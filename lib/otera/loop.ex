@@ -4,35 +4,53 @@ defmodule Otera.Loop do
 
   It has `index`, `index0`, `revindex`, `revindex0`, `first`, `last`, `length`, `depth`, `depth0`, `previtem` and `nextitem`, the methods `cycle` and `changed`, and for a recursive loop it can be called with the items of the next level.
 
-  A loop takes its items one at a time from an `Otera.Iterable`. Each iteration gets a new `Loop` with the same `ref`, and `Otera.State` keeps the iterator and the items that the loop took to look ahead under that `ref`. Like Jinja2, `last` and `nextitem` take the next item, and `length` and `revindex` take all the items, so a loop over a generator shares the items of that generator with the other code that reads it. `changed` keeps its last value in `Otera.State` too.
+  A loop over an `Otera.Iterable`, or with a test, takes its items one at a time from an iterator. `Otera.State` keeps the iterator and the items that the loop took to look ahead under the `ref` of the loop. Like Jinja2, `last` and `nextitem` take the next item, and `length` and `revindex` take all the items, so a loop over a generator shares the items of that generator with the other code that reads it. A loop over another value, such as a list, keeps the items after the current one in `rest`. Each iteration gets a new `Loop` with the same `ref`. `changed` keeps its last value in `Otera.State` too.
   """
 
   alias Otera.{Iterable, Method, State, Undefined, Value}
 
-  defstruct [:ref, :index0, :depth0, :recurse, previous: :none]
+  defstruct [:ref, :index0, :depth0, :recurse, :rest, previous: :none]
 
   @doc """
-  Starts a loop over the iterator `source` and returns its reference.
+  Starts a loop over the iterator `source`.
   """
-  @spec start(Iterable.t()) :: reference
+  @spec start(Iterable.t()) :: %__MODULE__{}
   def start(source) do
     ref = make_ref()
     State.put({__MODULE__, ref}, {source, []})
-    ref
+    %__MODULE__{ref: ref}
   end
 
   @doc """
-  Takes the next item of the loop `ref`: `{:ok, item}`, or `:error` at the end.
+  Starts a loop over the list `items`.
   """
-  @spec next(reference) :: {:ok, term} | :error
-  def next(ref) do
-    case State.get({__MODULE__, ref}) do
+  @spec start_list(list) :: %__MODULE__{}
+  def start_list(items), do: %__MODULE__{ref: make_ref(), rest: items}
+
+  @doc """
+  Takes the next item of `loop`: `{:ok, item, loop}`, or `:error` at the end.
+  """
+  @spec next(%__MODULE__{}) :: {:ok, term, %__MODULE__{}} | :error
+  def next(%__MODULE__{rest: rest} = loop) when is_list(rest) do
+    case rest do
+      [item | rest] ->
+        if State.get({__MODULE__, :done, loop.ref}),
+          do: :error,
+          else: {:ok, item, %{loop | rest: rest}}
+
+      [] ->
+        :error
+    end
+  end
+
+  def next(loop) do
+    case State.get({__MODULE__, loop.ref}) do
       {source, [item | ahead]} ->
-        State.put({__MODULE__, ref}, {source, ahead})
-        {:ok, item}
+        State.put({__MODULE__, loop.ref}, {source, ahead})
+        {:ok, item, loop}
 
       {source, []} ->
-        Iterable.next(source)
+        with {:ok, item} <- Iterable.next(source), do: {:ok, item, loop}
     end
   end
 
@@ -64,6 +82,9 @@ defmodule Otera.Loop do
   def get(loop, name), do: %Undefined{obj: loop, name: name}
 
   # Takes the next item to look ahead, which the next iteration gets.
+  defp peek(%__MODULE__{rest: [item | _]}), do: {:ok, item}
+  defp peek(%__MODULE__{rest: []}), do: :error
+
   defp peek(loop) do
     case State.get({__MODULE__, loop.ref}) do
       {_source, [item | _]} ->
@@ -78,6 +99,8 @@ defmodule Otera.Loop do
   end
 
   # Takes all the items after the current one to look ahead, for the length of the loop.
+  defp take_all(%__MODULE__{rest: rest}) when is_list(rest), do: rest
+
   defp take_all(loop) do
     {source, ahead} = State.get({__MODULE__, loop.ref})
     ahead = ahead ++ Iterable.take_all(source)
@@ -107,7 +130,10 @@ defmodule Otera.Loop do
   @spec remaining(%__MODULE__{}) :: [{term, %__MODULE__{}}]
   def remaining(loop) do
     items = take_all(loop)
-    State.put({__MODULE__, loop.ref}, {elem(State.get({__MODULE__, loop.ref}), 0), []})
+
+    if is_list(loop.rest),
+      do: State.put({__MODULE__, :done, loop.ref}, true),
+      else: State.put({__MODULE__, loop.ref}, {elem(State.get({__MODULE__, loop.ref}), 0), []})
 
     items
     |> Enum.with_index(loop.index0 + 1)

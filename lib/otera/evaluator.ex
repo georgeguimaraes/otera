@@ -4,7 +4,7 @@ defmodule Otera.Evaluator do
 
   The evaluator keeps a stack of scopes, like the local variables of the Python functions that Jinja2 compiles. The last scope is the context, with the variables of the render and the top-level assignments. Above it is the root scope of the template. The body of a loop, a macro call, a with block, an autoescape block and the body of a set or filter block run in a new scope, so their assignments do not leak out. `Otera.Scope` gives the names that each scope starts without, and the names that become missing when the scope ends.
 
-  Each scope is a map in `Otera.State`, so a macro reads the variables of the scopes around its definition as they are when it runs, like a Python closure. Namespaces are the one way to change state across scopes.
+  A scope where a template defines a macro or a call block is a map in `Otera.State`, so the macro reads the variables of the scopes around its definition as they are when it runs, like a Python closure. The other scopes are plain maps. Namespaces are the one way to change state across scopes.
 
   A template that extends another renders its root first, which adds its blocks to the chains of blocks of the context, and then the root of the parent with the same context. After the extends tag, the root renders no text and no top-level block, like Jinja2. A block renders the first block of its chain, and `super()` renders the next one. An include renders a template in a new context, and an import renders it as an `Otera.TemplateModule`.
 
@@ -115,7 +115,9 @@ defmodule Otera.Evaluator do
         parent: nil
     }
 
-    ctx = open(ctx, template.scope, references(template.scope, context(ctx), nil))
+    # The root scope is in Otera.State, so that its assignments also set the context.
+    scope = %{template.scope | captured: true}
+    ctx = open(ctx, scope, references(scope, context(ctx), nil))
     {output, ctx, _signal} = exec_body(template.ast, %{ctx | root: hd(ctx.frames)})
 
     # The extends tag gives its line to an error before the root of the parent runs, such as the
@@ -583,19 +585,23 @@ defmodule Otera.Evaluator do
          depth0
        ) do
     {body_scope, else_scope} = scopes
-    source = Otera.Iterable.iter(iterable)
 
-    source =
+    loop =
       case test do
-        {test, test_line} -> loop_filter(source, target, test, test_line, ctx)
-        nil -> source
+        {test, test_line} ->
+          iterable
+          |> Otera.Iterable.iter()
+          |> loop_filter(target, test, test_line, ctx)
+          |> Loop.start()
+
+        nil when is_struct(iterable, Otera.Iterable) and iterable.ref != nil ->
+          Loop.start(iterable)
+
+        nil ->
+          Loop.start_list(at(elem(node, 7), ctx, fn -> Value.to_list(iterable) end))
       end
 
-    loop = %Loop{
-      ref: Loop.start(source),
-      depth0: depth0,
-      recurse: if(recursive?, do: {node, ctx})
-    }
+    loop = %{loop | depth0: depth0, recurse: if(recursive?, do: {node, ctx})}
 
     # One scope for all iterations, which each iteration starts again, like the body of a Python loop.
     inner = open(ctx, body_scope, %{})
@@ -624,19 +630,21 @@ defmodule Otera.Evaluator do
        ) do
     {:for, target, _iter, _test, body, _else_body, _recursive?, line, {body_scope, _}} = node
 
-    case at(line, ctx, fn -> Loop.next(loop.ref) end) do
+    case at(line, ctx, fn -> Loop.next(loop) end) do
       :error ->
         {acc, completed?}
 
-      {:ok, item} ->
+      {:ok, item, loop} ->
         frame = at(line, ctx, fn -> bind(target, item) end)
-        loop = %{loop | index0: index, previous: previous}
+        current = %{loop | index0: index, previous: previous}
         # Like Jinja2, the scope has the loop variable only when the body reads it.
         frame =
-          if body_scope.exit["loop"] == :missing, do: Map.put(frame, "loop", loop), else: frame
+          if body_scope.exit["loop"] == :missing,
+            do: Map.put(frame, "loop", current),
+            else: frame
 
-        restart(inner, body_scope, frame)
-        {output, _inner, signal} = exec_body(body, inner)
+        {output, _inner, signal} = exec_body(body, restart(inner, body_scope, frame))
+        iteration = %{iteration | loop: loop}
 
         case signal do
           :ok -> iterate(iteration, index + 1, {:ok, item}, [acc | output], true)
@@ -728,21 +736,36 @@ defmodule Otera.Evaluator do
 
   ## Scopes
 
-  # A frame is a reference to the map of a scope in Otera.State, or a plain map for the scope of
-  # a loop test, which no macro can see.
+  # A frame is a reference to the map of a scope in Otera.State when a macro or a call block can
+  # read the scope later, or else a plain map, which the evaluator passes along.
   defp push(ctx, frame), do: %{ctx | frames: [frame | ctx.frames]}
 
-  defp open(ctx, scope, bindings) do
+  defp open(ctx, %{captured: true} = scope, bindings) do
     ref = make_ref()
-    restart(%{ctx | frames: [ref]}, scope, bindings)
+    State.put(ref, initial(scope, bindings))
     push(ctx, ref)
   end
 
-  defp restart(%{frames: [ref | _]}, scope, bindings),
-    do: State.put(ref, Enum.reduce(scope.unset, bindings, &Map.put_new(&2, &1, :unset)))
+  defp open(ctx, scope, bindings), do: push(ctx, initial(scope, bindings))
 
-  defp close(%{frames: [ref | _]}, scope),
+  defp initial(scope, bindings),
+    do: Enum.reduce(scope.unset, bindings, &Map.put_new(&2, &1, :unset))
+
+  defp restart(%{frames: [ref | _]} = ctx, scope, bindings) when is_reference(ref) do
+    State.put(ref, initial(scope, bindings))
+    ctx
+  end
+
+  defp restart(%{frames: [_frame | rest]} = ctx, scope, bindings),
+    do: %{ctx | frames: [initial(scope, bindings) | rest]}
+
+  defp close(%{frames: [ref | _]}, scope) when is_reference(ref),
     do: State.put(ref, Map.merge(State.get(ref), scope.exit))
+
+  defp close(_ctx, _scope), do: :ok
+
+  defp put_var(%{frames: [frame | rest]} = ctx, name, value) when is_map(frame),
+    do: %{ctx | frames: [Map.put(frame, name, value) | rest]}
 
   # An assignment in the root scope also sets the variable of the context, like Jinja2.
   defp put_var(%{frames: [ref | _]} = ctx, name, value) do

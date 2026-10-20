@@ -49,6 +49,28 @@ defmodule Otera.Iterable do
 
   defp first_step(value), do: list_step(Value.to_list(value))
 
+  @doc """
+  Returns a source of items for `pull/1`: an iterator gives itself, and another value gives its items when `pull/1` first takes one, like the `for` loop of a Python generator.
+  """
+  @spec source(term) :: t | {:items, term} | {:list, list}
+  def source(%__MODULE__{ref: ref} = iterator) when ref != nil, do: iterator
+  def source(value), do: {:items, value}
+
+  @doc """
+  Takes the next item of a source of `source/1`: `{:ok, item, source}`, or `:done`.
+  """
+  @spec pull(t | {:items, term} | {:list, list}) :: {:ok, term, term} | :done
+  def pull({:items, value}), do: pull({:list, Value.to_list(value)})
+  def pull({:list, [item | rest]}), do: {:ok, item, {:list, rest}}
+  def pull({:list, []}), do: :done
+
+  def pull(iterator) do
+    case next(iterator) do
+      {:ok, item} -> {:ok, item, iterator}
+      :error -> :done
+    end
+  end
+
   defp list_step([item | rest]), do: {:ok, item, rest}
   defp list_step([]), do: :done
 

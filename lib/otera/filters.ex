@@ -329,7 +329,7 @@ defmodule Otera.Filters do
             nil
 
           %Dict{pairs: pairs} ->
-            Iterable.iter(pairs)
+            Iterable.source(pairs)
 
           _ ->
             raise Otera.Error,
@@ -466,7 +466,7 @@ defmodule Otera.Filters do
       bind("do_unique", args, kwargs, [{"case_sensitive", false}, {"attribute", nil}])
 
     getter = attrgetter(attribute)
-    generator(fn -> {Iterable.iter(value), []} end, &unique_step(&1, getter, case_sensitive))
+    generator(fn -> {Iterable.source(value), []} end, &unique_step(&1, getter, case_sensitive))
   end
 
   defp filter(name, value, args, kwargs, _env) when name in ["min", "max"] do
@@ -489,12 +489,12 @@ defmodule Otera.Filters do
   defp filter("map", value, args, kwargs, env) do
     generator(
       fn ->
-        if Value.truthy?(value), do: {map_function(args, kwargs, env), Iterable.iter(value)}
+        if Value.truthy?(value), do: {map_function(args, kwargs, env), Iterable.source(value)}
       end,
       fn {fun, source} ->
-        case Iterable.next(source) do
-          {:ok, item} -> {:ok, fun.(item), {fun, source}}
-          :error -> :done
+        case Iterable.pull(source) do
+          {:ok, item, source} -> {:ok, fun.(item), {fun, source}}
+          :done -> :done
         end
       end
     )
@@ -512,7 +512,7 @@ defmodule Otera.Filters do
 
           test = select_test(args, kwargs, env)
           keep = name in ["select", "selectattr"]
-          {&(test.(getter.(&1)) == keep), Iterable.iter(value)}
+          {&(test.(getter.(&1)) == keep), Iterable.source(value)}
         end
       end,
       &select_step/1
@@ -530,14 +530,14 @@ defmodule Otera.Filters do
 
   defp filter("batch", value, args, kwargs, _env) do
     [count, fill_with] = bind("do_batch", args, kwargs, ["linecount", {"fill_with", nil}])
-    generator(fn -> {Iterable.iter(value), []} end, &batch_step(&1, count, fill_with))
+    generator(fn -> {Iterable.source(value), []} end, &batch_step(&1, count, fill_with))
   end
 
   defp filter("slice", value, args, kwargs, _env) do
     [slices, fill_with] = bind("do_slice", args, kwargs, ["slices", {"fill_with", nil}])
 
     generator(
-      fn -> Iterable.iter(slices(Value.to_list(value), slices, fill_with)) end,
+      fn -> Iterable.source(slices(Value.to_list(value), slices, fill_with)) end,
       &pass_step/1
     )
   end
@@ -676,23 +676,21 @@ defmodule Otera.Filters do
     end)
   end
 
-  defp pass_step(source) do
-    case Iterable.next(source) do
-      {:ok, item} -> {:ok, item, source}
-      :error -> :done
-    end
-  end
+  defp pass_step(source), do: Iterable.pull(source)
 
-  defp select_step({keep?, source} = state) do
-    case Iterable.next(source) do
-      {:ok, item} -> if keep?.(item), do: {:ok, item, state}, else: select_step(state)
-      :error -> :done
+  defp select_step({keep?, source}) do
+    case Iterable.pull(source) do
+      {:ok, item, source} ->
+        if keep?.(item), do: {:ok, item, {keep?, source}}, else: select_step({keep?, source})
+
+      :done ->
+        :done
     end
   end
 
   defp unique_step({source, seen}, getter, case_sensitive) do
-    case Iterable.next(source) do
-      {:ok, item} ->
+    case Iterable.pull(source) do
+      {:ok, item, source} ->
         key = postprocess(getter.(item), case_sensitive)
         Value.hashable!(key)
 
@@ -700,7 +698,7 @@ defmodule Otera.Filters do
           do: unique_step({source, seen}, getter, case_sensitive),
           else: {:ok, item, {source, [key | seen]}}
 
-      :error ->
+      :done ->
         :done
     end
   end
@@ -709,17 +707,17 @@ defmodule Otera.Filters do
   defp batch_step(:finished, _count, _fill_with), do: :done
 
   defp batch_step({source, tmp}, count, fill_with) do
-    case Iterable.next(source) do
-      {:ok, item} when length(tmp) == count ->
+    case Iterable.pull(source) do
+      {:ok, item, source} when length(tmp) == count ->
         {:ok, Enum.reverse(tmp), {source, [item]}}
 
-      {:ok, item} ->
+      {:ok, item, source} ->
         batch_step({source, [item | tmp]}, count, fill_with)
 
-      :error when tmp == [] ->
+      :done when tmp == [] ->
         :done
 
-      :error ->
+      :done ->
         tmp = Enum.reverse(tmp)
 
         tmp =
