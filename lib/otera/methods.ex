@@ -470,7 +470,7 @@ defmodule Otera.Methods do
   end
 
   defp str_method(string, "isspace", []),
-    do: string != "" and string |> String.to_charlist() |> Enum.all?(&Value.whitespace?/1)
+    do: string != "" and string |> String.to_charlist() |> Enum.all?(&Unicode.space?/1)
 
   defp str_method(string, "isdigit", []), do: all_chars?(string, &Unicode.digit?/1)
   defp str_method(string, "isdecimal", []), do: all_chars?(string, &Unicode.decimal?/1)
@@ -652,7 +652,7 @@ defmodule Otera.Methods do
   end
 
   defp split_whitespace(chars, maxsplit, acc) do
-    case Enum.drop_while(chars, &Value.whitespace?/1) do
+    case Enum.drop_while(chars, &Unicode.space?/1) do
       [] ->
         Enum.reverse(acc)
 
@@ -660,7 +660,7 @@ defmodule Otera.Methods do
         Enum.reverse([List.to_string(rest) | acc])
 
       rest ->
-        {word, rest} = Enum.split_while(rest, &(not Value.whitespace?(&1)))
+        {word, rest} = Enum.split_while(rest, &(not Unicode.space?(&1)))
         split_whitespace(rest, maxsplit, [List.to_string(word) | acc])
     end
   end

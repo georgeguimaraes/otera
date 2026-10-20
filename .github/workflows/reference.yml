@@ -50,6 +50,7 @@ jobs:
           uv run --locked --project scripts python -I scripts/generate_chat_expected.py
           uv run --locked --project scripts python -I scripts/generate_semantics_expected.py
           uv run --locked --project scripts python -I scripts/generate_html_entities.py
+          uv run --locked --project scripts python -I scripts/generate_unicode_properties.py
       - name: Show the fixture changes
         run: |
           git add --intent-to-add test/fixtures priv
@@ -60,7 +61,7 @@ jobs:
         if: ${{ !cancelled() }}
         run: |
           if [ -n "$(git status --porcelain -- test/fixtures priv)" ]; then
-            echo "::error::The Python reference gives other fixtures than the fixtures in this PR. Python changed its behavior or the fixtures are stale. Run 'uv run --project scripts python -I scripts/generate_chat_expected.py', 'uv run --project scripts python -I scripts/generate_semantics_expected.py' and 'uv run --project scripts python -I scripts/generate_html_entities.py', then commit the changes in test/fixtures and priv."
+            echo "::error::The Python reference gives other fixtures than the fixtures in this PR. Python changed its behavior or the fixtures are stale. Run 'uv run --project scripts python -I scripts/generate_chat_expected.py', 'uv run --project scripts python -I scripts/generate_semantics_expected.py', 'uv run --project scripts python -I scripts/generate_html_entities.py' and 'uv run --project scripts python -I scripts/generate_unicode_properties.py', then commit the changes in test/fixtures and priv."
             exit 1
           fi
 

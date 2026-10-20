@@ -38,10 +38,6 @@ defmodule Otera.Value do
     Otera.GroupTuple
   ]
 
-  # The characters for which Python `str.isspace()` is true.
-  @whitespace [?\t, ?\n, ?\v, ?\f, ?\r, 0x1C, 0x1D, 0x1E, 0x1F, ?\s, 0x85, 0xA0, 0x1680] ++
-                Enum.to_list(0x2000..0x200A) ++ [0x2028, 0x2029, 0x202F, 0x205F, 0x3000]
-
   @doc """
   Converts an Elixir value to a template value. See the module documentation.
   """
@@ -274,27 +270,25 @@ defmodule Otera.Value do
   """
   @spec strip(String.t(), String.t() | nil, :both | :leading | :trailing) :: String.t()
   def strip(string, chars, side) do
-    set = if chars, do: String.to_charlist(chars), else: @whitespace
+    strip? =
+      if chars,
+        do: &(&1 in String.to_charlist(chars)),
+        else: &Otera.Unicode.space?/1
+
     codepoints = String.to_charlist(string)
 
     codepoints =
       if side in [:both, :leading],
-        do: Enum.drop_while(codepoints, &(&1 in set)),
+        do: Enum.drop_while(codepoints, strip?),
         else: codepoints
 
     codepoints =
       if side in [:both, :trailing],
-        do: codepoints |> Enum.reverse() |> Enum.drop_while(&(&1 in set)) |> Enum.reverse(),
+        do: codepoints |> Enum.reverse() |> Enum.drop_while(strip?) |> Enum.reverse(),
         else: codepoints
 
     List.to_string(codepoints)
   end
-
-  @doc """
-  Returns true if `char` is whitespace for Python `str.isspace()`.
-  """
-  @spec whitespace?(char) :: boolean
-  def whitespace?(char), do: char in @whitespace
 
   @doc """
   Returns the number of code points in `string`, the length of a Python `str`.
