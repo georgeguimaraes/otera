@@ -1,0 +1,3 @@
+{"safe": "<a href=x>http://in.com</a> http://out.com"}
+---
+{{ safe|safe|urlize }} {{ safe|urlize }} {{ safe|urlize is escaped }}

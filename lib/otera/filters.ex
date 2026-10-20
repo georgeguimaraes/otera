@@ -2,7 +2,7 @@ defmodule Otera.Filters do
   @moduledoc """
   The builtin filters of Jinja2, with their Python behavior.
 
-  The filters are `abs`, `attr`, `batch`, `capitalize`, `center`, `count`, `default` (`d`), `dictsort`, `escape` (`e`), `filesizeformat`, `first`, `float`, `forceescape`, `format`, `groupby`, `indent`, `int`, `items`, `join`, `last`, `length`, `list`, `lower`, `map`, `max`, `min`, `pprint`, `random`, `reject`, `rejectattr`, `replace`, `reverse`, `round`, `safe`, `select`, `selectattr`, `slice`, `sort`, `string`, `striptags`, `sum`, `title`, `tojson`, `trim`, `truncate`, `unique`, `upper`, `urlencode`, `wordcount`, `wordwrap` and `xmlattr`.
+  The filters are `abs`, `attr`, `batch`, `capitalize`, `center`, `count`, `default` (`d`), `dictsort`, `escape` (`e`), `filesizeformat`, `first`, `float`, `forceescape`, `format`, `groupby`, `indent`, `int`, `items`, `join`, `last`, `length`, `list`, `lower`, `map`, `max`, `min`, `pprint`, `random`, `reject`, `rejectattr`, `replace`, `reverse`, `round`, `safe`, `select`, `selectattr`, `slice`, `sort`, `string`, `striptags`, `sum`, `title`, `tojson`, `trim`, `truncate`, `unique`, `upper`, `urlencode`, `urlize`, `wordcount`, `wordwrap` and `xmlattr`.
 
   `safe`, `escape`, `forceescape` and `tojson` give an `Otera.Markup`. As in Jinja2, the string filters keep a `Markup`, and `join`, `replace` and `xmlattr` follow the autoescape of the render. The filters that give a generator in Jinja2, such as `map` and `select`, give an `Otera.Iterable`, which makes a single pass like a Python generator.
   """
@@ -110,6 +110,49 @@ defmodule Otera.Filters do
         url_quote(key, true) <> "=" <> url_quote(item, true)
       end)
     end
+  end
+
+  # do_urlize of Jinja2, with the default policies: rel "noopener", no target and no extra schemes.
+  defp filter("urlize", value, args, kwargs, env) do
+    params = [
+      {"trim_url_limit", nil},
+      {"nofollow", false},
+      {"target", nil},
+      {"rel", nil},
+      {"extra_schemes", nil}
+    ]
+
+    [trim_url_limit, nofollow, target, rel, extra_schemes] =
+      bind("do_urlize", args, kwargs, params)
+
+    rel_parts = if Value.truthy?(rel), do: string_method(rel, "split", [nil, -1]), else: []
+    rel_parts = if Value.truthy?(nofollow), do: ["nofollow" | rel_parts], else: rel_parts
+
+    rel =
+      ["noopener" | rel_parts]
+      |> Enum.map(&Value.to_str/1)
+      |> Enum.uniq()
+      |> Enum.sort()
+      |> Enum.join(" ")
+
+    schemes = if extra_schemes == nil, do: [], else: Value.to_list(extra_schemes)
+
+    for scheme <- schemes,
+        not (is_binary(scheme) or is_struct(scheme, Markup)) or
+          not HTML.scheme?(Value.to_str(scheme)) do
+      unless is_binary(scheme) or is_struct(scheme, Markup),
+        do:
+          raise(Otera.Error,
+            kind: :type_error,
+            message:
+              "expected string or bytes-like object, got #{Value.repr(Value.type_name(scheme))}"
+          )
+
+      filter_argument_error("#{Value.repr(scheme)} is not a valid URI scheme prefix.")
+    end
+
+    text = HTML.urlize(value, trim_url_limit, rel, target, Enum.map(schemes, &Value.to_str/1))
+    if Evaluator.autoescape?(env), do: Markup.new(text), else: text
   end
 
   defp filter("xmlattr", value, args, kwargs, env) do
@@ -568,7 +611,7 @@ defmodule Otera.Filters do
   """
   @spec builtin?(String.t()) :: boolean
   def builtin?(name) do
-    name in ~w(abs attr batch capitalize center count d default dictsort e escape filesizeformat first float forceescape format groupby indent int items join last length list lower map max min pprint random reject rejectattr replace reverse round safe select selectattr slice sort string striptags sum title tojson trim truncate unique upper urlencode wordcount wordwrap xmlattr)
+    name in ~w(abs attr batch capitalize center count d default dictsort e escape filesizeformat first float forceescape format groupby indent int items join last length list lower map max min pprint random reject rejectattr replace reverse round safe select selectattr slice sort string striptags sum title tojson trim truncate unique upper urlencode urlize wordcount wordwrap xmlattr)
   end
 
   defp string_method(%Undefined{} = undefined, _name, _args), do: Undefined.fail(undefined)

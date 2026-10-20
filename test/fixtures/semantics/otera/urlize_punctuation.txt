@@ -1,0 +1,5 @@
+{}
+---
+{{ "(http://example.com) (www.example.com). <http://example.com> [http://x.org] http://x.org/a(b) http://x.org/a(b)). ((www.x.com)), http://x.org/a)b http://a.com/(x),."|urlize }}
+{{ "&lt;http://example.com&gt; http://x.org&gt;. ((((http://a.com)) (http://a.com/(b)(c))"|urlize }}
+{{ "http://a.com..., www.b.com,,, (c@d.com) <e@f.org>"|urlize }}

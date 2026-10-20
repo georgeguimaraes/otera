@@ -1,0 +1,6 @@
+{"$settings": {"autoescape": true}, "text": "<b>http://x.com?a=1&b=2</b> & www.y.com", "safe": "<i>http://z.com</i>"}
+---
+{{ text|urlize }}
+{{ safe|safe|urlize }}
+{{ text|urlize is escaped }} {{ text|urlize|length }}
+{% autoescape false %}{{ text|urlize }} {{ text|urlize is escaped }}{% endautoescape %}

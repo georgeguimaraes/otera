@@ -1,0 +1,7 @@
+{"text": "Visit http://example.com, https://a.b.org/path?q=1&x=<y>#frag or www.python.org. Mail me@example.com or mailto:you@ex.co.uk!", "plain": "no links here", "number": 42}
+---
+{{ text|urlize }}
+{{ plain|urlize }} {{ number|urlize }} [{{ missing|urlize }}]
+{{ "example.com example.net foo.info bar.museum a.b x.cc xn--80ak6aa92e.com www.xn--80ak6aa92e"|urlize }}
+{{ "http://127.0.0.1:8080/x http://300.1.1.1 http://[::1]/ http://[2001:db8::1]:80 http://localhost https://x"|urlize }}
+{{ "www.a.com:99999 www.a.com:80/p www.a.com:abc"|urlize }}

@@ -1,0 +1,10 @@
+{"long": "http://example.com/a/very/long/path/that/goes/on"}
+---
+{{ long|urlize(20) }}
+{{ long|urlize(trim_url_limit=10, nofollow=true) }}
+{{ "www.example.com"|urlize(target="_blank") }}
+{{ "www.example.com"|urlize(rel="me noopener", nofollow=true) }}
+{{ "www.example.com"|urlize(rel="<x>", target="<t>") }}
+{{ "me@x.com"|urlize(nofollow=true, target="_blank") }}
+{{ "ftp://files.example.com tel:+123 tel: news:x"|urlize(extra_schemes=["ftp://", "tel:", "news:"]) }}
+{{ "short.com"|urlize(3) }} {{ "short.com"|urlize(0) }} {{ "short.com"|urlize(-2) }}

@@ -1,0 +1,4 @@
+{}
+---
+{{ "http://exämple.com www.пример.рф http://例え.テスト www.x.ſom http://x.Kom a@b.c٣ www.ab² http://x.com/ü"|urlize }}
+{{ "a http://x.com www.y.com\u001ct@u.com"|urlize }}

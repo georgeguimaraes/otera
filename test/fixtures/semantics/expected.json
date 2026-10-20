@@ -1537,6 +1537,55 @@
    "line": 1
   }
  },
+ "otera/urlize_autoescape.txt": {
+  "output": "&lt;b&gt;http://x.com?a=1&amp;b=2&lt;/b&gt; &amp; <a href=\"https://www.y.com\" rel=\"noopener\">www.y.com</a>\n<i>http://z.com</i>\nTrue 106\n&lt;b&gt;http://x.com?a=1&amp;b=2&lt;/b&gt; &amp; <a href=\"https://www.y.com\" rel=\"noopener\">www.y.com</a> False"
+ },
+ "otera/urlize_bad_scheme_error.txt": {
+  "error": {
+   "type": "FilterArgumentError",
+   "message": "'ftp' is not a valid URI scheme prefix.",
+   "line": 1
+  }
+ },
+ "otera/urlize_basic.txt": {
+  "output": "Visit <a href=\"http://example.com\" rel=\"noopener\">http://example.com</a>, <a href=\"https://a.b.org/path?q=1&amp;x=&lt;y&gt;#frag\" rel=\"noopener\">https://a.b.org/path?q=1&amp;x=&lt;y&gt;#frag</a> or <a href=\"https://www.python.org\" rel=\"noopener\">www.python.org</a>. Mail <a href=\"mailto:me@example.com\">me@example.com</a> or mailto:you@ex.co.uk!\nno links here 42 []\n<a href=\"https://example.com\" rel=\"noopener\">example.com</a> <a href=\"https://example.net\" rel=\"noopener\">example.net</a> <a href=\"https://foo.info\" rel=\"noopener\">foo.info</a> bar.museum a.b x.cc <a href=\"https://xn--80ak6aa92e.com\" rel=\"noopener\">xn--80ak6aa92e.com</a> <a href=\"https://www.xn--80ak6aa92e\" rel=\"noopener\">www.xn--80ak6aa92e</a>\n<a href=\"http://127.0.0.1:8080/x\" rel=\"noopener\">http://127.0.0.1:8080/x</a> <a href=\"http://300.1.1.1\" rel=\"noopener\">http://300.1.1.1</a> <a href=\"http://[::1]/\" rel=\"noopener\">http://[::1]/</a> <a href=\"http://[2001:db8::1]:80\" rel=\"noopener\">http://[2001:db8::1]:80</a> <a href=\"http://localhost\" rel=\"noopener\">http://localhost</a> https://x\n<a href=\"https://www.a.com:99999\" rel=\"noopener\">www.a.com:99999</a> <a href=\"https://www.a.com:80/p\" rel=\"noopener\">www.a.com:80/p</a> www.a.com:abc"
+ },
+ "otera/urlize_email.txt": {
+  "output": "<a href=\"mailto:a@b.c\">a@b.c</a> <a href=\"mailto:a@b.co\">a@b.co</a> @a@b.com <a href=\"mailto:a@b@c.com\">a@b@c.com</a> www.a@b.com a:b@c.com <a href=\"mailto:x@y.com\">x@y.com</a> mailto:bad <a href=\"mailto:x@y.com?cc=z@w.com\">x@y.com?cc=z@w.com</a> <a href=\"mailto:x.y+z@sub.domain.org\">x.y+z@sub.domain.org</a> <a href=\"mailto:a@b_c.com\">a@b_c.com</a> a@-b.com <a href=\"mailto:é@ü.com\">é@ü.com</a>"
+ },
+ "otera/urlize_markup.txt": {
+  "output": "<a href=x>http://in.com</a> <a href=\"http://out.com\" rel=\"noopener\">http://out.com</a> &lt;a href=x&gt;http://in.com&lt;/a&gt; <a href=\"http://out.com\" rel=\"noopener\">http://out.com</a> False"
+ },
+ "otera/urlize_options.txt": {
+  "output": "<a href=\"http://example.com/a/very/long/path/that/goes/on\" rel=\"noopener\">http://example.com/a...</a>\n<a href=\"http://example.com/a/very/long/path/that/goes/on\" rel=\"nofollow noopener\">http://exa...</a>\n<a href=\"https://www.example.com\" rel=\"noopener\" target=\"_blank\">www.example.com</a>\n<a href=\"https://www.example.com\" rel=\"me nofollow noopener\">www.example.com</a>\n<a href=\"https://www.example.com\" rel=\"&lt;x&gt; noopener\" target=\"&lt;t&gt;\">www.example.com</a>\n<a href=\"mailto:me@x.com\">me@x.com</a>\n<a href=\"ftp://files.example.com\" rel=\"noopener\">ftp://files.example.com</a> <a href=\"tel:+123\" rel=\"noopener\">tel:+123</a> tel: <a href=\"news:x\" rel=\"noopener\">news:x</a>\n<a href=\"https://short.com\" rel=\"noopener\">sho...</a> <a href=\"https://short.com\" rel=\"noopener\">...</a> <a href=\"https://short.com\" rel=\"noopener\">short.c...</a>"
+ },
+ "otera/urlize_punctuation.txt": {
+  "output": "(<a href=\"http://example.com\" rel=\"noopener\">http://example.com</a>) (<a href=\"https://www.example.com\" rel=\"noopener\">www.example.com</a>). &lt;<a href=\"http://example.com\" rel=\"noopener\">http://example.com</a>&gt; [http://x.org] <a href=\"http://x.org/a(b)\" rel=\"noopener\">http://x.org/a(b)</a> <a href=\"http://x.org/a(b)\" rel=\"noopener\">http://x.org/a(b)</a>). ((<a href=\"https://www.x.com\" rel=\"noopener\">www.x.com</a>)), <a href=\"http://x.org/a)b\" rel=\"noopener\">http://x.org/a)b</a> <a href=\"http://a.com/(x)\" rel=\"noopener\">http://a.com/(x)</a>,.\n&amp;lt;http://example.com&amp;gt; http://x.org&amp;gt;. ((((<a href=\"http://a.com\" rel=\"noopener\">http://a.com</a>)) (<a href=\"http://a.com/(b)(c))\" rel=\"noopener\">http://a.com/(b)(c))</a>\n<a href=\"http://a.com\" rel=\"noopener\">http://a.com</a>..., <a href=\"https://www.b.com\" rel=\"noopener\">www.b.com</a>,,, (<a href=\"mailto:c@d.com\">c@d.com</a>) &lt;<a href=\"mailto:e@f.org\">e@f.org</a>&gt;"
+ },
+ "otera/urlize_rel_type_error.txt": {
+  "error": {
+   "type": "AttributeError",
+   "message": "'int' object has no attribute 'split'",
+   "line": 1
+  }
+ },
+ "otera/urlize_scheme_type_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "expected string or bytes-like object, got 'int'",
+   "line": 1
+  }
+ },
+ "otera/urlize_trim_type_error.txt": {
+  "error": {
+   "type": "TypeError",
+   "message": "'>' not supported between instances of 'int' and 'str'",
+   "line": 1
+  }
+ },
+ "otera/urlize_unicode.txt": {
+  "output": "<a href=\"http://exämple.com\" rel=\"noopener\">http://exämple.com</a> www.пример.рф http://例え.テスト <a href=\"https://www.x.ſom\" rel=\"noopener\">www.x.ſom</a> <a href=\"http://x.Kom\" rel=\"noopener\">http://x.Kom</a> <a href=\"mailto:a@b.c٣\">a@b.c٣</a> www.ab² <a href=\"http://x.com/ü\" rel=\"noopener\">http://x.com/ü</a>\na <a href=\"http://x.com\" rel=\"noopener\">http://x.com</a> <a href=\"https://www.y.com\" rel=\"noopener\">www.y.com</a>\u001c<a href=\"mailto:t@u.com\">t@u.com</a>"
+ },
  "otera/verifier_attr_on_undefined_error.txt": {
   "error": {
    "type": "UndefinedError",

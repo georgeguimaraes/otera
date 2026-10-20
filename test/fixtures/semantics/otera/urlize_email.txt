@@ -1,0 +1,3 @@
+{}
+---
+{{ "a@b.c a@b.co @a@b.com a@b@c.com www.a@b.com a:b@c.com mailto:x@y.com mailto:bad mailto:x@y.com?cc=z@w.com x.y+z@sub.domain.org a@b_c.com a@-b.com é@ü.com"|urlize }}
