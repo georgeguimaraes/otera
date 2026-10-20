@@ -1,0 +1,113 @@
+name: Python Reference
+
+# The tests compare Otera with fixtures that Python Jinja2 and transformers make.
+# On a PR, this workflow makes the fixtures again with the locked versions and fails when they change.
+# Each week, it fetches the chat templates of the Hub again and opens a PR when the corpus changes.
+
+on:
+  pull_request:
+    paths:
+      - "scripts/**"
+      - "test/fixtures/**"
+      - ".github/workflows/reference.yml"
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  check:
+    if: github.event_name == 'pull_request'
+    name: Check the fixtures
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: scripts/uv.lock
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: "29"
+          elixir-version: "1.20"
+      - name: Restore dependencies cache
+        uses: actions/cache@v6
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-otp29-elixir1.20-${{ hashFiles('**/mix.lock') }}
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Make the fixtures again
+        run: |
+          uv run --locked --project scripts python -I scripts/generate_chat_expected.py
+          uv run --locked --project scripts python -I scripts/generate_semantics_expected.py
+      - name: Show the fixture changes
+        run: |
+          git add --intent-to-add test/fixtures
+          git diff --stat -- test/fixtures
+      - name: Run tests
+        run: mix test
+      - name: Fail when the fixtures changed
+        if: ${{ !cancelled() }}
+        run: |
+          if [ -n "$(git status --porcelain -- test/fixtures)" ]; then
+            echo "::error::The Python reference gives other fixtures than the fixtures in this PR. Python changed its behavior or the fixtures are stale. Run 'uv run --project scripts python -I scripts/generate_chat_expected.py' and 'uv run --project scripts python -I scripts/generate_semantics_expected.py', then commit the changes in test/fixtures."
+            exit 1
+          fi
+
+  refresh:
+    if: github.event_name != 'pull_request'
+    name: Refresh the chat template corpus
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    concurrency: reference-refresh
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+          cache-dependency-glob: scripts/uv.lock
+      - name: Fetch the chat templates of the Hub
+        env:
+          # Optional. Without a token, the script uses the public mirrors of the gated repositories.
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: uv run --locked --project scripts python -I scripts/fetch_chat_templates.py
+      - name: Make the fixtures again
+        run: |
+          uv run --locked --project scripts python -I scripts/generate_chat_expected.py
+          uv run --locked --project scripts python -I scripts/generate_semantics_expected.py
+      - name: Find the changes
+        id: changes
+        # The download counts in manifest.json change each week. Only a change in another file opens a PR.
+        run: |
+          git status --short -- test/fixtures
+          if [ -n "$(git status --porcelain -- test/fixtures ':!test/fixtures/chat_templates/manifest.json')" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open or update the PR
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          # A PR that GITHUB_TOKEN opens does not start the PR workflows. A token in REFERENCE_PR_TOKEN starts them.
+          token: ${{ secrets.REFERENCE_PR_TOKEN || secrets.GITHUB_TOKEN }}
+          branch: reference/refresh
+          delete-branch: true
+          add-paths: test/fixtures
+          commit-message: "test: Refresh the chat template corpus"
+          title: "test: Refresh the chat template corpus"
+          body: |
+            The weekly refresh fetched the chat templates of the Hugging Face Hub again and made the fixtures again with the locked Python reference.
+
+            A red test shows a template that Otera renders differently from transformers. Fix Otera or add the difference to the known differences.
+
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
