@@ -10,7 +10,7 @@ defmodule Otera.ChatTemplate do
       )
       #=> {:ok, "<|begin_of_text|><|start_header_id|>user<|end_header_id|>..."}
 
-  `options/0` gives the environment of transformers: `trim_blocks` and `lstrip_blocks`, the `raise_exception(message)` and `strftime_now(format)` functions, and a `tojson` filter that does not escape HTML or non-ASCII characters and accepts the `ensure_ascii`, `indent`, `separators` and `sort_keys` arguments of Python `json.dumps`.
+  `options/1` gives the environment of transformers: `trim_blocks` and `lstrip_blocks`, the `raise_exception(message)` and `strftime_now(format)` functions, and a `tojson` filter that does not escape HTML or non-ASCII characters and accepts the `ensure_ascii`, `indent`, `separators` and `sort_keys` arguments of Python `json.dumps`.
 
   ## Key order
 
@@ -24,14 +24,23 @@ defmodule Otera.ChatTemplate do
 
   @doc """
   Returns the options of the transformers environment, for `Otera.parse/2` and `Otera.render/3`.
+
+  ## Options
+
+    * `:now` - the local time that `strftime_now` formats, as a `NaiveDateTime`. By default, `strftime_now` formats the current local time.
   """
-  @spec options() :: keyword
-  def options do
+  @spec options(keyword) :: keyword
+  def options(opts \\ []) do
+    now = Keyword.get(opts, :now)
+
     [
       trim_blocks: true,
       lstrip_blocks: true,
       filters: %{"tojson" => &tojson/2},
-      globals: %{"raise_exception" => &raise_exception/1, "strftime_now" => &strftime_now/1}
+      globals: %{
+        "raise_exception" => &raise_exception/1,
+        "strftime_now" => &strftime_now(&1, now || NaiveDateTime.local_now())
+      }
     ]
   end
 
@@ -168,16 +177,28 @@ defmodule Otera.ChatTemplate do
 
   defp value_error(message), do: {:error, %Otera.Error{kind: :value_error, message: message}}
 
-  defp raise_exception(message),
-    do: raise(Otera.Error, kind: :template_error, message: Value.to_str(message))
+  defp bind(kwargs, params, function) when is_map(kwargs) and not is_struct(kwargs),
+    do: Otera.Methods.bind([], Dict.new(Map.to_list(kwargs)), params, function)
 
-  defp strftime_now(format), do: Calendar.strftime(NaiveDateTime.local_now(), format)
+  defp bind(argument, params, function),
+    do: Otera.Methods.bind([argument], %Dict{}, params, function)
 
-  defp tojson(value, kwargs) do
+  # These functions get either their one positional argument, or the keyword arguments as a plain
+  # map, which a template value never is.
+  defp raise_exception(argument) do
+    [message] = bind(argument, ["message"], "raise_exception")
+    raise Otera.Error, kind: :template_error, message: Value.to_str(message)
+  end
+
+  defp strftime_now(argument, now) do
+    [format] = bind(argument, ["format"], "strftime_now")
+    Calendar.strftime(now, format)
+  end
+
+  defp tojson(value, argument) do
     [ensure_ascii, indent, separators, sort_keys] =
-      Otera.Methods.bind(
-        [],
-        Dict.new(Map.to_list(kwargs)),
+      bind(
+        argument,
         [{"ensure_ascii", false}, {"indent", nil}, {"separators", nil}, {"sort_keys", false}],
         "tojson"
       )

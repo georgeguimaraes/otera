@@ -47,6 +47,13 @@ Otera.ChatTemplate.render(template, messages,
 
 It also supports `continue_final_message`, which ends the prompt inside the final message, and `documents`.
 
+`strftime_now` formats the current local time. To get the same prompt every time, give a fixed time to `Otera.ChatTemplate.options/1` and parse the template with these options:
+
+```elixir
+{:ok, template} = Otera.parse(source, Otera.ChatTemplate.options(now: ~N[2025-03-09 14:30:05]))
+Otera.ChatTemplate.render(template, messages, add_generation_prompt: true)
+```
+
 ## Key order
 
 `tojson` and the iteration over a dict give the keys in order. Python dicts keep the insertion order, but Elixir maps do not. Otera uses these rules:

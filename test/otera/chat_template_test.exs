@@ -11,8 +11,7 @@ defmodule Otera.ChatTemplateTest do
     manifest = read_json("chat_templates/manifest.json")
     conversations = read_json("conversations.json")
 
-    options =
-      put_in(ChatTemplate.options()[:globals]["strftime_now"], &Calendar.strftime(@now, &1))
+    options = ChatTemplate.options(now: @now)
 
     results =
       Enum.flat_map(manifest, fn entry ->
