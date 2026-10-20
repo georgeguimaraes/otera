@@ -79,7 +79,9 @@ Known differences from Python:
 * `range()` gives a list, so it prints as a list.
 * Otera does not model the single pass of a Python generator, such as the result of `map` or `select`.
 * A macro that a template defines inside a loop reads the variables of the loop as they were when the template defined it.
-* Some rare parts of Python strings are missing: bytes and `str.encode`, `\N{...}` escapes, and the Unicode digits that are not decimal digits in `isdigit` and `isnumeric`.
+* Some rare parts of Python strings are missing: bytes and `str.encode`, `\N{...}` escapes, the Unicode digits that are not decimal digits in `isdigit` and `isnumeric`, and the escapes of unassigned code points in `repr()`.
+* A wrong number of arguments to a method of a string or a dict raises a `TypeError` with another message than Python, and `break` outside a loop raises an `Otera.SyntaxError` instead of a Python `SyntaxError`.
+* Python prints functions and generators with their memory address, and Otera prints them without one.
 
 ## Tests
 
