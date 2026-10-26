@@ -4556,7 +4556,7 @@
  "b3_0000": {
   "error": {
    "type": "OverflowError",
-   "message": "(34, 'Result too large')",
+   "message": "(34, 'Numerical result out of range')",
    "line": 1
   }
  },
