@@ -1279,7 +1279,7 @@
  "otera/pow_overflow_error.txt": {
   "error": {
    "type": "OverflowError",
-   "message": "(34, 'Result too large')",
+   "message": "(errno 34)",
    "line": 1
   }
  },

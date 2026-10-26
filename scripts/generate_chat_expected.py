@@ -16,6 +16,7 @@ the versions of Python, Jinja2 and transformers.
 import datetime as dt
 import json
 import os
+import re
 import sys
 
 import jinja2
@@ -46,6 +47,22 @@ def record_position(rewrite):
     return wrapper
 
 
+ERRNO_MESSAGE = re.compile(r"^\((\d+), '.*'\)$")
+
+
+def canonical_message(message):
+    """Drops the strerror text of an "(errno, strerror)" message.
+
+    CPython renders a math range error as "(34, strerror(ERANGE))", and that
+    text belongs to libc: macOS says "Result too large" and glibc says
+    "Numerical result out of range". Only the errno is portable, so a fixture
+    keeps the errno alone and stays the same on every platform.
+    Otera.Differential in test/test_helper.exs applies the same rule.
+    """
+    match = ERRNO_MESSAGE.match(message)
+    return f"(errno {match.group(1)})" if match else message
+
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FIXTURES = os.path.join(ROOT, "test", "fixtures")
 TEMPLATES = os.path.join(FIXTURES, "chat_templates")
@@ -74,7 +91,7 @@ def render(source, conversation, special_tokens):
     except jinja2.TemplateSyntaxError as error:
         return {"error": {"type": type(error).__name__, "message": error.message, "line": error.lineno}}
     except Exception as error:
-        described = {"type": type(error).__name__, "message": str(error)}
+        described = {"type": type(error).__name__, "message": canonical_message(str(error))}
         if hasattr(error, "template_line"):
             described["line"] = error.template_line
         return {"error": described}

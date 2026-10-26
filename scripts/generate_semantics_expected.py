@@ -25,6 +25,7 @@ scripts/pyproject.toml and scripts/uv.lock pin the versions of Python, Jinja2 an
 import datetime as dt
 import json
 import os
+import re
 import sys
 
 import jinja2
@@ -62,12 +63,28 @@ def record_position(rewrite):
     return wrapper
 
 
+ERRNO_MESSAGE = re.compile(r"^\((\d+), '.*'\)$")
+
+
+def canonical_message(message):
+    """Drops the strerror text of an "(errno, strerror)" message.
+
+    CPython renders a math range error as "(34, strerror(ERANGE))", and that
+    text belongs to libc: macOS says "Result too large" and glibc says
+    "Numerical result out of range". Only the errno is portable, so a fixture
+    keeps the errno alone and stays the same on every platform.
+    Otera.Differential in test/test_helper.exs applies the same rule.
+    """
+    match = ERRNO_MESSAGE.match(message)
+    return f"(errno {match.group(1)})" if match else message
+
+
 def describe_error(error):
     if isinstance(error, jinja2.TemplateSyntaxError):
         name, line = error.name, error.lineno
     else:
         name, line = getattr(error, "template_position", (None, None))
-    described = {"type": type(error).__name__, "message": error.message if isinstance(error, jinja2.TemplateSyntaxError) else str(error)}
+    described = {"type": type(error).__name__, "message": error.message if isinstance(error, jinja2.TemplateSyntaxError) else canonical_message(str(error))}
     if line is not None:
         described["line"] = line
     if name is not None:

@@ -33,12 +33,25 @@ defmodule Otera.Differential do
   end
 
   defp describe(error),
-    do: "#{error_kind(error)} at #{position(error.line, error.name)}: #{error.message}"
+    do:
+      "#{error_kind(error)} at #{position(error.line, error.name)}: #{canonical_message(error.message)}"
 
   defp describe_python(wanted) do
     wanted = Map.new(wanted.pairs)
 
-    "#{python_kind(wanted["type"])} at #{position(wanted["line"], wanted["name"])}: #{wanted["message"]}"
+    "#{python_kind(wanted["type"])} at #{position(wanted["line"], wanted["name"])}: #{canonical_message(wanted["message"])}"
+  end
+
+  # CPython renders a math range error as "(34, strerror(ERANGE))", and that
+  # text belongs to libc: macOS says "Result too large" and glibc says
+  # "Numerical result out of range". Only the errno is portable, so both sides
+  # drop the text. The scripts in scripts/ apply the same rule when they record
+  # a message.
+  defp canonical_message(message) do
+    case Regex.run(~r/^\((\d+), '.*'\)$/, message) do
+      [_, errno] -> "(errno #{errno})"
+      nil -> message
+    end
   end
 
   defp position(line, nil), do: "line #{line}"
