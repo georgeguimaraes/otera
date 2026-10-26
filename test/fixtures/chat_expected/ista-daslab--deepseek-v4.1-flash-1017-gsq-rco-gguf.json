@@ -1,0 +1,50 @@
+{
+ "user": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>Hello! What can you do?<｜Assistant｜><think>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>Hello! What can you do?"
+ },
+ "system_multiturn": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\nYou are a helpful assistant.<｜User｜>What is 2+2?<｜Assistant｜></think>2+2 equals 4.<｜end▁of▁sentence｜><｜User｜>And 3+3?<｜Assistant｜><think>"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>Name a color.<｜Assistant｜></think>Blue.<｜end▁of▁sentence｜><｜User｜>Another one, please.<｜Assistant｜><think></think>Green.<｜end▁of▁sentence｜>"
+ },
+ "tools_defined": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜DSML｜ calls>\" block like the following:\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"$TOOL_NAME\">\n<｜DSML｜ parameter name=\"$PARAMETER_NAME\" string=\"true|false\">$PARAMETER_VALUE</｜DSML｜ parameter>\n...\n</｜DSML｜ invoke>\n<｜DSML｜ invoke name=\"$TOOL_NAME2\">\n...\n</｜DSML｜ invoke>\n</｜DSML｜ calls>\n\nString parameters should be specified as is and set `string=\"true\"`. For all other types (numbers, booleans, arrays, objects), pass the value in JSON format and set `string=\"false\"`.\n\nIf thinking_mode is enabled (triggered by <think>), you MUST output your complete reasoning inside <think>...</think> BEFORE any tool calls or final response.\n\nOtherwise, output directly after </think> with tool calls or final response.\n\n### Available Tool Schemas\n\n{\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}\n{\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}\n\nYou MUST strictly follow the above defined tool name and parameter schemas to invoke tool calls.\n<｜User｜>What is the weather in Paris?<｜Assistant｜><think>"
+ },
+ "tool_call_roundtrip": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\nYou can call tools.\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜DSML｜ calls>\" block like the following:\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"$TOOL_NAME\">\n<｜DSML｜ parameter name=\"$PARAMETER_NAME\" string=\"true|false\">$PARAMETER_VALUE</｜DSML｜ parameter>\n...\n</｜DSML｜ invoke>\n<｜DSML｜ invoke name=\"$TOOL_NAME2\">\n...\n</｜DSML｜ invoke>\n</｜DSML｜ calls>\n\nString parameters should be specified as is and set `string=\"true\"`. For all other types (numbers, booleans, arrays, objects), pass the value in JSON format and set `string=\"false\"`.\n\nIf thinking_mode is enabled (triggered by <think>), you MUST output your complete reasoning inside <think>...</think> BEFORE any tool calls or final response.\n\nOtherwise, output directly after </think> with tool calls or final response.\n\n### Available Tool Schemas\n\n{\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}\n\nYou MUST strictly follow the above defined tool name and parameter schemas to invoke tool calls.\n<｜User｜>What is the weather in São Paulo?<｜Assistant｜><think></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"get_weather\">\n<｜DSML｜ parameter name=\"location\" string=\"true\">São Paulo</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"unit\" string=\"true\">celsius</｜DSML｜ parameter>\n<｜DSML｜ parameter name=\"days\" string=\"false\">2</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜><｜User｜><tool_result>{\"temperature\": 22.5, \"condition\": \"sunny\"}</tool_result><｜Assistant｜><think>"
+ },
+ "tool_call_string_arguments": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n\n\n## Tools\n\nYou have access to a set of tools to help answer the user's question. You can invoke tools by writing a \"<｜DSML｜ calls>\" block like the following:\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"$TOOL_NAME\">\n<｜DSML｜ parameter name=\"$PARAMETER_NAME\" string=\"true|false\">$PARAMETER_VALUE</｜DSML｜ parameter>\n...\n</｜DSML｜ invoke>\n<｜DSML｜ invoke name=\"$TOOL_NAME2\">\n...\n</｜DSML｜ invoke>\n</｜DSML｜ calls>\n\nString parameters should be specified as is and set `string=\"true\"`. For all other types (numbers, booleans, arrays, objects), pass the value in JSON format and set `string=\"false\"`.\n\nIf thinking_mode is enabled (triggered by <think>), you MUST output your complete reasoning inside <think>...</think> BEFORE any tool calls or final response.\n\nOtherwise, output directly after </think> with tool calls or final response.\n\n### Available Tool Schemas\n\n{\"name\": \"lookup\", \"description\": \"Look up a word.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"word\": {\"type\": \"string\"}}, \"required\": [\"word\"]}}\n\nYou MUST strictly follow the above defined tool name and parameter schemas to invoke tool calls.\n<｜User｜>Define 'serendipity'.<｜Assistant｜><think></think>\n\n<｜DSML｜ calls>\n<｜DSML｜ invoke name=\"lookup\">\n<｜DSML｜ parameter name=\"arguments\" string=\"true\">{\"word\": \"serendipity\"}</｜DSML｜ parameter>\n</｜DSML｜ invoke>\n</｜DSML｜ calls><｜end▁of▁sentence｜><｜User｜><tool_result>The occurrence of events by chance in a happy way.</tool_result><｜Assistant｜><think></think>Serendipity means a happy accident.<｜end▁of▁sentence｜><｜User｜>Thanks!<｜Assistant｜><think>"
+ },
+ "continue_final_message": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>Finish the sentence.<｜Assistant｜><think></think>The capital of France is"
+ },
+ "unicode": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\nVocê é um assistente útil. 🙂<｜User｜>日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <｜Assistant｜><think>"
+ },
+ "thinking_disabled": {
+  "output": "<｜begin▁of▁sentence｜><｜User｜>Give me a short answer: what is the speed of light?<｜Assistant｜></think>"
+ },
+ "reasoning_history": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>Hi there.<｜Assistant｜></think><think>\nThe user greets me.\n</think>\n\nHello! How can I help?<｜end▁of▁sentence｜><｜User｜>What is 7 * 6?<｜Assistant｜></think>It is 42.<｜end▁of▁sentence｜><｜User｜>And 6 * 9?<｜Assistant｜><think>"
+ },
+ "date_string": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\nAnswer briefly.<｜User｜>What day is it?<｜Assistant｜><think>"
+ },
+ "content_parts": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>What is in this image?\n\n<｜deepseek_image｜><｜Assistant｜><think>"
+ },
+ "roles_not_alternating": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>First question.\n\nSecond question.<｜Assistant｜><think>"
+ },
+ "documents": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 75 (range 1-100, the higher the value, the more thorough the reasoning)\n\n<｜User｜>What is the capital of France?<｜Assistant｜><think>"
+ },
+ "reasoning_effort": {
+  "output": "<｜begin▁of▁sentence｜><｜System｜>Reasoning Effort: 50 (range 1-100, the higher the value, the more thorough the reasoning)\n\nYou are terse.<｜User｜>Explain recursion in one line.<｜Assistant｜><think>"
+ }
+}

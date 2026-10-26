@@ -5,11 +5,11 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 1070113,
+    "downloads": 1119855,
     "special_tokens": {},
     "also_in": [
-      "nvidia/Qwen3.8-27B-NVFP4",
-      "sakamakismile/Qwen3.8-27B-MTP-NVFP4"
+      "sakamakismile/Qwen3.8-27B-MTP-NVFP4",
+      "nvidia/Qwen3.8-27B-NVFP4"
     ]
   },
   {
@@ -18,7 +18,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 497398,
+    "downloads": 444533,
     "special_tokens": {},
     "also_in": []
   },
@@ -28,7 +28,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 336410,
+    "downloads": 321718,
     "special_tokens": {},
     "also_in": []
   },
@@ -38,7 +38,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 40713,
+    "downloads": 39968,
     "special_tokens": {
       "bos_token": "<|endoftext|>",
       "eos_token": "<|endoftext|>",
@@ -53,7 +53,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 384377,
+    "downloads": 237639,
     "special_tokens": {
       "bos_token": "<|endoftext|>",
       "eos_token": "<|endoftext|>",
@@ -68,7 +68,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 489660,
+    "downloads": 484865,
     "special_tokens": {
       "bos_token": "<|endoftext|>",
       "eos_token": "<|endoftext|>",
@@ -83,21 +83,8 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 255725,
+    "downloads": 242599,
     "special_tokens": {},
-    "also_in": []
-  },
-  {
-    "name": "cmsmanhattan--jirackdeltanet_27b",
-    "repo": "CMSManhattan/JiRackDeltaNet_27b",
-    "mirror_of": null,
-    "template_name": "default",
-    "file": "chat_template.jinja",
-    "downloads": 556517,
-    "special_tokens": {
-      "eos_token": "<|im_end|>",
-      "pad_token": "<|endoftext|>"
-    },
     "also_in": []
   },
   {
@@ -106,7 +93,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 2490599,
+    "downloads": 1645327,
     "special_tokens": {
       "bos_token": "<｜begin▁of▁sentence｜>",
       "eos_token": "<｜end▁of▁sentence｜>",
@@ -120,7 +107,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 605592,
+    "downloads": 597800,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "<|im_end|>",
@@ -135,7 +122,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 474340,
+    "downloads": 390093,
     "special_tokens": {
       "bos_token": "<｜begin▁of▁sentence｜>",
       "eos_token": "<|EOT|>",
@@ -149,7 +136,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 532094,
+    "downloads": 350085,
     "special_tokens": {
       "bos_token": "<｜begin▁of▁sentence｜>",
       "eos_token": "<｜end▁of▁sentence｜>",
@@ -163,7 +150,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 1324679,
+    "downloads": 1496737,
     "special_tokens": {
       "bos_token": "<｜begin▁of▁sentence｜>",
       "eos_token": "<｜end▁of▁sentence｜>",
@@ -177,7 +164,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 426121,
+    "downloads": 353798,
     "special_tokens": {
       "bos_token": "<｜begin▁of▁sentence｜>",
       "eos_token": "<｜end▁of▁sentence｜>",
@@ -191,7 +178,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 1312244,
+    "downloads": 1155415,
     "special_tokens": {
       "bos_token": "<｜begin▁of▁sentence｜>",
       "eos_token": "<｜end▁of▁sentence｜>",
@@ -199,8 +186,8 @@
     },
     "also_in": [
       "deepseek-ai/DeepSeek-R1-Distill-Llama-8B",
-      "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
       "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+      "deepseek-ai/DeepSeek-R1-Distill-Qwen-7B",
       "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
     ]
   },
@@ -210,7 +197,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 1377427,
+    "downloads": 1437949,
     "special_tokens": {
       "bos_token": "<｜begin▁of▁sentence｜>",
       "eos_token": "<｜end▁of▁sentence｜>",
@@ -224,7 +211,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 1008047,
+    "downloads": 592883,
     "special_tokens": {
       "bos_token": "<｜begin▁of▁sentence｜>",
       "eos_token": "<｜end▁of▁sentence｜>",
@@ -238,7 +225,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 332547,
+    "downloads": 298167,
     "special_tokens": {
       "bos_token": "<｜begin▁of▁sentence｜>",
       "eos_token": "<｜end▁of▁sentence｜>",
@@ -252,7 +239,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 4691186,
+    "downloads": 4633825,
     "special_tokens": {
       "bos_token": "<|startoftext|>",
       "eos_token": "<|im_end|>",
@@ -262,31 +249,32 @@
     "also_in": []
   },
   {
+    "name": "farbodtavakkoli--otel-2.0-decision-26b-a4b-4bit",
+    "repo": "farbodtavakkoli/OTel-2.0-Decision-26B-A4B-4bit",
+    "mirror_of": null,
+    "template_name": "default",
+    "file": "chat_template.jinja",
+    "downloads": 914755,
+    "special_tokens": {
+      "bos_token": "<bos>",
+      "eos_token": "<eos>",
+      "unk_token": "<unk>",
+      "pad_token": "<pad>",
+      "mask_token": "<mask>"
+    },
+    "also_in": []
+  },
+  {
     "name": "fastflowlm--gpt-oss-20b-npu2",
     "repo": "FastFlowLM/GPT-OSS-20B-NPU2",
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 390025,
+    "downloads": 389556,
     "special_tokens": {
       "bos_token": "<|startoftext|>",
       "eos_token": "<|return|>",
       "pad_token": "<|endoftext|>"
-    },
-    "also_in": []
-  },
-  {
-    "name": "hmellor--tiny-random-llamaforcausallm",
-    "repo": "hmellor/tiny-random-LlamaForCausalLM",
-    "mirror_of": null,
-    "template_name": "default",
-    "file": "tokenizer_config.json",
-    "downloads": 295158,
-    "special_tokens": {
-      "bos_token": "<s>",
-      "eos_token": "</s>",
-      "unk_token": "<unk>",
-      "pad_token": "<unk>"
     },
     "also_in": []
   },
@@ -296,7 +284,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 96637,
+    "downloads": 93519,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "</s>",
@@ -313,7 +301,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 240196,
+    "downloads": 259192,
     "special_tokens": {
       "bos_token": "<|im_start|>",
       "eos_token": "<|im_end|>",
@@ -330,7 +318,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 748383,
+    "downloads": 702895,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|im_end|>"
@@ -345,7 +333,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 43948,
+    "downloads": 33246,
     "special_tokens": {
       "bos_token": "<|end_of_text|>",
       "eos_token": "<|end_of_text|>",
@@ -360,7 +348,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 87715,
+    "downloads": 68824,
     "special_tokens": {
       "bos_token": "<|end_of_text|>",
       "eos_token": "<|end_of_text|>",
@@ -377,7 +365,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 22104,
+    "downloads": 24289,
     "special_tokens": {
       "bos_token": "<|end_of_text|>",
       "eos_token": "<|end_of_text|>",
@@ -392,7 +380,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 635953,
+    "downloads": 598160,
     "special_tokens": {
       "bos_token": "<|end_of_text|>",
       "eos_token": "<|end_of_text|>",
@@ -402,19 +390,13 @@
     "also_in": []
   },
   {
-    "name": "k-chirkunov--gemma4-e4b-claims-comparison",
-    "repo": "k-chirkunov/gemma4-e4b-claims-comparison",
+    "name": "ista-daslab--deepseek-v4.1-flash-1017-gsq-rco-gguf",
+    "repo": "ISTA-DASLab/DeepSeek-V4.1-Flash-1017-GSQ-RCO-GGUF",
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 278669,
-    "special_tokens": {
-      "bos_token": "<bos>",
-      "eos_token": "<eos>",
-      "unk_token": "<unk>",
-      "pad_token": "<pad>",
-      "mask_token": "<mask>"
-    },
+    "downloads": 891147,
+    "special_tokens": {},
     "also_in": []
   },
   {
@@ -423,7 +405,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 804107,
+    "downloads": 1011601,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|endoftext|>"
@@ -436,7 +418,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 675102,
+    "downloads": 461556,
     "special_tokens": {
       "bos_token": "[BOS]",
       "eos_token": "[|endofturn|]",
@@ -453,7 +435,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 350233,
+    "downloads": 338205,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "<|endoftext|>",
@@ -470,7 +452,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 389290,
+    "downloads": 374364,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "<|endoftext|>",
@@ -485,7 +467,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 372960,
+    "downloads": 372170,
     "special_tokens": {
       "bos_token": "<|endoftext|>",
       "eos_token": "<|im_end|>",
@@ -499,7 +481,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 369483,
+    "downloads": 346389,
     "special_tokens": {
       "bos_token": "<|endoftext|>",
       "eos_token": "<|endoftext|>",
@@ -514,7 +496,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 26526,
+    "downloads": 30121,
     "special_tokens": {
       "bos_token": "<|endoftext|>",
       "eos_token": "<|im_end|>",
@@ -528,7 +510,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 792702,
+    "downloads": 1048254,
     "special_tokens": {
       "bos_token": "]~!b[",
       "eos_token": "[e~[",
@@ -542,7 +524,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 527802,
+    "downloads": 415401,
     "special_tokens": {
       "bos_token": "]~!b[",
       "eos_token": "[e~[",
@@ -556,7 +538,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 127095,
+    "downloads": 116568,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "</s>",
@@ -574,7 +556,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 255263,
+    "downloads": 250860,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -587,7 +569,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 364297,
+    "downloads": 319973,
     "special_tokens": {
       "bos_token": "[BOS]",
       "eos_token": "[EOS]",
@@ -597,27 +579,12 @@
     "also_in": []
   },
   {
-    "name": "nm-testing--smollm-1.7b-instruct-quantized.w4a16",
-    "repo": "nm-testing/SmolLM-1.7B-Instruct-quantized.w4a16",
-    "mirror_of": null,
-    "template_name": "default",
-    "file": "tokenizer_config.json",
-    "downloads": 230407,
-    "special_tokens": {
-      "bos_token": "<|im_start|>",
-      "eos_token": "<|im_end|>",
-      "unk_token": "<|endoftext|>",
-      "pad_token": "<|im_end|>"
-    },
-    "also_in": []
-  },
-  {
     "name": "nousresearch--hermes-2-pro-llama-3-8b",
     "repo": "NousResearch/Hermes-2-Pro-Llama-3-8B",
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 3789,
+    "downloads": 3237,
     "special_tokens": {
       "bos_token": "<|begin_of_text|>",
       "eos_token": "<|im_end|>",
@@ -631,7 +598,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 481324,
+    "downloads": 464663,
     "special_tokens": {
       "bos_token": "<|begin_of_text|>",
       "eos_token": "<|im_end|>",
@@ -645,7 +612,7 @@
     "mirror_of": null,
     "template_name": "tool_use",
     "file": "tokenizer_config.json",
-    "downloads": 481324,
+    "downloads": 464663,
     "special_tokens": {
       "bos_token": "<|begin_of_text|>",
       "eos_token": "<|im_end|>",
@@ -661,7 +628,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 1019835,
+    "downloads": 1191080,
     "special_tokens": {
       "bos_token": "<bos>",
       "eos_token": "<eos>",
@@ -680,7 +647,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 230710,
+    "downloads": 229258,
     "special_tokens": {
       "bos_token": "[BOS]",
       "eos_token": "[EOS]",
@@ -695,7 +662,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 240734,
+    "downloads": 222968,
     "special_tokens": {
       "bos_token": "[BOS]",
       "eos_token": "[EOS]",
@@ -710,15 +677,15 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 1713512,
+    "downloads": 1669797,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "<|im_end|>",
       "unk_token": "<unk>"
     },
     "also_in": [
-      "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
       "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16",
+      "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-NVFP4",
       "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-FP8"
     ]
   },
@@ -728,7 +695,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 974120,
+    "downloads": 1032080,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "<|im_end|>",
@@ -745,7 +712,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 1008838,
+    "downloads": 1170651,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "<|im_end|>",
@@ -755,18 +722,22 @@
     "also_in": []
   },
   {
-    "name": "nvidia--nvidia-nemotron-nano-9b-v2",
-    "repo": "nvidia/NVIDIA-Nemotron-Nano-9B-v2",
+    "name": "nvidia--nvidia-nemotron-3.5-lightning-30b-a3b-nvfp4",
+    "repo": "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
     "mirror_of": null,
     "template_name": "default",
-    "file": "tokenizer_config.json",
-    "downloads": 244723,
+    "file": "chat_template.jinja",
+    "downloads": 1020970,
     "special_tokens": {
       "bos_token": "<s>",
-      "eos_token": "<SPECIAL_12>",
-      "unk_token": "<unk>"
+      "eos_token": "<|im_end|>",
+      "unk_token": "<unk>",
+      "pad_token": "<|im_end|>"
     },
-    "also_in": []
+    "also_in": [
+      "RedHatAI/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-FP8",
+      "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16"
+    ]
   },
   {
     "name": "nvidia--qwen2.5-vl-7b-instruct-nvfp4",
@@ -774,7 +745,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 1659965,
+    "downloads": 1615880,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|endoftext|>"
@@ -782,28 +753,12 @@
     "also_in": []
   },
   {
-    "name": "nvidia--qwen3.5-122b-a10b-nvfp4",
-    "repo": "nvidia/Qwen3.5-122B-A10B-NVFP4",
-    "mirror_of": null,
-    "template_name": "default",
-    "file": "chat_template.jinja",
-    "downloads": 429498,
-    "special_tokens": {
-      "eos_token": "<|im_end|>",
-      "pad_token": "<|endoftext|>"
-    },
-    "also_in": [
-      "ornith-ai/Ornith-1.0-397B-FP8",
-      "empero-ai/Qwen3.8-4B-Distill"
-    ]
-  },
-  {
     "name": "nvidia--qwen3.6-35b-a3b-nvfp4",
     "repo": "nvidia/Qwen3.6-35B-A3B-NVFP4",
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 4377689,
+    "downloads": 4144960,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -822,7 +777,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 550946,
+    "downloads": 524433,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -835,15 +790,14 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 5933604,
+    "downloads": 5783154,
     "special_tokens": {
       "bos_token": "<|startoftext|>",
       "eos_token": "<|return|>",
       "pad_token": "<|endoftext|>"
     },
     "also_in": [
-      "openai/gpt-oss-120b",
-      "trl-internal-testing/tiny-GptOssForCausalLM"
+      "openai/gpt-oss-120b"
     ]
   },
   {
@@ -852,7 +806,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 355475,
+    "downloads": 319900,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "</s>",
@@ -867,7 +821,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 1328986,
+    "downloads": 1222910,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "</s>",
@@ -882,7 +836,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 583739,
+    "downloads": 516962,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "</s>",
@@ -897,7 +851,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 1365252,
+    "downloads": 1414924,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -906,7 +860,24 @@
       "ornith-ai/Ornith-1.5-35B-A3B-NVFP4",
       "ornith-ai/Ornith-1.5-35B-A3B-FP8",
       "ornith-ai/Ornith-1.5-35B-A3B-MLX",
-      "ornith-ai/Ornith-1.5-35B-A3B"
+      "ornith-ai/Ornith-1.5-35B-A3B",
+      "ornith-ai/Ornith-1.0-35B-FP8"
+    ]
+  },
+  {
+    "name": "ornith-ai--ornith-1.0-397b-fp8",
+    "repo": "ornith-ai/Ornith-1.0-397B-FP8",
+    "mirror_of": null,
+    "template_name": "default",
+    "file": "chat_template.jinja",
+    "downloads": 266375,
+    "special_tokens": {
+      "eos_token": "<|im_end|>",
+      "pad_token": "<|endoftext|>"
+    },
+    "also_in": [
+      "empero-ai/Qwen3.8-4B-Distill",
+      "nvidia/Qwen3.5-122B-A10B-NVFP4"
     ]
   },
   {
@@ -915,14 +886,15 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 781883,
+    "downloads": 802314,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
     },
     "also_in": [
       "ornith-ai/Ornith-1.5-397B-NVFP4",
-      "ornith-ai/Ornith-1.5-397B-FP8"
+      "ornith-ai/Ornith-1.5-397B-FP8",
+      "ornith-ai/Ornith-1.5-397B"
     ]
   },
   {
@@ -931,7 +903,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 747618,
+    "downloads": 785201,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -950,7 +922,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 628296,
+    "downloads": 793831,
     "special_tokens": {},
     "also_in": []
   },
@@ -960,7 +932,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 509076,
+    "downloads": 703889,
     "special_tokens": {
       "bos_token": "〈|EOS|〉",
       "eos_token": "〈|EOS|〉",
@@ -978,7 +950,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 364049,
+    "downloads": 486044,
     "special_tokens": {
       "bos_token": "〈|EOS|〉",
       "eos_token": "〈|EOS|〉",
@@ -996,7 +968,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 440897,
+    "downloads": 591228,
     "special_tokens": {
       "bos_token": "〈|EOS|〉",
       "eos_token": "〈|EOS|〉",
@@ -1014,7 +986,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 520968,
+    "downloads": 718550,
     "special_tokens": {
       "bos_token": "〈|EOS|〉",
       "eos_token": "〈|EOS|〉",
@@ -1032,12 +1004,14 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 741392,
+    "downloads": 983019,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
     },
-    "also_in": []
+    "also_in": [
+      "PrimeIntellect/Qwen3-1.7B"
+    ]
   },
   {
     "name": "quanttrio--qwen3-vl-30b-a3b-instruct-awq",
@@ -1045,7 +1019,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.json",
-    "downloads": 514635,
+    "downloads": 435750,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -1053,34 +1027,17 @@
     "also_in": []
   },
   {
-    "name": "qwen--qwen2-0.5b",
-    "repo": "Qwen/Qwen2-0.5B",
+    "name": "qwen--qwen2-0.5b-instruct",
+    "repo": "Qwen/Qwen2-0.5B-Instruct",
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 246924,
-    "special_tokens": {
-      "eos_token": "<|endoftext|>",
-      "pad_token": "<|endoftext|>"
-    },
-    "also_in": [
-      "Qwen/Qwen2-7B"
-    ]
-  },
-  {
-    "name": "qwen--qwen2-1.5b-instruct",
-    "repo": "Qwen/Qwen2-1.5B-Instruct",
-    "mirror_of": null,
-    "template_name": "default",
-    "file": "tokenizer_config.json",
-    "downloads": 310858,
+    "downloads": 244933,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
     },
-    "also_in": [
-      "Qwen/Qwen2-0.5B-Instruct"
-    ]
+    "also_in": []
   },
   {
     "name": "qwen--qwen2.5-0.5b",
@@ -1088,14 +1045,14 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 1304867,
+    "downloads": 1204327,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|endoftext|>"
     },
     "also_in": [
-      "Qwen/Qwen2.5-7B",
-      "Qwen/Qwen2.5-1.5B"
+      "Qwen/Qwen2.5-1.5B",
+      "Qwen/Qwen2.5-7B"
     ]
   },
   {
@@ -1104,7 +1061,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 6895413,
+    "downloads": 5729782,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -1120,22 +1077,21 @@
       "Qwen/Qwen2.5-14B-Instruct-AWQ",
       "Qwen/Qwen2.5-32B-Instruct",
       "Qwen/Qwen2.5-Coder-32B-Instruct-AWQ",
+      "Qwen/Qwen2.5-3B-Instruct-AWQ",
       "Qwen/Qwen2.5-32B-Instruct-AWQ",
       "Qwen/Qwen2.5-14B-Instruct",
-      "Qwen/Qwen2.5-3B-Instruct-AWQ",
       "Qwen/Qwen2.5-Coder-7B-Instruct-AWQ",
       "Qwen/Qwen2.5-Coder-32B-Instruct",
-      "Orion-zhen/Qwen2.5-Coder-7B-Instruct-AWQ",
       "Qwen/Qwen2.5-32B-Instruct-GPTQ-Int4",
-      "Qwen/Qwen2.5-72B-Instruct-AWQ",
-      "Qwen/Qwen2.5-Coder-3B-Instruct",
       "Qwen/Qwen2.5-Coder-7B-Instruct-GPTQ-Int4",
+      "Qwen/Qwen2.5-Coder-3B-Instruct",
+      "Qwen/Qwen2.5-72B-Instruct-AWQ",
       "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+      "Orion-zhen/Qwen2.5-Coder-7B-Instruct-AWQ",
       "Qwen/Qwen2.5-Coder-1.5B",
-      "Qwen/Qwen2.5-Coder-14B-Instruct-AWQ",
-      "Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4",
       "Qwen/Qwen2.5-Coder-7B",
-      "Qwen/Qwen2.5-72B-Instruct"
+      "Qwen/Qwen2.5-Coder-14B-Instruct-AWQ",
+      "Qwen/Qwen2.5-7B-Instruct-GPTQ-Int4"
     ]
   },
   {
@@ -1144,7 +1100,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 56617,
+    "downloads": 44775,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -1159,16 +1115,14 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 2773818,
+    "downloads": 2613706,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
     },
     "also_in": [
       "Qwen/Qwen3-4B-Instruct-2507-FP8",
-      "Qwen/Qwen3-30B-A3B-Instruct-2507",
-      "Qwen/Qwen3-30B-A3B-Instruct-2507-FP8",
-      "Qwen/Qwen3-235B-A22B-Instruct-2507-FP8"
+      "Qwen/Qwen3-30B-A3B-Instruct-2507"
     ]
   },
   {
@@ -1177,7 +1131,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 610295,
+    "downloads": 630811,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -1190,7 +1144,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 8809116,
+    "downloads": 8071705,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -1216,15 +1170,15 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 746822,
+    "downloads": 719903,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|endoftext|>"
     },
     "also_in": [
       "Qwen/Qwen3-0.6B-Base",
-      "Qwen/Qwen3-4B-Base",
       "Qwen/Qwen3-1.7B-Base",
+      "Qwen/Qwen3-4B-Base",
       "DavidAU/Qwen3-8B-64k-Context-2X-Josiefied-Uncensored"
     ]
   },
@@ -1234,7 +1188,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 552103,
+    "downloads": 764481,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -1251,7 +1205,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 1034239,
+    "downloads": 846889,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -1261,25 +1215,12 @@
     ]
   },
   {
-    "name": "qwen--qwen3guard-gen-0.6b",
-    "repo": "Qwen/Qwen3Guard-Gen-0.6B",
-    "mirror_of": null,
-    "template_name": "default",
-    "file": "tokenizer_config.json",
-    "downloads": 227108,
-    "special_tokens": {
-      "eos_token": "<|im_end|>",
-      "pad_token": "<|endoftext|>"
-    },
-    "also_in": []
-  },
-  {
     "name": "qwen--qwq-32b",
     "repo": "Qwen/QwQ-32B",
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 37420,
+    "downloads": 34853,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -1292,7 +1233,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 331569,
+    "downloads": 388864,
     "special_tokens": {
       "bos_token": "<|startoftext|>",
       "eos_token": "<|role_end|>",
@@ -1302,30 +1243,12 @@
     "also_in": []
   },
   {
-    "name": "redhatai--nvidia-nemotron-3.5-lightning-30b-a3b-fp8",
-    "repo": "RedHatAI/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-FP8",
-    "mirror_of": null,
-    "template_name": "default",
-    "file": "chat_template.jinja",
-    "downloads": 958809,
-    "special_tokens": {
-      "bos_token": "<s>",
-      "eos_token": "<|im_end|>",
-      "unk_token": "<unk>",
-      "pad_token": "<|im_end|>"
-    },
-    "also_in": [
-      "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-NVFP4",
-      "nvidia/NVIDIA-Nemotron-3.5-Lightning-30B-A3B-BF16"
-    ]
-  },
-  {
     "name": "stelterlab--qwen3-30b-a3b-instruct-2507-awq",
     "repo": "stelterlab/Qwen3-30B-A3B-Instruct-2507-AWQ",
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 386856,
+    "downloads": 371129,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -1338,7 +1261,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 264011,
+    "downloads": 258327,
     "special_tokens": {
       "bos_token": "<｜begin▁of▁sentence｜>",
       "eos_token": "<|im_end|>",
@@ -1352,7 +1275,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 432443,
+    "downloads": 409729,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "<|assistant_end|>",
@@ -1367,7 +1290,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 734232,
+    "downloads": 984395,
     "special_tokens": {
       "bos_token": "<｜hy_begin_of_sentence:opensource｜>",
       "eos_token": "<｜hy_eos:opensource｜>",
@@ -1381,7 +1304,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 11975,
+    "downloads": 11425,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|pad|>"
@@ -1394,7 +1317,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 812349,
+    "downloads": 883856,
     "special_tokens": {
       "eos_token": "<|im_end|>",
       "pad_token": "<|endoftext|>"
@@ -1407,7 +1330,7 @@
     "mirror_of": "CohereLabs/c4ai-command-r-08-2024",
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 309,
+    "downloads": 406,
     "special_tokens": {
       "bos_token": "<BOS_TOKEN>",
       "eos_token": "<|END_OF_TURN_TOKEN|>",
@@ -1421,7 +1344,7 @@
     "mirror_of": "CohereLabs/c4ai-command-r-08-2024",
     "template_name": "rag",
     "file": "tokenizer_config.json",
-    "downloads": 309,
+    "downloads": 406,
     "special_tokens": {
       "bos_token": "<BOS_TOKEN>",
       "eos_token": "<|END_OF_TURN_TOKEN|>",
@@ -1435,7 +1358,7 @@
     "mirror_of": "CohereLabs/c4ai-command-r-08-2024",
     "template_name": "tool_use",
     "file": "tokenizer_config.json",
-    "downloads": 309,
+    "downloads": 406,
     "special_tokens": {
       "bos_token": "<BOS_TOKEN>",
       "eos_token": "<|END_OF_TURN_TOKEN|>",
@@ -1449,7 +1372,7 @@
     "mirror_of": "google/gemma-2-2b-it",
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 18102,
+    "downloads": 14726,
     "special_tokens": {
       "bos_token": "<bos>",
       "eos_token": "<eos>",
@@ -1466,7 +1389,7 @@
     "mirror_of": "google/gemma-3-1b-it",
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 49351,
+    "downloads": 47178,
     "special_tokens": {
       "bos_token": "<bos>",
       "eos_token": "<end_of_turn>",
@@ -1483,7 +1406,7 @@
     "mirror_of": "google/gemma-3n-E4B-it",
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 108740,
+    "downloads": 104269,
     "special_tokens": {
       "bos_token": "<bos>",
       "eos_token": "<end_of_turn>",
@@ -1498,7 +1421,7 @@
     "mirror_of": "meta-llama/Meta-Llama-3-8B-Instruct",
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 41256,
+    "downloads": 43415,
     "special_tokens": {
       "bos_token": "<|begin_of_text|>",
       "eos_token": "<|eot_id|>",
@@ -1506,7 +1429,9 @@
     },
     "also_in": [
       "llamafactory/tiny-random-Llama-3",
-      "IlyaGusev/saiga_llama3_8b"
+      "IlyaGusev/saiga_llama3_8b",
+      "unsloth/llama-3-8b-Instruct-bnb-4bit",
+      "failspy/Meta-Llama-3-8B-Instruct-abliterated-v3"
     ]
   },
   {
@@ -1515,7 +1440,7 @@
     "mirror_of": "meta-llama/Llama-3.1-8B-Instruct",
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 174127,
+    "downloads": 179634,
     "special_tokens": {
       "bos_token": "<|begin_of_text|>",
       "eos_token": "<|eot_id|>",
@@ -1532,7 +1457,7 @@
     "mirror_of": "meta-llama/Llama-3.2-11B-Vision-Instruct",
     "template_name": "default",
     "file": "chat_template.json",
-    "downloads": 16386,
+    "downloads": 16500,
     "special_tokens": {
       "bos_token": "<|begin_of_text|>",
       "eos_token": "<|eot_id|>",
@@ -1546,7 +1471,7 @@
     "mirror_of": "meta-llama/Llama-3.2-1B-Instruct",
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 818737,
+    "downloads": 1025448,
     "special_tokens": {
       "bos_token": "<|begin_of_text|>",
       "eos_token": "<|eot_id|>",
@@ -1563,7 +1488,7 @@
     "mirror_of": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 3036,
+    "downloads": 3550,
     "special_tokens": {
       "bos_token": "<|begin_of_text|>",
       "eos_token": "<|eot|>",
@@ -1577,7 +1502,7 @@
     "mirror_of": "mistralai/Mistral-7B-Instruct-v0.3",
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 4680,
+    "downloads": 4817,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "</s>",
@@ -1592,7 +1517,7 @@
     "mirror_of": "mistralai/Mistral-Nemo-Instruct-2407",
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 1321,
+    "downloads": 1572,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "</s>",
@@ -1607,7 +1532,7 @@
     "mirror_of": "mistralai/Mistral-Small-24B-Instruct-2501",
     "template_name": "default",
     "file": "tokenizer_config.json",
-    "downloads": 8121,
+    "downloads": 15549,
     "special_tokens": {
       "bos_token": "<s>",
       "eos_token": "</s>",
@@ -1617,27 +1542,12 @@
     "also_in": []
   },
   {
-    "name": "utter-project--eurollm-1.7b-instruct",
-    "repo": "utter-project/EuroLLM-1.7B-Instruct",
-    "mirror_of": null,
-    "template_name": "default",
-    "file": "tokenizer_config.json",
-    "downloads": 231368,
-    "special_tokens": {
-      "bos_token": "<s>",
-      "eos_token": "<|im_end|>",
-      "unk_token": "<unk>",
-      "pad_token": "</s>"
-    },
-    "also_in": []
-  },
-  {
     "name": "zai-org--glm-4.5-air",
     "repo": "zai-org/GLM-4.5-Air",
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 764275,
+    "downloads": 1003413,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|endoftext|>"
@@ -1650,7 +1560,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 1085125,
+    "downloads": 931589,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|endoftext|>"
@@ -1665,7 +1575,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 907939,
+    "downloads": 1200148,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|endoftext|>"
@@ -1678,7 +1588,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 554492,
+    "downloads": 747386,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|endoftext|>"
@@ -1691,14 +1601,12 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 390974,
+    "downloads": 293941,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|endoftext|>"
     },
-    "also_in": [
-      "nvidia/GLM-5.2-NVFP4"
-    ]
+    "also_in": []
   },
   {
     "name": "zai-org--glm-5.3",
@@ -1706,7 +1614,7 @@
     "mirror_of": null,
     "template_name": "default",
     "file": "chat_template.jinja",
-    "downloads": 1873260,
+    "downloads": 2099369,
     "special_tokens": {
       "eos_token": "<|endoftext|>",
       "pad_token": "<|endoftext|>"
