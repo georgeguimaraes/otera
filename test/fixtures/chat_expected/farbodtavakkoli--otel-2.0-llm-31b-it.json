@@ -21,7 +21,7 @@
   "error": {
    "type": "TemplateError",
    "message": "chat_template: tool_calls[].function.arguments must be a JSON object (mapping), not a string. Deserialize arguments before passing to the template.",
-   "line": 257
+   "line": 258
   }
  },
  "continue_final_message": {
