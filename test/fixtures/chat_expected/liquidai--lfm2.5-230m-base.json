@@ -1,0 +1,54 @@
+{
+ "user": {
+  "output": "<|startoftext|><|im_start|>user\nHello! What can you do?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|startoftext|><|im_start|>user\nHello! What can you do?<|im_end|>\n"
+ },
+ "system_multiturn": {
+  "output": "<|startoftext|><|im_start|>system\nYou are a helpful assistant.<|im_end|>\n<|im_start|>user\nWhat is 2+2?<|im_end|>\n<|im_start|>assistant\n2+2 equals 4.<|im_end|>\n<|im_start|>user\nAnd 3+3?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|startoftext|><|im_start|>user\nName a color.<|im_end|>\n<|im_start|>assistant\nBlue.<|im_end|>\n<|im_start|>user\nAnother one, please.<|im_end|>\n<|im_start|>assistant\nGreen.<|im_end|>\n"
+ },
+ "tools_defined": {
+  "output": "<|startoftext|><|im_start|>system\nList of tools: [{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}}, {\"type\": \"function\", \"function\": {\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}}]<|im_end|>\n<|im_start|>user\nWhat is the weather in Paris?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<|startoftext|><|im_start|>system\nYou can call tools.\nList of tools: [{\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}}]<|im_end|>\n<|im_start|>user\nWhat is the weather in São Paulo?<|im_end|>\n<|im_start|>assistant\n<|tool_call_start|>[get_weather(location='São Paulo', unit='celsius', days=2)]<|tool_call_end|><|im_end|>\n<|im_start|>tool\n{\"temperature\": 22.5, \"condition\": \"sunny\"}<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "TypeError",
+   "message": "'NoneType' object is not iterable",
+   "line": 19
+  }
+ },
+ "continue_final_message": {
+  "output": "<|startoftext|><|im_start|>user\nFinish the sentence.<|im_end|>\n<|im_start|>assistant\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<|startoftext|><|im_start|>system\nVocê é um assistente útil. 🙂<|im_end|>\n<|im_start|>user\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.  <|im_end|>\n<|im_start|>assistant\n"
+ },
+ "thinking_disabled": {
+  "output": "<|startoftext|><|im_start|>user\nGive me a short answer: what is the speed of light?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "reasoning_history": {
+  "output": "<|startoftext|><|im_start|>user\nHi there.<|im_end|>\n<|im_start|>assistant\nHello! How can I help?<|im_end|>\n<|im_start|>user\nWhat is 7 * 6?<|im_end|>\n<|im_start|>assistant\nIt is 42.<|im_end|>\n<|im_start|>user\nAnd 6 * 9?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "date_string": {
+  "output": "<|startoftext|><|im_start|>system\nAnswer briefly.<|im_end|>\n<|im_start|>user\nWhat day is it?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "content_parts": {
+  "output": "<|startoftext|><|im_start|>user\nWhat is in this image?<image><|im_end|>\n<|im_start|>assistant\n"
+ },
+ "roles_not_alternating": {
+  "output": "<|startoftext|><|im_start|>user\nFirst question.<|im_end|>\n<|im_start|>user\nSecond question.<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "documents": {
+  "output": "<|startoftext|><|im_start|>user\nWhat is the capital of France?<|im_end|>\n<|im_start|>assistant\n"
+ },
+ "reasoning_effort": {
+  "output": "<|startoftext|><|im_start|>system\nYou are terse.<|im_end|>\n<|im_start|>user\nExplain recursion in one line.<|im_end|>\n<|im_start|>assistant\n"
+ }
+}
