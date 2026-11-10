@@ -99,7 +99,7 @@ jobs:
           fi
       - name: Open or update the PR
         if: steps.changes.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        uses: peter-evans/create-pull-request@15733dbdfeedb4f7fdb73d13c6f5ac83b710fab8 # v8.1.2
         with:
           # A PR that GITHUB_TOKEN opens does not start the PR workflows. A token in REFERENCE_PR_TOKEN starts them.
           token: ${{ secrets.REFERENCE_PR_TOKEN || secrets.GITHUB_TOKEN }}
