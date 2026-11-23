@@ -1,0 +1,58 @@
+{
+ "user": {
+  "output": "<extra_id_0>System\n\n<extra_id_1>User\nHello! What can you do?\n<extra_id_1>Assistant\n"
+ },
+ "user_without_generation_prompt": {
+  "output": "<extra_id_0>System\n\n<extra_id_1>User\nHello! What can you do?\n"
+ },
+ "system_multiturn": {
+  "output": "<extra_id_0>System\nYou are a helpful assistant.\n\n<extra_id_1>User\nWhat is 2+2?\n<extra_id_1>Assistant\n2+2 equals 4.\n<extra_id_1>User\nAnd 3+3?\n<extra_id_1>Assistant\n"
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<extra_id_0>System\n\n<extra_id_1>User\nName a color.\n<extra_id_1>Assistant\nBlue.\n<extra_id_1>User\nAnother one, please.\n<extra_id_1>Assistant\nGreen.\n"
+ },
+ "tools_defined": {
+  "output": "<extra_id_0>System\n<tool> {\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city. Use <celsius> & 'metric' units > 0.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city, for example \\\"Paris, France\\\"\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}, \"days\": {\"type\": \"integer\", \"description\": \"Number of days\", \"default\": 1}}, \"required\": [\"location\"]}}} </tool>\n<tool> {\"type\": \"function\", \"function\": {\"name\": \"search\", \"description\": \"Search the web.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"query\": {\"type\": \"string\"}, \"max_results\": {\"type\": \"number\", \"minimum\": 0.5}}, \"required\": [\"query\", \"max_results\"]}}} </tool>\n\n<extra_id_1>User\nWhat is the weather in Paris?\n<extra_id_1>Assistant\n"
+ },
+ "tool_call_roundtrip": {
+  "output": "<extra_id_0>System\nYou can call tools.\n\n<tool> {\"type\": \"function\", \"function\": {\"name\": \"get_weather\", \"description\": \"Get the current weather in a city.\", \"parameters\": {\"type\": \"object\", \"properties\": {\"location\": {\"type\": \"string\", \"description\": \"The city name\"}, \"unit\": {\"type\": \"string\", \"enum\": [\"celsius\", \"fahrenheit\"]}}, \"required\": [\"location\"]}}} </tool>\n\n<extra_id_1>User\nWhat is the weather in São Paulo?\n<extra_id_1>Assistant\n\n<extra_id_1>Tool\n{\"temperature\": 22.5, \"condition\": \"sunny\"}\n<extra_id_1>Assistant\n"
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'None' has no attribute 'strip'",
+   "line": 11
+  }
+ },
+ "continue_final_message": {
+  "output": "<extra_id_0>System\n\n<extra_id_1>User\nFinish the sentence.\n<extra_id_1>Assistant\nThe capital of France is"
+ },
+ "unicode": {
+  "output": "<extra_id_0>System\nVocê é um assistente útil. 🙂\n\n<extra_id_1>User\n日本語で答えて。Emoji: 👍🏽 👨‍👩‍👧 «quotes» \"double\" 'single' <b>&amp;</b>\ttab, back\\slash,\nnew line.\n<extra_id_1>Assistant\n"
+ },
+ "thinking_disabled": {
+  "output": "<extra_id_0>System\n\n<extra_id_1>User\nGive me a short answer: what is the speed of light?\n<extra_id_1>Assistant\n"
+ },
+ "reasoning_history": {
+  "output": "<extra_id_0>System\n\n<extra_id_1>User\nHi there.\n<extra_id_1>Assistant\n<think>\nThe user greets me.\n</think>\n\nHello! How can I help?\n<extra_id_1>User\nWhat is 7 * 6?\n<extra_id_1>Assistant\nIt is 42.\n<extra_id_1>User\nAnd 6 * 9?\n<extra_id_1>Assistant\n"
+ },
+ "date_string": {
+  "output": "<extra_id_0>System\nAnswer briefly.\n\n<extra_id_1>User\nWhat day is it?\n<extra_id_1>Assistant\n"
+ },
+ "content_parts": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'list object' has no attribute 'strip'",
+   "line": 9
+  }
+ },
+ "roles_not_alternating": {
+  "output": "<extra_id_0>System\n\n<extra_id_1>User\nFirst question.\n<extra_id_1>User\nSecond question.\n<extra_id_1>Assistant\n"
+ },
+ "documents": {
+  "output": "<extra_id_0>System\n\n<extra_id_1>User\nWhat is the capital of France?\n<extra_id_1>Assistant\n"
+ },
+ "reasoning_effort": {
+  "output": "<extra_id_0>System\nYou are terse.\n\n<extra_id_1>User\nExplain recursion in one line.\n<extra_id_1>Assistant\n"
+ }
+}

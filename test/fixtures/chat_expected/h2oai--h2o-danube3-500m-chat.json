@@ -1,0 +1,82 @@
+{
+ "user": {
+  "output": "<|prompt|>Hello! What can you do?</s><|answer|>"
+ },
+ "user_without_generation_prompt": {
+  "output": "<|prompt|>Hello! What can you do?</s>"
+ },
+ "system_multiturn": {
+  "error": {
+   "type": "TemplateError",
+   "message": "System role not supported",
+   "line": 1
+  }
+ },
+ "multiturn_ending_with_assistant": {
+  "output": "<|prompt|>Name a color.</s><|answer|>Blue.</s><|prompt|>Another one, please.</s><|answer|>Green.</s>"
+ },
+ "tools_defined": {
+  "output": "<|prompt|>What is the weather in Paris?</s><|answer|>"
+ },
+ "tool_call_roundtrip": {
+  "error": {
+   "type": "TemplateError",
+   "message": "System role not supported",
+   "line": 1
+  }
+ },
+ "tool_call_string_arguments": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'None' has no attribute 'strip'",
+   "line": 1
+  }
+ },
+ "continue_final_message": {
+  "output": "<|prompt|>Finish the sentence.</s><|answer|>The capital of France is"
+ },
+ "unicode": {
+  "error": {
+   "type": "TemplateError",
+   "message": "System role not supported",
+   "line": 1
+  }
+ },
+ "thinking_disabled": {
+  "output": "<|prompt|>Give me a short answer: what is the speed of light?</s><|answer|>"
+ },
+ "reasoning_history": {
+  "output": "<|prompt|>Hi there.</s><|answer|><think>\nThe user greets me.\n</think>\n\nHello! How can I help?</s><|prompt|>What is 7 * 6?</s><|answer|>It is 42.</s><|prompt|>And 6 * 9?</s><|answer|>"
+ },
+ "date_string": {
+  "error": {
+   "type": "TemplateError",
+   "message": "System role not supported",
+   "line": 1
+  }
+ },
+ "content_parts": {
+  "error": {
+   "type": "UndefinedError",
+   "message": "'list object' has no attribute 'strip'",
+   "line": 1
+  }
+ },
+ "roles_not_alternating": {
+  "error": {
+   "type": "TemplateError",
+   "message": "Conversation roles must alternate user/assistant/user/assistant/...",
+   "line": 1
+  }
+ },
+ "documents": {
+  "output": "<|prompt|>What is the capital of France?</s><|answer|>"
+ },
+ "reasoning_effort": {
+  "error": {
+   "type": "TemplateError",
+   "message": "System role not supported",
+   "line": 1
+  }
+ }
+}
