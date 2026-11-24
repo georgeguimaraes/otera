@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.1](https://github.com/georgeguimaraes/otera/compare/v0.2.0...v0.2.1) (2026-11-24)
+
+
+### Bug Fixes
+
+* compare the errno of a math range error, not libc's wording ([5e7150c](https://github.com/georgeguimaraes/otera/commit/5e7150cc2920d43b1f65fc724efad331b8cfa616))
+
+
+### Miscellaneous
+
+* **ci:** Publish to Hex with a workload identity instead of an API key ([0f7aaa6](https://github.com/georgeguimaraes/otera/commit/0f7aaa62ac3ed2b928e8733756786080a2ffdc24))
+* **deps:** Bump all dependencies ([ca476ae](https://github.com/georgeguimaraes/otera/commit/ca476aede1049c193c6b22964955579ee590c42c))
+* **deps:** Bump astral-sh/setup-uv from 10.3.0 to 10.3.2 ([#3](https://github.com/georgeguimaraes/otera/issues/3)) ([16c0af7](https://github.com/georgeguimaraes/otera/commit/16c0af736e81bd8e60074197523a2345fd24f9f9))
+
 ## [0.2.0](https://github.com/georgeguimaraes/otera/compare/v0.1.0...v0.2.0) (2026-10-20)
 
 
